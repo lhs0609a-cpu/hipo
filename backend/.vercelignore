@@ -1,0 +1,8 @@
+node_modules
+*.sqlite
+*.db
+.env.local
+.env.development
+database
+database_new.sqlite
+uploads
