@@ -36,8 +36,14 @@ async function testConnection() {
   try {
     await sequelize.authenticate();
     console.log('✅ Database connection established successfully');
+    return true;
   } catch (error) {
     console.error('❌ Unable to connect to database:', error.message);
+    // Don't exit in serverless environment
+    if (process.env.VERCEL) {
+      console.log('⚠️ Running in Vercel without database connection');
+      return false;
+    }
     process.exit(1);
   }
 }

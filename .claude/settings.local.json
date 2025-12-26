@@ -63,7 +63,8 @@
       "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" auth status)",
       "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" auth login --web -h github.com)",
       "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" repo create hipo --public --source=. --remote=origin --push)",
-      "Bash(git push)"
+      "Bash(git push)",
+      "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" --version)"
     ],
     "deny": [],
     "ask": []
