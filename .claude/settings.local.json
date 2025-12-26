@@ -57,7 +57,13 @@
       "Bash(gh auth status:*)",
       "Bash(where gh)",
       "Bash(\"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" auth status)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(winget install:*)",
+      "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" auth status)",
+      "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" auth login --web -h github.com)",
+      "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" repo create hipo --public --source=. --remote=origin --push)",
+      "Bash(git push)"
     ],
     "deny": [],
     "ask": []
