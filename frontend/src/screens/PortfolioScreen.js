@@ -1,105 +1,82 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   FlatList,
-  TouchableOpacity,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
-  Alert,
+  TouchableOpacity,
 } from 'react-native';
-import { stockAPI, walletAPI } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
+import { getMyHoldings } from '../api/stocks';
+import { COLORS } from '../constants/colors';
 
-const PortfolioScreen = ({ navigation }) => {
-  const { isAuthenticated } = useAuth();
+export default function PortfolioScreen({ navigation }) {
   const [holdings, setHoldings] = useState([]);
-  const [balance, setBalance] = useState(0);
-  const [totalValue, setTotalValue] = useState(0);
+  const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState(null);
 
-  const fetchData = async () => {
-    if (!isAuthenticated) {
-      setLoading(false);
-      return;
-    }
+  useEffect(() => {
+    loadHoldings();
+  }, []);
 
+  const loadHoldings = async () => {
     try {
-      setError(null);
-      const [holdingsRes, walletRes] = await Promise.all([
-        stockAPI.getHoldings(),
-        walletAPI.getBalance(),
-      ]);
-
-      const holdingsData = holdingsRes.data.holdings || [];
-      setHoldings(holdingsData);
-      setBalance(walletRes.data.balance || 0);
-
-      const total = holdingsData.reduce((sum, item) => {
-        return sum + (item.currentPrice || 0) * (item.quantity || 0);
-      }, 0);
-      setTotalValue(total);
+      const data = await getMyHoldings();
+      setHoldings(data.holdings);
+      setSummary(data.summary);
     } catch (error) {
-      console.error('Error fetching portfolio:', error);
-
-      let errorMessage = '포트폴리오를 불러올 수 없습니다';
-      if (error.response) {
-        errorMessage = error.response.data?.message || `서버 오류 (${error.response.status})`;
-      } else if (error.request) {
-        errorMessage = '서버에 연결할 수 없습니다.\n인터넷 연결을 확인해주세요.';
-      }
-      setError(errorMessage);
+      console.error('보유 크리에이터 조회 오류:', error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    fetchData();
-  }, [isAuthenticated]);
-
-  const onRefresh = useCallback(() => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    fetchData();
-  }, []);
+    await loadHoldings();
+    setRefreshing(false);
+  };
 
-  const renderHoldingItem = ({ item }) => {
-    // 백엔드 응답 구조에 맞게 데이터 매핑
-    const currentPrice = item.stock?.sharePrice || item.currentPrice || 0;
-    const avgPrice = item.averagePrice || item.avgPrice || 0;
-    const quantity = item.quantity || 0;
-    const currentValue = currentPrice * quantity;
-    const purchaseValue = avgPrice * quantity;
-    const profitLoss = currentValue - purchaseValue;
-    const profitLossPercent = purchaseValue > 0 ? ((profitLoss / purchaseValue) * 100) : 0;
-    const isPositive = profitLoss >= 0;
-    const displayName = item.stock?.issuer?.displayName || item.stock?.issuer?.username || item.stock?.name || '주식';
+  const renderHolding = ({ item }) => {
+    const currentValue = item.stock.sharePrice * item.shares;
+    const investedValue = item.averagePrice * item.shares;
+    const profit = currentValue - investedValue;
+    const profitRate = ((profit / investedValue) * 100).toFixed(2);
+    const isProfit = profit >= 0;
 
     return (
       <TouchableOpacity
-        style={styles.holdingItem}
-        onPress={() => navigation.navigate('StockDetail', { stockId: item.stockId, stock: item.stock })}
+        style={styles.holdingCard}
+        onPress={() => navigation.navigate('StockDetail', { stockId: item.stock.id })}
+        activeOpacity={0.7}
       >
-        <View style={styles.holdingLeft}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {displayName.charAt(0).toUpperCase()}
+        <View style={styles.holdingHeader}>
+          <Text style={styles.holdingName}>{item.stock.issuer.username}</Text>
+          <View style={styles.holdingPriceInfo}>
+            <Text style={styles.currentPrice}>{item.stock.sharePrice.toLocaleString()} PO</Text>
+            <Text style={[styles.profitRate, { color: isProfit ? COLORS.up : COLORS.down }]}>
+              {isProfit ? '+' : ''}{profitRate}%
             </Text>
           </View>
-          <View style={styles.holdingInfo}>
-            <Text style={styles.stockName}>{displayName}</Text>
-            <Text style={styles.quantity}>{quantity}주 보유</Text>
-          </View>
         </View>
-        <View style={styles.holdingRight}>
-          <Text style={styles.value}>{currentValue.toLocaleString()}원</Text>
-          <Text style={[styles.profitLoss, isPositive ? styles.positive : styles.negative]}>
-            {isPositive ? '+' : ''}{profitLoss.toLocaleString()}원 ({isPositive ? '+' : ''}{profitLossPercent.toFixed(2)}%)
-          </Text>
+
+        <View style={styles.holdingDetails}>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>보유 수량</Text>
+            <Text style={styles.detailValue}>{item.shares.toLocaleString()}주</Text>
+          </View>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>평가 금액</Text>
+            <Text style={styles.detailValue}>{currentValue.toLocaleString()} PO</Text>
+          </View>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>평가 손익</Text>
+            <Text style={[styles.detailValue, { color: isProfit ? COLORS.up : COLORS.down }]}>
+              {isProfit ? '+' : ''}{profit.toLocaleString()} PO
+            </Text>
+          </View>
         </View>
       </TouchableOpacity>
     );
@@ -107,339 +84,223 @@ const PortfolioScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
-
-  // 로그인하지 않은 경우
-  if (!isAuthenticated) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>내 포트폴리오</Text>
-        </View>
-        <View style={styles.loginRequiredContainer}>
-          <Text style={styles.loginRequiredIcon}>🔒</Text>
-          <Text style={styles.loginRequiredTitle}>로그인이 필요합니다</Text>
-          <Text style={styles.loginRequiredText}>
-            포트폴리오를 확인하려면{'\n'}로그인해주세요.
-          </Text>
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => navigation.navigate('Login')}
-          >
-            <Text style={styles.loginButtonText}>로그인하기</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={() => navigation.navigate('Register')}
-          >
-            <Text style={styles.registerButtonText}>회원가입</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  // 에러가 있는 경우
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>내 포트폴리오</Text>
-        </View>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorIcon}>⚠️</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
-            <Text style={styles.retryButtonText}>다시 시도</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  const totalAssets = balance + totalValue;
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>내 포트폴리오</Text>
-      </View>
-
-      <View style={styles.summaryCard}>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>총 자산</Text>
-          <Text style={styles.summaryValue}>{totalAssets.toLocaleString()}원</Text>
-        </View>
-        <View style={styles.divider} />
-        <View style={styles.summaryDetails}>
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>예수금</Text>
-            <Text style={styles.detailValue}>{balance.toLocaleString()}원</Text>
+      {summary && (
+        <View style={styles.summarySection}>
+          <View style={styles.totalValue}>
+            <Text style={styles.summaryLabel}>총 평가 금액</Text>
+            <Text style={styles.summaryAmount}>{summary.totalValue.toLocaleString()}</Text>
+            <Text style={styles.currency}>PO</Text>
           </View>
-          <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>주식 평가</Text>
-            <Text style={styles.detailValue}>{totalValue.toLocaleString()}원</Text>
-          </View>
-        </View>
-      </View>
 
-      <View style={styles.holdingsSection}>
-        <Text style={styles.sectionTitle}>보유 주식</Text>
-        <FlatList
-          data={holdings}
-          renderItem={renderHoldingItem}
-          keyExtractor={(item) => item.id?.toString()}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>보유 중인 주식이 없습니다</Text>
-              <TouchableOpacity
-                style={styles.exploreButton}
-                onPress={() => navigation.navigate('Home')}
-              >
-                <Text style={styles.exploreButtonText}>주식 둘러보기</Text>
-              </TouchableOpacity>
+          <View style={styles.summaryDetails}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryItemLabel}>총 투자 금액</Text>
+              <Text style={styles.summaryItemValue}>{summary.totalInvested.toLocaleString()} PO</Text>
             </View>
-          }
-        />
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryItemLabel}>총 평가 손익</Text>
+              <Text style={[
+                styles.summaryItemValue,
+                { color: summary.profitAmount >= 0 ? COLORS.up : COLORS.down }
+              ]}>
+                {summary.profitAmount >= 0 ? '+' : ''}{summary.profitAmount.toLocaleString()} PO
+              </Text>
+            </View>
+            <View style={styles.summaryDivider} />
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryItemLabel}>수익률</Text>
+              <Text style={[
+                styles.summaryItemValue,
+                { color: summary.profitRate >= 0 ? COLORS.up : COLORS.down }
+              ]}>
+                {summary.profitRate >= 0 ? '+' : ''}{summary.profitRate}%
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      <View style={styles.listHeader}>
+        <Text style={styles.listTitle}>보유 크리에이터</Text>
+        <Text style={styles.listCount}>{holdings.length}개</Text>
       </View>
+
+      <FlatList
+        data={holdings}
+        renderItem={renderHolding}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyIcon}>📊</Text>
+            <Text style={styles.emptyText}>보유 중인 크리에이터가 없습니다</Text>
+            <Text style={styles.emptySubtext}>홈에서 관심있는 크리에이터를 매수해보세요</Text>
+          </View>
+        }
+      />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
   },
-  loadingContainer: {
+  centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.background,
   },
-  header: {
-    backgroundColor: '#007AFF',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+  summarySection: {
+    backgroundColor: COLORS.surface,
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  summaryCard: {
-    backgroundColor: '#fff',
-    margin: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  summaryRow: {
+  totalValue: {
     alignItems: 'center',
+    marginBottom: 24,
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textSecondary,
+    marginBottom: 8,
   },
-  summaryValue: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 8,
+  summaryAmount: {
+    fontSize: 40,
+    fontWeight: '700',
+    color: COLORS.text,
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#eee',
-    marginVertical: 16,
+  currency: {
+    fontSize: 18,
+    color: COLORS.textSecondary,
+    marginTop: 4,
   },
   summaryDetails: {
     flexDirection: 'row',
     justifyContent: 'space-around',
   },
-  detailItem: {
+  summaryItem: {
+    flex: 1,
     alignItems: 'center',
   },
-  detailLabel: {
-    fontSize: 13,
-    color: '#666',
+  summaryItemLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginBottom: 6,
   },
-  detailValue: {
+  summaryItemValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  summaryDivider: {
+    width: 1,
+    backgroundColor: COLORS.divider,
+  },
+  listHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: COLORS.surface,
+  },
+  listTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  listCount: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  list: {
+    padding: 20,
+    gap: 12,
+  },
+  holdingCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  holdingHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.divider,
+  },
+  holdingName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  holdingPriceInfo: {
+    alignItems: 'flex-end',
+  },
+  currentPrice: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
-    marginTop: 4,
+    color: COLORS.text,
+    marginBottom: 4,
   },
-  holdingsSection: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
+  profitRate: {
+    fontSize: 14,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 12,
   },
-  holdingItem: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+  holdingDetails: {
+    gap: 10,
+  },
+  detailItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  holdingLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  detailLabel: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  avatarText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  holdingInfo: {
-    justifyContent: 'center',
-  },
-  stockName: {
-    fontSize: 16,
+  detailValue: {
+    fontSize: 15,
     fontWeight: '600',
-    color: '#333',
-  },
-  quantity: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 2,
-  },
-  holdingRight: {
-    alignItems: 'flex-end',
-  },
-  value: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  profitLoss: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  positive: {
-    color: '#e74c3c',
-  },
-  negative: {
-    color: '#3498db',
+    color: COLORS.text,
   },
   emptyContainer: {
+    padding: 60,
     alignItems: 'center',
-    paddingTop: 40,
   },
-  emptyText: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 16,
-  },
-  exploreButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  exploreButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  loginRequiredContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  loginRequiredIcon: {
-    fontSize: 64,
-    marginBottom: 20,
-  },
-  loginRequiredTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-  },
-  loginRequiredText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 30,
-  },
-  loginButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 14,
-    paddingHorizontal: 60,
-    borderRadius: 10,
-    marginBottom: 12,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  registerButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 60,
-  },
-  registerButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  errorIcon: {
+  emptyIcon: {
     fontSize: 48,
     marginBottom: 16,
   },
-  errorText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 20,
-  },
-  retryButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#fff',
+  emptyText: {
     fontSize: 16,
     fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
   },
 });
-
-export default PortfolioScreen;

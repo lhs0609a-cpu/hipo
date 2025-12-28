@@ -6,78 +6,117 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  TextInput,
+  RefreshControl,
 } from 'react-native';
-import { messageAPI } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
+import { COLORS } from '../constants/colors';
+import { API_URL } from '../config';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSocket } from '../contexts/SocketContext';
 
-const MessageScreen = ({ navigation }) => {
-  const { isAuthenticated } = useAuth();
+export default function MessageScreen({ navigation }) {
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const { socket, isConnected } = useSocket();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchConversations();
-    } else {
-      setLoading(false);
-    }
-  }, [isAuthenticated]);
+    loadConversations();
 
-  const fetchConversations = async () => {
+    // 새 메시지 수신 시 목록 업데이트
+    if (socket && isConnected) {
+      socket.on('message:new', handleNewMessage);
+
+      return () => {
+        socket.off('message:new', handleNewMessage);
+      };
+    }
+  }, [socket, isConnected]);
+
+  const handleNewMessage = (message) => {
+    // 새 메시지가 오면 대화 목록 새로고침
+    loadConversations();
+  };
+
+  const loadConversations = async () => {
     try {
-      const response = await messageAPI.getConversations();
+      const token = await AsyncStorage.getItem('token');
+      const response = await axios.get(
+        `${API_URL}/messages/conversations`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setConversations(response.data.conversations || []);
     } catch (error) {
-      console.error('Error fetching conversations:', error);
+      console.error('대화 목록 로드 오류:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const getTimeAgo = (dateString) => {
-    if (!dateString) return '';
-    const now = new Date();
-    const date = new Date(dateString);
-    const diff = Math.floor((now - date) / 1000);
-
-    if (diff < 60) return '방금';
-    if (diff < 3600) return `${Math.floor(diff / 60)}분`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}시간`;
-    return `${Math.floor(diff / 86400)}일`;
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadConversations();
   };
 
-  const renderConversationItem = ({ item }) => {
-    const otherUser = item.otherUser || item.user;
-    const userName = otherUser?.displayName || otherUser?.username || '사용자';
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return '방금 전';
+    if (diffMins < 60) return `${diffMins}분 전`;
+    if (diffHours < 24) return `${diffHours}시간 전`;
+    if (diffDays < 7) return `${diffDays}일 전`;
+    return date.toLocaleDateString('ko-KR');
+  };
+
+  const renderConversation = ({ item }) => {
+    const hasUnread = item.unreadCount > 0;
 
     return (
       <TouchableOpacity
-        style={styles.conversationItem}
-        onPress={() => navigation.navigate('ChatRoom', { userId: otherUser?.id, userName })}
+        style={[styles.conversationCard, hasUnread && styles.conversationCardUnread]}
+        onPress={() =>
+          navigation.navigate('ChatDetail', {
+            conversationId: item.id,
+            otherUser: item.otherUser,
+          })
+        }
       >
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {userName.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.conversationInfo}>
-          <View style={styles.conversationHeader}>
-            <Text style={styles.userName}>{userName}</Text>
-            <Text style={styles.timeAgo}>
-              {getTimeAgo(item.lastMessage?.createdAt)}
+        <View style={styles.conversationHeader}>
+          <View style={styles.avatarPlaceholder}>
+            <Text style={styles.avatarText}>
+              {item.otherUser?.username?.charAt(0).toUpperCase() || '?'}
             </Text>
           </View>
-          <View style={styles.messagePreview}>
-            <Text style={[styles.lastMessage, !item.isRead && styles.unreadMessage]} numberOfLines={1}>
-              {item.lastMessage?.content || '대화를 시작하세요'}
-            </Text>
-            {item.unreadCount > 0 && (
-              <View style={styles.unreadBadge}>
-                <Text style={styles.unreadCount}>{item.unreadCount}</Text>
-              </View>
-            )}
+
+          <View style={styles.conversationContent}>
+            <View style={styles.conversationTop}>
+              <Text style={[styles.username, hasUnread && styles.usernameUnread]}>
+                {item.otherUser?.username || '알 수 없음'}
+              </Text>
+              <Text style={styles.time}>{formatTime(item.lastMessageAt)}</Text>
+            </View>
+
+            <View style={styles.conversationBottom}>
+              <Text
+                style={[styles.lastMessage, hasUnread && styles.lastMessageUnread]}
+                numberOfLines={1}
+              >
+                {item.lastMessage || '메시지 없음'}
+              </Text>
+              {hasUnread && (
+                <View style={styles.unreadBadge}>
+                  <Text style={styles.unreadText}>{item.unreadCount}</Text>
+                </View>
+              )}
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -86,31 +125,8 @@ const MessageScreen = ({ navigation }) => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>메시지</Text>
-        </View>
-        <View style={styles.loginRequiredContainer}>
-          <Text style={styles.loginRequiredIcon}>💬</Text>
-          <Text style={styles.loginRequiredTitle}>로그인이 필요합니다</Text>
-          <Text style={styles.loginRequiredText}>
-            메시지를 확인하려면{'\n'}로그인해주세요.
-          </Text>
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => navigation.navigate('Login')}
-          >
-            <Text style={styles.loginButtonText}>로그인하기</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
@@ -119,190 +135,168 @@ const MessageScreen = ({ navigation }) => {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>메시지</Text>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="검색..."
-          placeholderTextColor="#999"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+        <View style={styles.headerRight}>
+          {isConnected && <View style={styles.onlineDot} />}
+          <Text style={styles.headerSubtitle}>
+            {isConnected ? '온라인' : '오프라인'}
+          </Text>
+        </View>
       </View>
 
       <FlatList
         data={conversations}
-        renderItem={renderConversationItem}
-        keyExtractor={(item) => item.id?.toString()}
-        contentContainerStyle={styles.listContainer}
+        renderItem={renderConversation}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>💬</Text>
-            <Text style={styles.emptyText}>대화가 없습니다</Text>
-            <Text style={styles.emptySubtext}>다른 사용자에게 메시지를 보내보세요</Text>
+            <Text style={styles.emptyText}>대화 내역이 없습니다</Text>
+            <Text style={styles.emptySubtext}>
+              다른 사용자에게 메시지를 보내보세요!
+            </Text>
           </View>
         }
       />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
   },
-  loadingContainer: {
+  centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#007AFF',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: COLORS.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: COLORS.text,
   },
-  searchContainer: {
-    padding: 16,
-    backgroundColor: '#fff',
-  },
-  searchInput: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
-  },
-  listContainer: {
-    flexGrow: 1,
-  },
-  conversationItem: {
+  headerRight: {
     flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 14,
   },
-  avatarText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#fff',
+  onlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.success,
+    marginRight: 6,
   },
-  conversationInfo: {
-    flex: 1,
-    justifyContent: 'center',
+  headerSubtitle: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+  listContent: {
+    padding: 16,
+  },
+  conversationCard: {
+    backgroundColor: COLORS.surface,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  conversationCardUnread: {
+    borderColor: COLORS.primary,
+    borderWidth: 2,
   },
   conversationHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
   },
-  userName: {
+  avatarPlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  avatarText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  conversationContent: {
+    flex: 1,
+  },
+  conversationTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  username: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.text,
   },
-  timeAgo: {
+  usernameUnread: {
+    fontWeight: 'bold',
+  },
+  time: {
     fontSize: 12,
-    color: '#999',
+    color: COLORS.textSecondary,
   },
-  messagePreview: {
+  conversationBottom: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   lastMessage: {
-    flex: 1,
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textSecondary,
+    flex: 1,
   },
-  unreadMessage: {
+  lastMessageUnread: {
+    color: COLORS.text,
     fontWeight: '600',
-    color: '#333',
   },
   unreadBadge: {
-    backgroundColor: '#007AFF',
+    backgroundColor: COLORS.primary,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 6,
     marginLeft: 8,
   },
-  unreadCount: {
+  unreadText: {
     color: '#fff',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: 'bold',
   },
   emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 60,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: 16,
+    justifyContent: 'center',
+    paddingVertical: 80,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
-  },
-  loginRequiredContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  loginRequiredIcon: {
-    fontSize: 64,
-    marginBottom: 20,
-  },
-  loginRequiredTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-  },
-  loginRequiredText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 30,
-  },
-  loginButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 14,
-    paddingHorizontal: 60,
-    borderRadius: 10,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '600',
+    color: COLORS.textSecondary,
   },
 });
-
-export default MessageScreen;

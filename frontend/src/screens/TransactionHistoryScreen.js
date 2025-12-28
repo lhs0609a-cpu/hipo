@@ -1,380 +1,312 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
+  StyleSheet,
   FlatList,
   TouchableOpacity,
-  StyleSheet,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
-import { stockAPI } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
+import { getTransactions } from '../api/stocks';
+import { COLORS } from '../constants/colors';
 
-const TransactionHistoryScreen = ({ navigation }) => {
-  const { isAuthenticated } = useAuth();
+export default function TransactionHistoryScreen({ navigation }) {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all');
+  const [filterType, setFilterType] = useState('all'); // 'all', 'buy', 'sell'
 
-  const fetchTransactions = async () => {
-    if (!isAuthenticated) {
-      setLoading(false);
-      return;
-    }
+  useEffect(() => {
+    loadTransactions();
+  }, []);
 
+  const loadTransactions = async () => {
     try {
-      setError(null);
-      const response = await stockAPI.getTransactions();
-      setTransactions(response.data.transactions || []);
+      const data = await getTransactions();
+      setTransactions(data.transactions || []);
     } catch (error) {
-      console.error('Error fetching transactions:', error);
-      let errorMessage = '거래 내역을 불러올 수 없습니다';
-      if (error.response) {
-        errorMessage = error.response.data?.message || `서버 오류 (${error.response.status})`;
-      } else if (error.request) {
-        errorMessage = '서버에 연결할 수 없습니다.\n인터넷 연결을 확인해주세요.';
-      }
-      setError(errorMessage);
+      console.error('거래 내역 조회 오류:', error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [isAuthenticated]);
-
-  const onRefresh = useCallback(() => {
+  const onRefresh = async () => {
     setRefreshing(true);
-    fetchTransactions();
-  }, []);
+    await loadTransactions();
+    setRefreshing(false);
+  };
 
-  const filteredTransactions = transactions.filter(t => {
-    if (filter === 'all') return true;
-    return t.type === filter;
-  });
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
-  const renderTransactionItem = ({ item }) => {
-    const isBuy = item.type === 'buy';
-    const stockName = item.stock?.issuer?.displayName || item.stock?.issuer?.username || item.stockName || '주식';
-    const totalAmount = (item.price || 0) * (item.quantity || 0);
+  const getFilteredTransactions = () => {
+    if (filterType === 'all') return transactions;
+    return transactions.filter(t => t.transactionType === filterType.toUpperCase());
+  };
+
+  const renderTransaction = ({ item }) => {
+    const isBuy = item.transactionType === 'BUY';
+    const typeColor = isBuy ? COLORS.up : COLORS.down;
+    const typeText = isBuy ? '매수' : '매도';
+    const totalAmount = item.shares * item.pricePerShare;
 
     return (
       <TouchableOpacity
-        style={styles.transactionItem}
-        onPress={() => item.stockId && navigation.navigate('StockDetail', { stockId: item.stockId })}
+        style={styles.transactionCard}
+        onPress={() => navigation.navigate('StockDetail', { stockId: item.stock?.id })}
+        activeOpacity={0.7}
       >
-        <View style={[styles.typeBadge, isBuy ? styles.buyBadge : styles.sellBadge]}>
-          <Text style={styles.typeBadgeText}>{isBuy ? '매수' : '매도'}</Text>
+        <View style={styles.transactionHeader}>
+          <View style={styles.transactionLeft}>
+            <View style={[styles.typeBadge, { backgroundColor: typeColor }]}>
+              <Text style={styles.typeBadgeText}>{typeText}</Text>
+            </View>
+            <View style={styles.stockInfo}>
+              <Text style={styles.stockName}>{item.stock?.issuer?.username || '알 수 없음'}</Text>
+              <Text style={styles.transactionDate}>{formatDate(item.createdAt)}</Text>
+            </View>
+          </View>
         </View>
 
-        <View style={styles.transactionInfo}>
-          <Text style={styles.stockName}>{stockName}</Text>
-          <Text style={styles.transactionDetail}>
-            {item.quantity}주 × {(item.price || 0).toLocaleString()}원
-          </Text>
-          <Text style={styles.transactionDate}>
-            {new Date(item.createdAt || item.created_at).toLocaleString('ko-KR')}
-          </Text>
-        </View>
-
-        <View style={styles.amountContainer}>
-          <Text style={[styles.totalAmount, isBuy ? styles.buyAmount : styles.sellAmount]}>
-            {isBuy ? '-' : '+'}{totalAmount.toLocaleString()}원
-          </Text>
+        <View style={styles.transactionDetails}>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>거래 수량</Text>
+            <Text style={styles.detailValue}>{item.shares.toLocaleString()}주</Text>
+          </View>
+          <View style={styles.detailRow}>
+            <Text style={styles.detailLabel}>거래 단가</Text>
+            <Text style={styles.detailValue}>{item.pricePerShare.toLocaleString()} PO</Text>
+          </View>
+          <View style={[styles.detailRow, styles.totalRow]}>
+            <Text style={styles.totalLabel}>총 거래금액</Text>
+            <Text style={[styles.totalValue, { color: typeColor }]}>
+              {isBuy ? '-' : '+'}{totalAmount.toLocaleString()} PO
+            </Text>
+          </View>
         </View>
       </TouchableOpacity>
     );
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
-      </View>
-    );
-  }
+  const renderFilterTabs = () => {
+    const tabs = [
+      { key: 'all', label: '전체' },
+      { key: 'buy', label: '매수' },
+      { key: 'sell', label: '매도' },
+    ];
 
-  if (!isAuthenticated) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>거래 내역</Text>
-        </View>
-        <View style={styles.loginRequiredContainer}>
-          <Text style={styles.loginRequiredIcon}>📊</Text>
-          <Text style={styles.loginRequiredTitle}>로그인이 필요합니다</Text>
-          <Text style={styles.loginRequiredText}>
-            거래 내역을 확인하려면{'\n'}로그인해주세요.
-          </Text>
+      <View style={styles.filterTabs}>
+        {tabs.map((tab) => (
           <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => navigation.navigate('Login')}
+            key={tab.key}
+            style={[
+              styles.filterTab,
+              filterType === tab.key && styles.filterTabActive,
+            ]}
+            onPress={() => setFilterType(tab.key)}
           >
-            <Text style={styles.loginButtonText}>로그인하기</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>거래 내역</Text>
-        </View>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorIcon}>⚠️</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchTransactions}>
-            <Text style={styles.retryButtonText}>다시 시도</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>거래 내역</Text>
-        <Text style={styles.headerSubtitle}>총 {transactions.length}건의 거래</Text>
-      </View>
-
-      <View style={styles.filterContainer}>
-        {[
-          { key: 'all', label: '전체' },
-          { key: 'buy', label: '매수' },
-          { key: 'sell', label: '매도' },
-        ].map(f => (
-          <TouchableOpacity
-            key={f.key}
-            style={[styles.filterButton, filter === f.key && styles.filterButtonActive]}
-            onPress={() => setFilter(f.key)}
-          >
-            <Text style={[styles.filterText, filter === f.key && styles.filterTextActive]}>
-              {f.label}
+            <Text
+              style={[
+                styles.filterTabText,
+                filterType === tab.key && styles.filterTabTextActive,
+              ]}
+            >
+              {tab.label}
             </Text>
           </TouchableOpacity>
         ))}
       </View>
+    );
+  };
 
+  if (loading) {
+    return (
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  const filteredTransactions = getFilteredTransactions();
+
+  return (
+    <View style={styles.container}>
+      {/* 필터 탭 */}
+      {renderFilterTabs()}
+
+      {/* 거래 내역 리스트 */}
       <FlatList
         data={filteredTransactions}
-        renderItem={renderTransactionItem}
-        keyExtractor={(item) => item.id?.toString()}
-        contentContainerStyle={styles.listContainer}
+        renderItem={renderTransaction}
+        keyExtractor={(item) => item.id}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📋</Text>
+            <Text style={styles.emptyIcon}>📊</Text>
             <Text style={styles.emptyText}>거래 내역이 없습니다</Text>
-            <Text style={styles.emptySubtext}>주식을 매수하면 여기에 표시됩니다</Text>
+            <Text style={styles.emptySubtext}>
+              {filterType === 'all'
+                ? '주식을 거래하면 내역이 표시됩니다'
+                : `${filterType === 'buy' ? '매수' : '매도'} 내역이 없습니다`}
+            </Text>
           </View>
         }
+        contentContainerStyle={filteredTransactions.length === 0 ? styles.emptyListContent : styles.listContent}
       />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
   },
-  loadingContainer: {
+  centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.background,
   },
-  header: {
-    backgroundColor: '#007AFF',
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 4,
-  },
-  filterContainer: {
+  filterTabs: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    padding: 12,
-    gap: 8,
+    backgroundColor: COLORS.surface,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
-  filterButton: {
-    paddingVertical: 8,
+  filterTab: {
+    flex: 1,
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    borderRadius: 8,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
   },
-  filterButtonActive: {
-    backgroundColor: '#007AFF',
+  filterTabActive: {
+    backgroundColor: COLORS.primary,
   },
-  filterText: {
+  filterTabText: {
     fontSize: 14,
-    color: '#666',
-  },
-  filterTextActive: {
-    color: '#fff',
     fontWeight: '600',
+    color: COLORS.textSecondary,
   },
-  listContainer: {
-    padding: 16,
+  filterTabTextActive: {
+    color: '#FFFFFF',
   },
-  transactionItem: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+  listContent: {
     padding: 16,
-    marginBottom: 12,
+    gap: 12,
+  },
+  emptyListContent: {
+    flex: 1,
+  },
+  transactionCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  transactionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  transactionLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    gap: 12,
   },
   typeBadge: {
+    paddingHorizontal: 12,
     paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 6,
-    marginRight: 12,
-  },
-  buyBadge: {
-    backgroundColor: '#ffebee',
-  },
-  sellBadge: {
-    backgroundColor: '#e3f2fd',
+    borderRadius: 8,
   },
   typeBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
-  transactionInfo: {
-    flex: 1,
+  stockInfo: {
+    gap: 4,
   },
   stockName: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  transactionDetail: {
-    fontSize: 13,
-    color: '#666',
-    marginTop: 2,
+    fontWeight: '700',
+    color: COLORS.text,
   },
   transactionDate: {
     fontSize: 12,
-    color: '#999',
-    marginTop: 4,
+    color: COLORS.textSecondary,
   },
-  amountContainer: {
-    alignItems: 'flex-end',
+  transactionDetails: {
+    gap: 8,
   },
-  totalAmount: {
-    fontSize: 16,
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  detailLabel: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  detailValue: {
+    fontSize: 14,
     fontWeight: '600',
+    color: COLORS.text,
   },
-  buyAmount: {
-    color: '#e74c3c',
+  totalRow: {
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
   },
-  sellAmount: {
-    color: '#3498db',
+  totalLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  totalValue: {
+    fontSize: 18,
+    fontWeight: '700',
   },
   emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: 60,
+    paddingTop: 100,
   },
   emptyIcon: {
-    fontSize: 48,
+    fontSize: 64,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
-  },
-  loginRequiredContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  loginRequiredIcon: {
-    fontSize: 64,
-    marginBottom: 20,
-  },
-  loginRequiredTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-  },
-  loginRequiredText: {
-    fontSize: 16,
-    color: '#666',
+    color: COLORS.textSecondary,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 30,
-  },
-  loginButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 14,
-    paddingHorizontal: 60,
-    borderRadius: 10,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  errorIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 20,
-  },
-  retryButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });
-
-export default TransactionHistoryScreen;

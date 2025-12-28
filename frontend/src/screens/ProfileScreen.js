@@ -2,431 +2,830 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
+  TouchableOpacity,
   ScrollView,
   Alert,
+  Platform,
   ActivityIndicator,
+  Dimensions,
+  TextInput,
+  Modal,
 } from 'react-native';
-import { useAuth } from '../contexts/AuthContext';
-import { userAPI, stockAPI } from '../services/api';
+import { LineChart } from 'react-native-chart-kit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getSavedUser } from '../api/auth';
+import { getUserProfile, followUser } from '../api/users';
+import { COLORS, TRUST_LEVEL_COLORS } from '../constants/colors';
+import api from '../api/client';
 
-const ProfileScreen = ({ navigation }) => {
-  const { user, logout, isAuthenticated } = useAuth();
-  const [stats, setStats] = useState({
-    followers: 0,
-    following: 0,
-    holdings: 0,
-  });
+export default function ProfileScreen({ navigation, route }) {
+  const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [stockData, setStockData] = useState(null);
+  const [priceHistory, setPriceHistory] = useState([]);
+  const [showTradeModal, setShowTradeModal] = useState(false);
+  const [tradeType, setTradeType] = useState('buy'); // 'buy' or 'sell'
+  const [quantity, setQuantity] = useState('');
+  const [tradeLoading, setTradeLoading] = useState(false);
+  const userId = route?.params?.userId;
 
   useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      fetchStats();
-    } else {
-      setLoading(false);
-    }
-  }, [isAuthenticated, user?.id]);
+    loadProfile();
+  }, [userId]);
 
-  const fetchStats = async () => {
+  const loadProfile = async () => {
     try {
-      setError(null);
-      const [followersRes, followingRes, holdingsRes] = await Promise.all([
-        userAPI.getFollowers(user?.id),
-        userAPI.getFollowing(user?.id),
-        stockAPI.getHoldings(),
-      ]);
+      setLoading(true);
+      // 현재 로그인한 사용자 정보
+      const currentUserData = await getSavedUser();
+      setCurrentUser(currentUserData);
 
-      setStats({
-        followers: followersRes.data.count || 0,
-        following: followingRes.data.count || 0,
-        holdings: holdingsRes.data.holdings?.length || 0,
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
+      // 프로필 사용자 정보
+      if (userId && userId !== currentUserData.id) {
+        // 다른 사용자의 프로필 조회
+        const profileData = await getUserProfile(userId);
+        setUser(profileData.user);
 
-      let errorMessage = '프로필 정보를 불러올 수 없습니다';
-      if (error.response) {
-        errorMessage = error.response.data?.message || `서버 오류 (${error.response.status})`;
-      } else if (error.request) {
-        errorMessage = '서버에 연결할 수 없습니다.\n인터넷 연결을 확인해주세요.';
+        // 주식 정보 및 히스토리 로드
+        await loadStockData(userId);
+      } else {
+        // 본인 프로필
+        setUser(currentUserData);
+        await loadStockData(currentUserData.id);
       }
-      setError(errorMessage);
+    } catch (error) {
+      console.error('프로필 조회 오류:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      '로그아웃',
-      '정말 로그아웃 하시겠습니까?',
-      [
-        { text: '취소', style: 'cancel' },
-        {
-          text: '로그아웃',
-          style: 'destructive',
-          onPress: logout,
-        },
-      ]
-    );
+  const loadStockData = async (targetUserId) => {
+    try {
+      // 사용자의 크리에이터 정보 조회
+      const stockResponse = await api.get(`/stocks/user/${targetUserId}`);
+      if (stockResponse.data.success && stockResponse.data.stock) {
+        setStockData(stockResponse.data.stock);
+
+        // 가격 히스토리 조회
+        const historyResponse = await api.get(`/stocks/${stockResponse.data.stock.id}/history`, {
+          params: { timeframe: '7d' }
+        });
+
+        if (historyResponse.data.success && historyResponse.data.history) {
+          setPriceHistory(historyResponse.data.history);
+        }
+      }
+    } catch (error) {
+      console.error('크리에이터 데이터 로드 오류:', error);
+    }
   };
 
-  // 로딩 중
-  if (loading) {
+  const handleFollow = async () => {
+    try {
+      setFollowLoading(true);
+      const result = await followUser(user.id);
+
+      // 팔로우 상태 업데이트
+      setUser({
+        ...user,
+        isFollowing: result.isFollowing,
+        followersCount: result.isFollowing ? user.followersCount + 1 : user.followersCount - 1
+      });
+
+      const message = result.isFollowing ? '팔로우했습니다' : '언팔로우했습니다';
+      if (Platform.OS === 'web') {
+        alert(message);
+      } else {
+        Alert.alert('알림', message);
+      }
+    } catch (error) {
+      console.error('팔로우 오류:', error);
+      const message = '팔로우 처리 중 오류가 발생했습니다';
+      if (Platform.OS === 'web') {
+        alert(message);
+      } else {
+        Alert.alert('오류', message);
+      }
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
+  const handleTrade = async () => {
+    if (!quantity || parseFloat(quantity) <= 0) {
+      const message = '수량을 입력해주세요';
+      if (Platform.OS === 'web') {
+        window.alert(message);
+      } else {
+        Alert.alert('알림', message);
+      }
+      return;
+    }
+
+    try {
+      setTradeLoading(true);
+      const endpoint = tradeType === 'buy' ? '/stocks/buy' : '/stocks/sell';
+
+      const response = await api.post(endpoint, {
+        stockId: stockData.id,
+        quantity: parseInt(quantity),
+      });
+
+      if (response.data.success) {
+        // 매수 성공 시 자동 팔로우
+        if (tradeType === 'buy' && !user.isFollowing) {
+          try {
+            await api.post(`/users/${userId}/follow`);
+            setUser({
+              ...user,
+              isFollowing: true,
+              followersCount: (user.followersCount || 0) + 1
+            });
+          } catch (followError) {
+            console.error('자동 팔로우 오류:', followError);
+            // 팔로우 실패해도 거래는 성공했으므로 계속 진행
+          }
+        }
+
+        const message = tradeType === 'buy'
+          ? `${quantity}주를 매수했습니다! ${!user.isFollowing ? '자동으로 팔로우되었습니다.' : ''}`
+          : `${quantity}주를 매도했습니다!`;
+
+        if (Platform.OS === 'web') {
+          window.alert(message);
+        } else {
+          Alert.alert('성공', message);
+        }
+
+        setShowTradeModal(false);
+        setQuantity('');
+        loadProfile(); // 프로필 새로고침
+      }
+    } catch (error) {
+      console.error('거래 오류:', error);
+      const message = error.response?.data?.error || '거래 처리 중 오류가 발생했습니다';
+      if (Platform.OS === 'web') {
+        window.alert(message);
+      } else {
+        Alert.alert('오류', message);
+      }
+    } finally {
+      setTradeLoading(false);
+    }
+  };
+
+  const openTradeModal = (type) => {
+    setTradeType(type);
+    setQuantity('');
+    setShowTradeModal(true);
+  };
+
+  const handleLogout = async () => {
+    if (Platform.OS === 'web') {
+      if (window.confirm('로그아웃 하시겠습니까?')) {
+        await AsyncStorage.removeItem('token');
+        await AsyncStorage.removeItem('user');
+        window.location.href = '/';
+      }
+    } else {
+      Alert.alert(
+        '로그아웃',
+        '로그아웃 하시겠습니까?',
+        [
+          { text: '취소', style: 'cancel' },
+          {
+            text: '확인',
+            onPress: async () => {
+              await AsyncStorage.removeItem('token');
+              await AsyncStorage.removeItem('user');
+              navigation.replace('Auth');
+            },
+          },
+        ]
+      );
+    }
+  };
+
+  if (loading || !user) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
 
-  // 로그인하지 않은 경우
-  if (!isAuthenticated) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>?</Text>
-          </View>
-          <Text style={styles.username}>게스트</Text>
-        </View>
-        <View style={styles.loginRequiredContainer}>
-          <Text style={styles.loginRequiredIcon}>👤</Text>
-          <Text style={styles.loginRequiredTitle}>로그인이 필요합니다</Text>
-          <Text style={styles.loginRequiredText}>
-            프로필을 확인하고{'\n'}다양한 기능을 이용하려면{'\n'}로그인해주세요.
-          </Text>
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={() => navigation.navigate('Login')}
-          >
-            <Text style={styles.loginButtonText}>로그인하기</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.registerButton}
-            onPress={() => navigation.navigate('Register')}
-          >
-            <Text style={styles.registerButtonText}>회원가입</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-
-  // 에러가 있는 경우
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
-              {user?.username?.charAt(0)?.toUpperCase() || 'U'}
-            </Text>
-          </View>
-          <Text style={styles.username}>{user?.username || '사용자'}</Text>
-        </View>
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorIcon}>⚠️</Text>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchStats}>
-            <Text style={styles.retryButtonText}>다시 시도</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
+  const trustLevelColor = TRUST_LEVEL_COLORS[user.trustLevel] || COLORS.textSecondary;
+  const isOwnProfile = !userId || userId === currentUser?.id;
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {user?.username?.charAt(0)?.toUpperCase() || 'U'}
-          </Text>
+        <View style={styles.profileInfo}>
+          <View style={styles.usernameRow}>
+            <Text style={styles.username}>{user.username}</Text>
+            {user.isVerified && (
+              <View style={styles.verifiedBadge}>
+                <Text style={styles.verifiedText}>✓</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.email}>{user.email}</Text>
+          <View style={[styles.trustBadge, { backgroundColor: trustLevelColor }]}>
+            <Text style={styles.trustText}>신뢰도 {user.trustLevel}</Text>
+          </View>
         </View>
-        <Text style={styles.username}>{user?.username || '사용자'}</Text>
-        <Text style={styles.email}>{user?.email}</Text>
+
+        {/* 팔로우 버튼 (다른 사용자 프로필인 경우) */}
+        {!isOwnProfile && (
+          <TouchableOpacity
+            style={[
+              styles.followButton,
+              user.isFollowing && styles.followingButton
+            ]}
+            onPress={handleFollow}
+            disabled={followLoading}
+          >
+            {followLoading ? (
+              <ActivityIndicator size="small" color={user.isFollowing ? COLORS.primary : '#FFFFFF'} />
+            ) : (
+              <Text style={[
+                styles.followButtonText,
+                user.isFollowing && styles.followingButtonText
+              ]}>
+                {user.isFollowing ? '팔로잉' : '팔로우'}
+              </Text>
+            )}
+          </TouchableOpacity>
+        )}
       </View>
 
+      {/* 팔로워/팔로잉/포스트 수 */}
       <View style={styles.statsContainer}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{stats.followers}</Text>
+          <Text style={styles.statNumber}>{user.postsCount || 0}</Text>
+          <Text style={styles.statLabel}>게시물</Text>
+        </View>
+        <View style={styles.statItem}>
+          <Text style={styles.statNumber}>{user.followersCount || 0}</Text>
           <Text style={styles.statLabel}>팔로워</Text>
         </View>
-        <View style={styles.statDivider} />
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{stats.following}</Text>
+          <Text style={styles.statNumber}>{user.followingCount || 0}</Text>
           <Text style={styles.statLabel}>팔로잉</Text>
         </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{stats.holdings}</Text>
-          <Text style={styles.statLabel}>보유 주식</Text>
+      </View>
+
+      {/* 크리에이터 정보 및 차트 */}
+      {stockData && (
+        <View style={styles.stockSection}>
+          <View style={styles.stockHeader}>
+            <View>
+              <Text style={styles.stockLabel}>현재 가격</Text>
+              <Text style={styles.stockPrice}>{stockData.sharePrice?.toLocaleString() || 0} PO</Text>
+            </View>
+            <View>
+              <Text style={styles.stockLabel}>시가총액</Text>
+              <Text style={styles.stockMarketCap}>
+                {(stockData.marketCapTotal || 0).toLocaleString()} PO
+              </Text>
+            </View>
+            <View>
+              <Text style={styles.stockLabel}>발행 주식</Text>
+              <Text style={styles.stockShares}>{stockData.totalShares?.toLocaleString() || 0}주</Text>
+            </View>
+          </View>
+
+          {/* 가격 차트 */}
+          {priceHistory.length > 0 && (
+            <View style={styles.chartContainer}>
+              <Text style={styles.chartTitle}>7일 가격 추이</Text>
+              <LineChart
+                data={{
+                  labels: priceHistory.map((item) => {
+                    const date = new Date(item.timestamp);
+                    return `${date.getMonth() + 1}/${date.getDate()}`;
+                  }),
+                  datasets: [
+                    {
+                      data: priceHistory.map((item) => item.price),
+                    },
+                  ],
+                }}
+                width={Dimensions.get('window').width - 32}
+                height={200}
+                chartConfig={{
+                  backgroundColor: COLORS.surface,
+                  backgroundGradientFrom: COLORS.surface,
+                  backgroundGradientTo: COLORS.surface,
+                  decimalPlaces: 0,
+                  color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
+                  labelColor: (opacity = 1) => COLORS.textSecondary,
+                  style: {
+                    borderRadius: 16,
+                  },
+                  propsForDots: {
+                    r: '4',
+                    strokeWidth: '2',
+                    stroke: COLORS.primary,
+                  },
+                }}
+                bezier
+                style={styles.chart}
+              />
+            </View>
+          )}
+
+          {/* 매수/매도 버튼 (다른 사용자 프로필인 경우) */}
+          {!isOwnProfile && (
+            <View style={styles.tradeButtons}>
+              <TouchableOpacity
+                style={[styles.tradeButton, styles.buyButton]}
+                onPress={() => openTradeModal('buy')}
+              >
+                <Text style={styles.tradeButtonText}>매수</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tradeButton, styles.sellButton]}
+                onPress={() => openTradeModal('sell')}
+              >
+                <Text style={styles.tradeButtonText}>매도</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+      )}
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>자산 정보</Text>
+        <View style={styles.infoCard}>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>PO 잔액</Text>
+            <Text style={styles.infoValue}>{user.poBalance?.toLocaleString() || 0} PO</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>신뢰 배수</Text>
+            <Text style={styles.infoValue}>x{user.trustMultiplier || 1}</Text>
+          </View>
         </View>
       </View>
 
-      <View style={styles.menuSection}>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('Wallet')}
-        >
-          <Text style={styles.menuIcon}>💰</Text>
-          <Text style={styles.menuText}>지갑</Text>
-          <Text style={styles.menuArrow}>›</Text>
-        </TouchableOpacity>
+      {user.bio && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>소개</Text>
+          <View style={styles.infoCard}>
+            <Text style={styles.bioText}>{user.bio}</Text>
+          </View>
+        </View>
+      )}
 
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('TransactionHistory')}
-        >
-          <Text style={styles.menuIcon}>📊</Text>
-          <Text style={styles.menuText}>거래 내역</Text>
-          <Text style={styles.menuArrow}>›</Text>
-        </TouchableOpacity>
+      {/* 설정 (본인 프로필인 경우만) */}
+      {isOwnProfile && (
+        <>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>설정</Text>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuText}>알림 설정</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuText}>개인정보 설정</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuItem}>
+              <Text style={styles.menuText}>약관 및 정책</Text>
+            </TouchableOpacity>
+          </View>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuIcon}>💵</Text>
-          <Text style={styles.menuText}>배당 내역</Text>
-          <Text style={styles.menuArrow}>›</Text>
-        </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+            <Text style={styles.logoutText}>로그아웃</Text>
+          </TouchableOpacity>
+        </>
+      )}
 
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('Community')}
-        >
-          <Text style={styles.menuIcon}>👥</Text>
-          <Text style={styles.menuText}>커뮤니티</Text>
-          <Text style={styles.menuArrow}>›</Text>
-        </TouchableOpacity>
-      </View>
+      {/* 거래 모달 */}
+      <Modal
+        visible={showTradeModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowTradeModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                {tradeType === 'buy' ? '주식 매수' : '주식 매도'}
+              </Text>
+              <TouchableOpacity onPress={() => setShowTradeModal(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
 
-      <View style={styles.menuSection}>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => navigation.navigate('Event')}
-        >
-          <Text style={styles.menuIcon}>🎉</Text>
-          <Text style={styles.menuText}>이벤트 & 뉴스</Text>
-          <Text style={styles.menuArrow}>›</Text>
-        </TouchableOpacity>
+            <View style={styles.modalBody}>
+              <View style={styles.tradeInfo}>
+                <View style={styles.tradeInfoRow}>
+                  <Text style={styles.tradeInfoLabel}>사용자</Text>
+                  <Text style={styles.tradeInfoValue}>{user.username}</Text>
+                </View>
+                <View style={styles.tradeInfoRow}>
+                  <Text style={styles.tradeInfoLabel}>현재가</Text>
+                  <Text style={styles.tradeInfoValue}>
+                    {stockData?.sharePrice?.toLocaleString() || 0} PO
+                  </Text>
+                </View>
+              </View>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuIcon}>⚙️</Text>
-          <Text style={styles.menuText}>설정</Text>
-          <Text style={styles.menuArrow}>›</Text>
-        </TouchableOpacity>
+              <Text style={styles.inputLabel}>수량</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="매수/매도할 주식 수량"
+                value={quantity}
+                onChangeText={setQuantity}
+                keyboardType="numeric"
+              />
 
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuIcon}>❓</Text>
-          <Text style={styles.menuText}>고객센터</Text>
-          <Text style={styles.menuArrow}>›</Text>
-        </TouchableOpacity>
-      </View>
+              {quantity && stockData && (
+                <View style={styles.totalAmount}>
+                  <Text style={styles.totalLabel}>총 금액</Text>
+                  <Text style={styles.totalValue}>
+                    {(parseInt(quantity) * stockData.sharePrice).toLocaleString()} PO
+                  </Text>
+                </View>
+              )}
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutText}>로그아웃</Text>
-      </TouchableOpacity>
+              {tradeType === 'buy' && !user.isFollowing && (
+                <View style={styles.autoFollowNotice}>
+                  <Text style={styles.autoFollowText}>
+                    💡 매수 시 자동으로 팔로우됩니다
+                  </Text>
+                </View>
+              )}
 
-      <Text style={styles.version}>HIPO v1.0.0</Text>
+              <TouchableOpacity
+                style={[
+                  styles.confirmButton,
+                  tradeType === 'buy' ? styles.confirmBuyButton : styles.confirmSellButton,
+                ]}
+                onPress={handleTrade}
+                disabled={tradeLoading}
+              >
+                {tradeLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.confirmButtonText}>
+                    {tradeType === 'buy' ? '매수하기' : '매도하기'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
   },
-  header: {
-    backgroundColor: '#007AFF',
-    paddingTop: 60,
-    paddingBottom: 30,
-    alignItems: 'center',
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#fff',
+  centerContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    backgroundColor: COLORS.background,
   },
-  avatarText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#007AFF',
+  header: {
+    backgroundColor: COLORS.surface,
+    padding: 20,
+    paddingTop: 40,
+    paddingBottom: 30,
   },
-  username: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
+  profileInfo: {
+    alignItems: 'center',
   },
-  email: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginTop: 4,
+  followButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 32,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 16,
+    alignItems: 'center',
+    minWidth: 120,
+  },
+  followingButton: {
+    backgroundColor: COLORS.surface,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  followButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  followingButtonText: {
+    color: COLORS.primary,
   },
   statsContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
-    marginHorizontal: 16,
-    marginTop: -20,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    backgroundColor: COLORS.surface,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
   },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+  statNumber: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 4,
   },
   statLabel: {
     fontSize: 13,
-    color: '#666',
-    marginTop: 4,
+    color: COLORS.textSecondary,
   },
-  statDivider: {
-    width: 1,
-    backgroundColor: '#eee',
-    marginVertical: 4,
-  },
-  menuSection: {
-    backgroundColor: '#fff',
-    marginTop: 16,
-    marginHorizontal: 16,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  menuItem: {
+  usernameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    gap: 8,
+    marginBottom: 8,
   },
-  menuIcon: {
-    fontSize: 20,
-    marginRight: 12,
+  username: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: COLORS.text,
+  },
+  verifiedBadge: {
+    backgroundColor: COLORS.success,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  verifiedText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  email: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginBottom: 12,
+  },
+  trustBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  trustText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  section: {
+    marginTop: 20,
+    paddingHorizontal: 15,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  infoCard: {
+    backgroundColor: COLORS.surface,
+    padding: 15,
+    borderRadius: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+  },
+  infoLabel: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  infoValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  bioText: {
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 20,
+  },
+  menuItem: {
+    backgroundColor: COLORS.surface,
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 8,
   },
   menuText: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-  },
-  menuArrow: {
-    fontSize: 20,
-    color: '#999',
+    fontSize: 14,
+    color: COLORS.text,
   },
   logoutButton: {
-    marginHorizontal: 16,
-    marginTop: 24,
-    padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.danger,
+    padding: 15,
     borderRadius: 12,
+    margin: 15,
+    marginTop: 30,
+    marginBottom: 40,
     alignItems: 'center',
   },
   logoutText: {
+    color: '#fff',
     fontSize: 16,
-    color: '#e74c3c',
     fontWeight: '600',
   },
-  version: {
-    textAlign: 'center',
-    color: '#999',
+  stockSection: {
+    backgroundColor: COLORS.surface,
+    padding: 16,
+    marginTop: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  stockHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  stockLabel: {
     fontSize: 12,
-    marginTop: 24,
-    marginBottom: 40,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f9fa',
-  },
-  loginRequiredContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-    marginTop: -20,
-  },
-  loginRequiredIcon: {
-    fontSize: 64,
-    marginBottom: 20,
-  },
-  loginRequiredTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-  },
-  loginRequiredText: {
-    fontSize: 16,
-    color: '#666',
+    color: COLORS.textSecondary,
+    marginBottom: 4,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 30,
   },
-  loginButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 14,
-    paddingHorizontal: 60,
-    borderRadius: 10,
-    marginBottom: 12,
+  stockPrice: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.primary,
+    textAlign: 'center',
   },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 17,
+  stockMarketCap: {
+    fontSize: 16,
     fontWeight: '600',
-  },
-  registerButton: {
-    paddingVertical: 14,
-    paddingHorizontal: 60,
-  },
-  registerButtonText: {
-    color: '#007AFF',
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 40,
-  },
-  errorIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#666',
+    color: COLORS.text,
     textAlign: 'center',
-    lineHeight: 24,
-    marginBottom: 20,
   },
-  retryButton: {
-    backgroundColor: '#007AFF',
-    paddingVertical: 12,
-    paddingHorizontal: 30,
+  stockShares: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  chartContainer: {
+    marginVertical: 16,
+  },
+  chartTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  chart: {
+    marginVertical: 8,
+    borderRadius: 16,
+  },
+  tradeButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+  },
+  tradeButton: {
+    flex: 1,
+    paddingVertical: 14,
     borderRadius: 8,
+    alignItems: 'center',
   },
-  retryButtonText: {
-    color: '#fff',
+  buyButton: {
+    backgroundColor: COLORS.success,
+  },
+  sellButton: {
+    backgroundColor: COLORS.danger,
+  },
+  tradeButtonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: COLORS.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  modalClose: {
+    fontSize: 24,
+    color: COLORS.textSecondary,
+  },
+  modalBody: {
+    padding: 20,
+  },
+  tradeInfo: {
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  tradeInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  tradeInfoLabel: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  tradeInfoValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 8,
+    padding: 14,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  totalAmount: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    padding: 16,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  totalValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  autoFollowNotice: {
+    backgroundColor: COLORS.primary + '20',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  autoFollowText: {
+    fontSize: 13,
+    color: COLORS.primary,
+    textAlign: 'center',
+  },
+  confirmButton: {
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  confirmBuyButton: {
+    backgroundColor: COLORS.success,
+  },
+  confirmSellButton: {
+    backgroundColor: COLORS.danger,
+  },
+  confirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
-
-export default ProfileScreen;

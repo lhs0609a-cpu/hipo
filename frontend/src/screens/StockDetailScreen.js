@@ -2,318 +2,284 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
   TextInput,
   Alert,
   ActivityIndicator,
+  Dimensions,
+  Platform,
 } from 'react-native';
-import { stockAPI } from '../services/api';
-import { useAuth } from '../contexts/AuthContext';
+import { getStockDetail, buyStock, sellStock } from '../api/stocks';
+import { getSavedUser } from '../api/auth';
+import { COLORS } from '../constants/colors';
+import StockChart from '../components/StockChart';
 
-const StockDetailScreen = ({ route, navigation }) => {
-  const { isAuthenticated } = useAuth();
-  const { stockId, stock: initialStock } = route.params;
-  const [stock, setStock] = useState(initialStock || null);
-  const [loading, setLoading] = useState(!initialStock);
-  const [quantity, setQuantity] = useState('1');
-  const [activeTab, setActiveTab] = useState('buy');
-  const [trading, setTrading] = useState(false);
+const screenWidth = Dimensions.get('window').width;
+
+export default function StockDetailScreen({ route, navigation }) {
+  const { stockId } = route.params;
+  const [stock, setStock] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [tradeType, setTradeType] = useState('buy'); // 'buy' or 'sell'
+  const [shares, setShares] = useState('');
+  const [isTrading, setIsTrading] = useState(false);
+  const [recentTrades, setRecentTrades] = useState([]);
 
   useEffect(() => {
-    if (!initialStock) {
-      fetchStockDetails();
-    }
+    loadData();
   }, [stockId]);
 
-  const fetchStockDetails = async () => {
+  const loadData = async () => {
     try {
-      const response = await stockAPI.getById(stockId);
-      setStock(response.data.stock);
+      const [stockData, userData] = await Promise.all([
+        getStockDetail(stockId),
+        getSavedUser(),
+      ]);
+      setStock(stockData.stock);
+      setUser(userData);
+      setRecentTrades(stockData.recentTrades || []);
     } catch (error) {
-      console.error('Error fetching stock:', error);
-      Alert.alert('오류', '주식 정보를 불러올 수 없습니다');
+      console.error('주식 상세 조회 오류:', error);
     } finally {
       setLoading(false);
     }
   };
 
+
   const handleTrade = async () => {
-    // 로그인 확인
-    if (!isAuthenticated) {
-      Alert.alert(
-        '로그인 필요',
-        `주식 ${activeTab === 'buy' ? '매수' : '매도'}를 하려면 로그인이 필요합니다.\n\n로그인 하시겠습니까?`,
-        [
-          { text: '취소', style: 'cancel' },
-          {
-            text: '로그인하기',
-            onPress: () => navigation.navigate('Login'),
-          },
-        ]
-      );
+    if (!shares || parseInt(shares) <= 0) {
+      const message = '수량을 입력해주세요';
+      Platform.OS === 'web' ? alert(message) : Alert.alert('알림', message);
       return;
     }
 
-    const qty = parseInt(quantity);
-    if (!qty || qty <= 0) {
-      Alert.alert('오류', '올바른 수량을 입력해주세요');
-      return;
-    }
-
-    setTrading(true);
-    const stockName = stock.issuer?.displayName || stock.issuer?.username || stock.name || '주식';
+    setIsTrading(true);
     try {
-      if (activeTab === 'buy') {
-        await stockAPI.buy(stockId, qty);
-        Alert.alert('성공', `${stockName} ${qty}주를 매수했습니다`);
+      const tradeShares = parseInt(shares);
+
+      if (tradeType === 'buy') {
+        const result = await buyStock(stockId, tradeShares);
+        const message = `매수 완료!\n${tradeShares}주를 ${(result.transaction.totalCost).toLocaleString()} PO에 매수했습니다.`;
+        Platform.OS === 'web' ? alert(message) : Alert.alert('매수 완료', message);
       } else {
-        await stockAPI.sell(stockId, qty);
-        Alert.alert('성공', `${stockName} ${qty}주를 매도했습니다`);
+        const result = await sellStock(stockId, tradeShares);
+        const message = `매도 완료!\n${tradeShares}주를 ${(result.transaction.totalRevenue).toLocaleString()} PO에 매도했습니다.`;
+        Platform.OS === 'web' ? alert(message) : Alert.alert('매도 완료', message);
       }
-      setQuantity('1');
+
+      setShares('');
+      loadData(); // 데이터 새로고침
     } catch (error) {
-      console.error('Trade error:', error);
-
-      let errorMessage = '거래에 실패했습니다';
-      if (error.response) {
-        errorMessage = error.response.data?.message || error.response.data?.error || `서버 오류 (${error.response.status})`;
-      } else if (error.request) {
-        errorMessage = '서버에 연결할 수 없습니다.\n인터넷 연결을 확인해주세요.';
-      }
-
-      Alert.alert('거래 실패', errorMessage);
+      const errorMsg = error.response?.data?.error || error.message || '거래 중 오류가 발생했습니다';
+      Platform.OS === 'web' ? alert(errorMsg) : Alert.alert('오류', errorMsg);
     } finally {
-      setTrading(false);
+      setIsTrading(false);
     }
   };
 
-  if (loading) {
+  const calculateTotalAmount = () => {
+    if (!stock || !shares) return 0;
+    return stock.sharePrice * parseInt(shares || 0);
+  };
+
+
+  if (loading || !stock) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     );
   }
 
-  if (!stock) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text>주식 정보를 찾을 수 없습니다</Text>
-      </View>
-    );
-  }
-
-  // 백엔드 응답 구조에 맞게 데이터 매핑
-  const displayName = stock.issuer?.displayName || stock.issuer?.username || stock.name || '크리에이터';
-  const username = stock.issuer?.username || stock.symbol || '';
-  const currentPrice = stock.sharePrice || stock.currentPrice || 0;
-  const totalAmount = currentPrice * parseInt(quantity || 0);
-  const priceChangePercent = stock.priceChangePercent || 0;
-  const isPositive = priceChangePercent >= 0;
-  const marketCap = stock.marketCapTotal || stock.marketCap || 0;
-  const totalShares = stock.totalShares || 0;
-  const availableShares = stock.availableShares || 0;
-  const dividendRate = stock.dividendRate || 0;
-  const tier = stock.tier || 'BRONZE';
+  const priceChange = stock.priceChangePercent || 0;
+  const isUp = priceChange >= 0;
+  const changeColor = isUp ? COLORS.up : COLORS.down;
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {displayName.charAt(0).toUpperCase()}
-          </Text>
+    <View style={styles.container}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* 가격 정보 */}
+        <View style={styles.priceSection}>
+          <Text style={styles.stockName}>{stock.issuer.username}</Text>
+          <View style={styles.priceContainer}>
+            <Text style={styles.currentPrice}>{stock.sharePrice.toLocaleString()}</Text>
+            <Text style={styles.currency}>PO</Text>
+          </View>
+          <View style={styles.changeContainer}>
+            <Text style={[styles.changeText, { color: changeColor }]}>
+              {isUp ? '▲' : '▼'} {Math.abs(priceChange).toFixed(2)}%
+            </Text>
+          </View>
         </View>
-        <Text style={styles.stockName}>{displayName}</Text>
-        <Text style={styles.stockSymbol}>@{username}</Text>
-        <View style={styles.tierBadge}>
-          <Text style={styles.tierText}>{tier}</Text>
-        </View>
-      </View>
 
-      <View style={styles.priceSection}>
-        <Text style={styles.currentPrice}>
-          {currentPrice.toLocaleString()}원
-        </Text>
-        <Text style={[styles.priceChange, isPositive ? styles.positive : styles.negative]}>
-          {isPositive ? '▲' : '▼'} {isPositive ? '+' : ''}{priceChangePercent.toFixed(2)}%
-        </Text>
-      </View>
+        {/* 차트 */}
+        <View style={styles.chartSection}>
+          <StockChart stockId={stockId} />
+        </View>
 
-      <View style={styles.infoSection}>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>시가총액</Text>
-          <Text style={styles.infoValue}>{marketCap.toLocaleString()}원</Text>
+        {/* 주식 정보 */}
+        <View style={styles.infoSection}>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>시가총액</Text>
+            <Text style={styles.infoValue}>{(stock.marketCapTotal || 0).toLocaleString()} PO</Text>
+          </View>
+          <View style={styles.infoDivider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>발행 주식</Text>
+            <Text style={styles.infoValue}>{stock.issuedShares.toLocaleString()} / {stock.totalShares.toLocaleString()}주</Text>
+          </View>
+          <View style={styles.infoDivider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>배당률</Text>
+            <Text style={styles.infoValue}>{stock.dividendRate}%</Text>
+          </View>
+          <View style={styles.infoDivider} />
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>보유자</Text>
+            <Text style={styles.infoValue}>{stock.holderCount || 0}명</Text>
+          </View>
         </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>총 발행량</Text>
-          <Text style={styles.infoValue}>{totalShares.toLocaleString()}주</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>거래 가능</Text>
-          <Text style={styles.infoValue}>{availableShares.toLocaleString()}주</Text>
-        </View>
-        <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>배당률</Text>
-          <Text style={styles.infoValue}>{dividendRate}%</Text>
-        </View>
-      </View>
 
+        {/* 소개 */}
+        {stock.issuer.bio && (
+          <View style={styles.bioSection}>
+            <Text style={styles.bioTitle}>소개</Text>
+            <Text style={styles.bioText}>{stock.issuer.bio}</Text>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* 하단 거래 영역 */}
       <View style={styles.tradeSection}>
-        <View style={styles.tabContainer}>
+        {/* 매수/매도 탭 */}
+        <View style={styles.tradeTabs}>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'buy' && styles.activeTabBuy]}
-            onPress={() => setActiveTab('buy')}
+            style={[styles.tradeTab, tradeType === 'buy' && styles.tradeTabActive]}
+            onPress={() => setTradeType('buy')}
           >
-            <Text style={[styles.tabText, activeTab === 'buy' && styles.activeTabTextBuy]}>
+            <Text style={[styles.tradeTabText, tradeType === 'buy' && { color: COLORS.buttonBuy }]}>
               매수
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'sell' && styles.activeTabSell]}
-            onPress={() => setActiveTab('sell')}
+            style={[styles.tradeTab, tradeType === 'sell' && styles.tradeTabActive]}
+            onPress={() => setTradeType('sell')}
           >
-            <Text style={[styles.tabText, activeTab === 'sell' && styles.activeTabTextSell]}>
+            <Text style={[styles.tradeTabText, tradeType === 'sell' && { color: COLORS.buttonSell }]}>
               매도
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View style={styles.quantityContainer}>
-          <Text style={styles.quantityLabel}>수량</Text>
-          <View style={styles.quantityInputContainer}>
-            <TouchableOpacity
-              style={styles.quantityButton}
-              onPress={() => setQuantity(String(Math.max(1, parseInt(quantity || 1) - 1)))}
-            >
-              <Text style={styles.quantityButtonText}>-</Text>
-            </TouchableOpacity>
+        {/* 수량 입력 */}
+        <View style={styles.inputSection}>
+          <View style={styles.inputRow}>
+            <Text style={styles.inputLabel}>수량</Text>
             <TextInput
-              style={styles.quantityInput}
-              value={quantity}
-              onChangeText={setQuantity}
+              style={styles.input}
+              value={shares}
+              onChangeText={setShares}
+              placeholder="0"
               keyboardType="numeric"
-              textAlign="center"
+              placeholderTextColor={COLORS.textTertiary}
             />
-            <TouchableOpacity
-              style={styles.quantityButton}
-              onPress={() => setQuantity(String(parseInt(quantity || 0) + 1))}
-            >
-              <Text style={styles.quantityButtonText}>+</Text>
-            </TouchableOpacity>
+            <Text style={styles.inputUnit}>주</Text>
+          </View>
+
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>주문 금액</Text>
+            <Text style={styles.totalValue}>{calculateTotalAmount().toLocaleString()} PO</Text>
           </View>
         </View>
 
-        <View style={styles.totalContainer}>
-          <Text style={styles.totalLabel}>총 금액</Text>
-          <Text style={styles.totalAmount}>{totalAmount.toLocaleString()}원</Text>
-        </View>
-
+        {/* 매수/매도 버튼 */}
         <TouchableOpacity
           style={[
             styles.tradeButton,
-            activeTab === 'buy' ? styles.buyButton : styles.sellButton,
-            trading && styles.buttonDisabled
+            { backgroundColor: tradeType === 'buy' ? COLORS.buttonBuy : COLORS.buttonSell },
+            isTrading && styles.tradeButtonDisabled,
           ]}
           onPress={handleTrade}
-          disabled={trading}
+          disabled={isTrading}
         >
-          {trading ? (
+          {isTrading ? (
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.tradeButtonText}>
-              {activeTab === 'buy' ? '매수하기' : '매도하기'}
+              {tradeType === 'buy' ? '매수' : '매도'}
             </Text>
           )}
         </TouchableOpacity>
+
+        {/* 사용자 잔액 정보 */}
+        {user && (
+          <View style={styles.userBalance}>
+            <Text style={styles.balanceText}>
+              보유 PO: <Text style={styles.balanceValue}>{user.poBalance.toLocaleString()}</Text>
+            </Text>
+          </View>
+        )}
       </View>
-    </ScrollView>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
   },
-  loadingContainer: {
+  centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.background,
   },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  header: {
-    backgroundColor: '#fff',
-    padding: 24,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#007AFF',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  avatarText: {
-    color: '#fff',
-    fontSize: 32,
-    fontWeight: 'bold',
+  priceSection: {
+    backgroundColor: COLORS.surface,
+    padding: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
   },
   stockName: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 12,
   },
-  stockSymbol: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
-  },
-  tierBadge: {
-    backgroundColor: '#FFD700',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  tierText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  priceSection: {
-    backgroundColor: '#fff',
-    padding: 20,
-    alignItems: 'center',
-    marginTop: 8,
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: 8,
   },
   currentPrice: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#333',
+    fontSize: 40,
+    fontWeight: '700',
+    color: COLORS.text,
   },
-  priceChange: {
+  currency: {
+    fontSize: 20,
+    color: COLORS.textSecondary,
+    marginLeft: 8,
+    marginBottom: 6,
+  },
+  changeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  changeText: {
     fontSize: 18,
+    fontWeight: '600',
+  },
+  chartSection: {
+    backgroundColor: COLORS.surface,
     marginTop: 8,
   },
-  positive: {
-    color: '#e74c3c',
-  },
-  negative: {
-    color: '#3498db',
-  },
   infoSection: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     padding: 20,
     marginTop: 8,
   },
@@ -321,122 +287,129 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
   },
   infoLabel: {
     fontSize: 15,
-    color: '#666',
+    color: COLORS.textSecondary,
   },
   infoValue: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.text,
   },
-  tradeSection: {
-    backgroundColor: '#fff',
+  infoDivider: {
+    height: 1,
+    backgroundColor: COLORS.divider,
+  },
+  bioSection: {
+    backgroundColor: COLORS.surface,
     padding: 20,
     marginTop: 8,
-    marginBottom: 30,
   },
-  tabContainer: {
+  bioTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  bioText: {
+    fontSize: 15,
+    color: COLORS.text,
+    lineHeight: 22,
+  },
+  tradeSection: {
+    backgroundColor: COLORS.surface,
+    padding: 20,
+    paddingBottom: 30,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  tradeTabs: {
     flexDirection: 'row',
-    borderRadius: 10,
-    backgroundColor: '#f5f5f5',
+    marginBottom: 20,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
     padding: 4,
   },
-  tab: {
+  tradeTab: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     borderRadius: 8,
   },
-  activeTabBuy: {
-    backgroundColor: '#e74c3c',
+  tradeTabActive: {
+    backgroundColor: COLORS.surface,
   },
-  activeTabSell: {
-    backgroundColor: '#3498db',
-  },
-  tabText: {
+  tradeTabText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666',
+    color: COLORS.textSecondary,
   },
-  activeTabTextBuy: {
-    color: '#fff',
+  inputSection: {
+    marginBottom: 16,
   },
-  activeTabTextSell: {
-    color: '#fff',
-  },
-  quantityContainer: {
-    marginTop: 24,
-  },
-  quantityLabel: {
-    fontSize: 15,
-    color: '#666',
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 12,
   },
-  quantityInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  inputLabel: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    marginRight: 12,
   },
-  quantityButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#f5f5f5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  quantityButtonText: {
-    fontSize: 24,
-    color: '#333',
-  },
-  quantityInput: {
-    width: 100,
-    fontSize: 24,
+  input: {
+    flex: 1,
+    fontSize: 20,
     fontWeight: '600',
-    marginHorizontal: 20,
+    color: COLORS.text,
+    textAlign: 'right',
   },
-  totalContainer: {
+  inputUnit: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    marginLeft: 8,
+  },
+  totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 24,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
+    paddingHorizontal: 16,
   },
   totalLabel: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
-  totalAmount: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+  totalValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
   },
   tradeButton: {
-    padding: 16,
+    paddingVertical: 18,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 24,
+    marginBottom: 12,
   },
-  buyButton: {
-    backgroundColor: '#e74c3c',
-  },
-  sellButton: {
-    backgroundColor: '#3498db',
-  },
-  buttonDisabled: {
-    opacity: 0.7,
+  tradeButtonDisabled: {
+    opacity: 0.6,
   },
   tradeButtonText: {
     color: '#fff',
     fontSize: 18,
+    fontWeight: '700',
+  },
+  userBalance: {
+    alignItems: 'center',
+  },
+  balanceText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  balanceValue: {
     fontWeight: '600',
+    color: COLORS.text,
   },
 });
-
-export default StockDetailScreen;
