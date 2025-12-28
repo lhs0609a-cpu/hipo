@@ -10,8 +10,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { stockAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const StockDetailScreen = ({ route, navigation }) => {
+  const { isAuthenticated } = useAuth();
   const { stockId, stock: initialStock } = route.params;
   const [stock, setStock] = useState(initialStock || null);
   const [loading, setLoading] = useState(!initialStock);
@@ -38,6 +40,22 @@ const StockDetailScreen = ({ route, navigation }) => {
   };
 
   const handleTrade = async () => {
+    // 로그인 확인
+    if (!isAuthenticated) {
+      Alert.alert(
+        '로그인 필요',
+        `주식 ${activeTab === 'buy' ? '매수' : '매도'}를 하려면 로그인이 필요합니다.\n\n로그인 하시겠습니까?`,
+        [
+          { text: '취소', style: 'cancel' },
+          {
+            text: '로그인하기',
+            onPress: () => navigation.navigate('Login'),
+          },
+        ]
+      );
+      return;
+    }
+
     const qty = parseInt(quantity);
     if (!qty || qty <= 0) {
       Alert.alert('오류', '올바른 수량을 입력해주세요');
@@ -55,7 +73,16 @@ const StockDetailScreen = ({ route, navigation }) => {
       }
       setQuantity('1');
     } catch (error) {
-      Alert.alert('실패', error.response?.data?.message || '거래에 실패했습니다');
+      console.error('Trade error:', error);
+
+      let errorMessage = '거래에 실패했습니다';
+      if (error.response) {
+        errorMessage = error.response.data?.message || error.response.data?.error || `서버 오류 (${error.response.status})`;
+      } else if (error.request) {
+        errorMessage = '서버에 연결할 수 없습니다.\n인터넷 연결을 확인해주세요.';
+      }
+
+      Alert.alert('거래 실패', errorMessage);
     } finally {
       setTrading(false);
     }

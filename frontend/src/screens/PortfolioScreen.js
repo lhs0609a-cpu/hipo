@@ -7,18 +7,28 @@ import {
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { stockAPI, walletAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 const PortfolioScreen = ({ navigation }) => {
+  const { isAuthenticated } = useAuth();
   const [holdings, setHoldings] = useState([]);
   const [balance, setBalance] = useState(0);
   const [totalValue, setTotalValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
 
   const fetchData = async () => {
+    if (!isAuthenticated) {
+      setLoading(false);
+      return;
+    }
+
     try {
+      setError(null);
       const [holdingsRes, walletRes] = await Promise.all([
         stockAPI.getHoldings(),
         walletAPI.getBalance(),
@@ -34,6 +44,14 @@ const PortfolioScreen = ({ navigation }) => {
       setTotalValue(total);
     } catch (error) {
       console.error('Error fetching portfolio:', error);
+
+      let errorMessage = '포트폴리오를 불러올 수 없습니다';
+      if (error.response) {
+        errorMessage = error.response.data?.message || `서버 오류 (${error.response.status})`;
+      } else if (error.request) {
+        errorMessage = '서버에 연결할 수 없습니다.\n인터넷 연결을 확인해주세요.';
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -42,7 +60,7 @@ const PortfolioScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [isAuthenticated]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -86,6 +104,54 @@ const PortfolioScreen = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
+  // 로그인하지 않은 경우
+  if (!isAuthenticated) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>내 포트폴리오</Text>
+        </View>
+        <View style={styles.loginRequiredContainer}>
+          <Text style={styles.loginRequiredIcon}>🔒</Text>
+          <Text style={styles.loginRequiredTitle}>로그인이 필요합니다</Text>
+          <Text style={styles.loginRequiredText}>
+            포트폴리오를 확인하려면{'\n'}로그인해주세요.
+          </Text>
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text style={styles.loginButtonText}>로그인하기</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.registerButton}
+            onPress={() => navigation.navigate('Register')}
+          >
+            <Text style={styles.registerButtonText}>회원가입</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // 에러가 있는 경우
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>내 포트폴리오</Text>
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
+            <Text style={styles.retryButtonText}>다시 시도</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -293,6 +359,78 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   exploreButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  loginRequiredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  loginRequiredIcon: {
+    fontSize: 64,
+    marginBottom: 20,
+  },
+  loginRequiredTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 12,
+  },
+  loginRequiredText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 30,
+  },
+  loginButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 14,
+    paddingHorizontal: 60,
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  loginButtonText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  registerButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 60,
+  },
+  registerButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  errorIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+  },
+  retryButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',

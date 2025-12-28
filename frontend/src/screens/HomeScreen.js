@@ -8,6 +8,7 @@ import {
   RefreshControl,
   TextInput,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { stockAPI } from '../services/api';
 
@@ -16,13 +17,23 @@ const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [error, setError] = useState(null);
 
   const fetchStocks = async () => {
     try {
+      setError(null);
       const response = await stockAPI.getAll();
       setStocks(response.data.stocks || []);
     } catch (error) {
       console.error('Error fetching stocks:', error);
+
+      let errorMessage = '주식 목록을 불러올 수 없습니다';
+      if (error.response) {
+        errorMessage = error.response.data?.message || `서버 오류 (${error.response.status})`;
+      } else if (error.request) {
+        errorMessage = '서버에 연결할 수 없습니다.\n인터넷 연결을 확인해주세요.';
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -91,6 +102,24 @@ const HomeScreen = ({ navigation }) => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
+  if (error && stocks.length === 0) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>HIPO</Text>
+          <Text style={styles.headerSubtitle}>크리에이터 주식</Text>
+        </View>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorIcon}>⚠️</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchStocks}>
+            <Text style={styles.retryButtonText}>다시 시도</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }
@@ -244,6 +273,34 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     color: '#666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  errorIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
 
