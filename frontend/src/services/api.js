@@ -1,6 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Backend API URL - Fly.io deployment
 const API_URL = 'https://hipo-backend.fly.dev/api';
 
 const api = axios.create({
