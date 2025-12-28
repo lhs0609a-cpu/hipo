@@ -44,9 +44,23 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
+      console.error('Login error:', error);
+
+      let errorMessage = '로그인에 실패했습니다';
+
+      if (error.response) {
+        errorMessage = error.response.data?.message ||
+                       error.response.data?.error ||
+                       `서버 오류 (${error.response.status})`;
+      } else if (error.request) {
+        errorMessage = '서버에 연결할 수 없습니다.\n\n인터넷 연결을 확인하거나\n잠시 후 다시 시도해주세요.';
+      } else {
+        errorMessage = error.message || '알 수 없는 오류가 발생했습니다';
+      }
+
       return {
         success: false,
-        error: error.response?.data?.message || '로그인에 실패했습니다'
+        error: errorMessage
       };
     }
   };
@@ -64,9 +78,26 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
+      console.error('Register error:', error);
+
+      let errorMessage = '회원가입에 실패했습니다';
+
+      if (error.response) {
+        // 서버에서 응답을 받은 경우
+        errorMessage = error.response.data?.message ||
+                       error.response.data?.error ||
+                       `서버 오류 (${error.response.status})`;
+      } else if (error.request) {
+        // 요청은 보냈지만 응답을 받지 못한 경우 (네트워크 오류, CORS 등)
+        errorMessage = '서버에 연결할 수 없습니다.\n\n가능한 원인:\n• 인터넷 연결 확인\n• 서버가 점검 중일 수 있습니다\n• 잠시 후 다시 시도해주세요';
+      } else {
+        // 요청 설정 중 오류
+        errorMessage = error.message || '알 수 없는 오류가 발생했습니다';
+      }
+
       return {
         success: false,
-        error: error.response?.data?.message || '회원가입에 실패했습니다'
+        error: errorMessage
       };
     }
   };
