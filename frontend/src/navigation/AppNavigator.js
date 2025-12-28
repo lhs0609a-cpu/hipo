@@ -12,7 +12,13 @@ import HomeScreen from '../screens/HomeScreen';
 import StockDetailScreen from '../screens/StockDetailScreen';
 import PortfolioScreen from '../screens/PortfolioScreen';
 import CommunityScreen from '../screens/CommunityScreen';
+import CommunityDetailScreen from '../screens/CommunityDetailScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import FeedScreen from '../screens/FeedScreen';
+import NotificationScreen from '../screens/NotificationScreen';
+import WalletScreen from '../screens/WalletScreen';
+import TransactionHistoryScreen from '../screens/TransactionHistoryScreen';
+import EventScreen from '../screens/EventScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -21,8 +27,9 @@ const Tab = createBottomTabNavigator();
 const TabIcon = ({ name, focused }) => {
   const icons = {
     Home: '🏠',
+    Feed: '📰',
     Portfolio: '📊',
-    Community: '👥',
+    Notification: '🔔',
     Profile: '👤',
   };
 
@@ -56,14 +63,19 @@ const MainTabs = () => {
         options={{ tabBarLabel: '홈' }}
       />
       <Tab.Screen
+        name="Feed"
+        component={FeedScreen}
+        options={{ tabBarLabel: '피드' }}
+      />
+      <Tab.Screen
         name="Portfolio"
         component={PortfolioScreen}
         options={{ tabBarLabel: '포트폴리오' }}
       />
       <Tab.Screen
-        name="Community"
-        component={CommunityScreen}
-        options={{ tabBarLabel: '커뮤니티' }}
+        name="Notification"
+        component={NotificationScreen}
+        options={{ tabBarLabel: '알림' }}
       />
       <Tab.Screen
         name="Profile"
@@ -101,13 +113,67 @@ const MainStack = () => {
           headerBackTitle: '뒤로',
         }}
       />
+      <Stack.Screen
+        name="Community"
+        component={CommunityScreen}
+        options={{
+          title: '커뮤니티',
+          headerBackTitle: '뒤로',
+        }}
+      />
+      <Stack.Screen
+        name="CommunityDetail"
+        component={CommunityDetailScreen}
+        options={{
+          title: '커뮤니티',
+          headerBackTitle: '뒤로',
+        }}
+      />
+      <Stack.Screen
+        name="Wallet"
+        component={WalletScreen}
+        options={{
+          title: '지갑',
+          headerBackTitle: '뒤로',
+        }}
+      />
+      <Stack.Screen
+        name="TransactionHistory"
+        component={TransactionHistoryScreen}
+        options={{
+          title: '거래 내역',
+          headerBackTitle: '뒤로',
+        }}
+      />
+      <Stack.Screen
+        name="Event"
+        component={EventScreen}
+        options={{
+          title: '이벤트',
+          headerBackTitle: '뒤로',
+        }}
+      />
+      <Stack.Screen
+        name="Login"
+        component={LoginScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="Register"
+        component={RegisterScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack.Navigator>
   );
 };
 
-// App Navigator
+// App Navigator - 항상 MainStack 사용 (게스트도 접근 가능)
 const AppNavigator = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -119,7 +185,7 @@ const AppNavigator = () => {
 
   return (
     <NavigationContainer>
-      {isAuthenticated ? <MainStack /> : <AuthStack />}
+      <MainStack />
     </NavigationContainer>
   );
 };

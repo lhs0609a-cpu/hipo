@@ -168,39 +168,58 @@ const ProfileScreen = ({ navigation }) => {
       </View>
 
       <View style={styles.menuSection}>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Wallet')}
+        >
+          <Text style={styles.menuIcon}>💰</Text>
+          <Text style={styles.menuText}>지갑</Text>
+          <Text style={styles.menuArrow}>›</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('TransactionHistory')}
+        >
+          <Text style={styles.menuIcon}>📊</Text>
           <Text style={styles.menuText}>거래 내역</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuIcon}>💵</Text>
           <Text style={styles.menuText}>배당 내역</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuText}>내 게시물</Text>
-          <Text style={styles.menuArrow}>›</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuText}>북마크</Text>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Community')}
+        >
+          <Text style={styles.menuIcon}>👥</Text>
+          <Text style={styles.menuText}>커뮤니티</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.menuSection}>
-        <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuText}>알림 설정</Text>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Event')}
+        >
+          <Text style={styles.menuIcon}>🎉</Text>
+          <Text style={styles.menuText}>이벤트 & 뉴스</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.menuItem}>
-          <Text style={styles.menuText}>계정 설정</Text>
+          <Text style={styles.menuIcon}>⚙️</Text>
+          <Text style={styles.menuText}>설정</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.menuItem}>
+          <Text style={styles.menuIcon}>❓</Text>
           <Text style={styles.menuText}>고객센터</Text>
           <Text style={styles.menuArrow}>›</Text>
         </TouchableOpacity>
@@ -291,13 +310,17 @@ const styles = StyleSheet.create({
   },
   menuItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
+  menuIcon: {
+    fontSize: 20,
+    marginRight: 12,
+  },
   menuText: {
+    flex: 1,
     fontSize: 16,
     color: '#333',
   },
