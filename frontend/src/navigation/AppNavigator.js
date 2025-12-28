@@ -5,20 +5,35 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, StyleSheet } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 
-// Screens
+// Auth Screens
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+
+// Main Screens
 import HomeScreen from '../screens/HomeScreen';
-import StockDetailScreen from '../screens/StockDetailScreen';
+import FeedScreen from '../screens/FeedScreen';
 import PortfolioScreen from '../screens/PortfolioScreen';
+import NotificationScreen from '../screens/NotificationScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+
+// Detail Screens
+import StockDetailScreen from '../screens/StockDetailScreen';
 import CommunityScreen from '../screens/CommunityScreen';
 import CommunityDetailScreen from '../screens/CommunityDetailScreen';
-import ProfileScreen from '../screens/ProfileScreen';
-import FeedScreen from '../screens/FeedScreen';
-import NotificationScreen from '../screens/NotificationScreen';
 import WalletScreen from '../screens/WalletScreen';
 import TransactionHistoryScreen from '../screens/TransactionHistoryScreen';
 import EventScreen from '../screens/EventScreen';
+
+// Additional Screens
+import StoryScreen from '../screens/StoryScreen';
+import MessageScreen from '../screens/MessageScreen';
+import LiveStreamScreen from '../screens/LiveStreamScreen';
+import NFTScreen from '../screens/NFTScreen';
+import MerchandiseScreen from '../screens/MerchandiseScreen';
+import DividendScreen from '../screens/DividendScreen';
+import MissionScreen from '../screens/MissionScreen';
+import RankingScreen from '../screens/RankingScreen';
+import SearchScreen from '../screens/SearchScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -86,16 +101,6 @@ const MainTabs = () => {
   );
 };
 
-// Auth Stack
-const AuthStack = () => {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Register" component={RegisterScreen} />
-    </Stack.Navigator>
-  );
-};
-
 // Main Stack
 const MainStack = () => {
   return (
@@ -105,73 +110,114 @@ const MainStack = () => {
         component={MainTabs}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="StockDetail"
-        component={StockDetailScreen}
-        options={{
-          title: '주식 상세',
-          headerBackTitle: '뒤로',
-        }}
-      />
-      <Stack.Screen
-        name="Community"
-        component={CommunityScreen}
-        options={{
-          title: '커뮤니티',
-          headerBackTitle: '뒤로',
-        }}
-      />
-      <Stack.Screen
-        name="CommunityDetail"
-        component={CommunityDetailScreen}
-        options={{
-          title: '커뮤니티',
-          headerBackTitle: '뒤로',
-        }}
-      />
-      <Stack.Screen
-        name="Wallet"
-        component={WalletScreen}
-        options={{
-          title: '지갑',
-          headerBackTitle: '뒤로',
-        }}
-      />
-      <Stack.Screen
-        name="TransactionHistory"
-        component={TransactionHistoryScreen}
-        options={{
-          title: '거래 내역',
-          headerBackTitle: '뒤로',
-        }}
-      />
-      <Stack.Screen
-        name="Event"
-        component={EventScreen}
-        options={{
-          title: '이벤트',
-          headerBackTitle: '뒤로',
-        }}
-      />
+
+      {/* Auth Screens */}
       <Stack.Screen
         name="Login"
         component={LoginScreen}
-        options={{
-          headerShown: false,
-        }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Register"
         component={RegisterScreen}
-        options={{
-          headerShown: false,
-        }}
+        options={{ headerShown: false }}
+      />
+
+      {/* Stock Screens */}
+      <Stack.Screen
+        name="StockDetail"
+        component={StockDetailScreen}
+        options={{ title: '주식 상세', headerBackTitle: '뒤로' }}
+      />
+
+      {/* Community Screens */}
+      <Stack.Screen
+        name="Community"
+        component={CommunityScreen}
+        options={{ title: '커뮤니티', headerBackTitle: '뒤로' }}
+      />
+      <Stack.Screen
+        name="CommunityDetail"
+        component={CommunityDetailScreen}
+        options={{ title: '커뮤니티', headerBackTitle: '뒤로' }}
+      />
+
+      {/* Wallet Screens */}
+      <Stack.Screen
+        name="Wallet"
+        component={WalletScreen}
+        options={{ title: '지갑', headerBackTitle: '뒤로' }}
+      />
+      <Stack.Screen
+        name="TransactionHistory"
+        component={TransactionHistoryScreen}
+        options={{ title: '거래 내역', headerBackTitle: '뒤로' }}
+      />
+      <Stack.Screen
+        name="Dividend"
+        component={DividendScreen}
+        options={{ title: '배당 내역', headerBackTitle: '뒤로' }}
+      />
+
+      {/* Event & News */}
+      <Stack.Screen
+        name="Event"
+        component={EventScreen}
+        options={{ title: '이벤트', headerBackTitle: '뒤로' }}
+      />
+
+      {/* Social Screens */}
+      <Stack.Screen
+        name="Story"
+        component={StoryScreen}
+        options={{ title: '스토리', headerBackTitle: '뒤로' }}
+      />
+      <Stack.Screen
+        name="Message"
+        component={MessageScreen}
+        options={{ title: '메시지', headerBackTitle: '뒤로' }}
+      />
+
+      {/* Live & Content */}
+      <Stack.Screen
+        name="LiveStream"
+        component={LiveStreamScreen}
+        options={{ title: '라이브', headerBackTitle: '뒤로' }}
+      />
+      <Stack.Screen
+        name="NFT"
+        component={NFTScreen}
+        options={{ title: 'NFT', headerBackTitle: '뒤로' }}
+      />
+      <Stack.Screen
+        name="Merchandise"
+        component={MerchandiseScreen}
+        options={{ title: '굿즈샵', headerBackTitle: '뒤로' }}
+      />
+
+      {/* Mission & Ranking */}
+      <Stack.Screen
+        name="Mission"
+        component={MissionScreen}
+        options={{ title: '데일리 미션', headerBackTitle: '뒤로' }}
+      />
+      <Stack.Screen
+        name="Ranking"
+        component={RankingScreen}
+        options={{ title: '랭킹', headerBackTitle: '뒤로' }}
+      />
+
+      {/* Search */}
+      <Stack.Screen
+        name="Search"
+        component={SearchScreen}
+        options={{ title: '검색', headerBackTitle: '뒤로' }}
       />
     </Stack.Navigator>
   );
 };
 
-// App Navigator - 항상 MainStack 사용 (게스트도 접근 가능)
+// App Navigator
 const AppNavigator = () => {
   const { loading } = useAuth();
 
