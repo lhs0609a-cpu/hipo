@@ -1,0 +1,28 @@
+app = 'hipo-backend'
+primary_region = 'nrt'
+
+[build]
+
+[env]
+  NODE_ENV = 'production'
+  PORT = '3000'
+  DB_STORAGE = '/data/database.sqlite'
+  INITIAL_PO_BALANCE = '10000'
+  INITIAL_MARKET_CAP = '5000'
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+[mounts]
+  source = 'hipo_data'
+  destination = '/data'
