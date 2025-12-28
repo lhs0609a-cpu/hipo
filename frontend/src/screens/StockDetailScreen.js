@@ -63,13 +63,14 @@ const StockDetailScreen = ({ route, navigation }) => {
     }
 
     setTrading(true);
+    const stockName = stock.issuer?.displayName || stock.issuer?.username || stock.name || '주식';
     try {
       if (activeTab === 'buy') {
         await stockAPI.buy(stockId, qty);
-        Alert.alert('성공', `${stock.name} ${qty}주를 매수했습니다`);
+        Alert.alert('성공', `${stockName} ${qty}주를 매수했습니다`);
       } else {
         await stockAPI.sell(stockId, qty);
-        Alert.alert('성공', `${stock.name} ${qty}주를 매도했습니다`);
+        Alert.alert('성공', `${stockName} ${qty}주를 매도했습니다`);
       }
       setQuantity('1');
     } catch (error) {
@@ -104,48 +105,59 @@ const StockDetailScreen = ({ route, navigation }) => {
     );
   }
 
-  const totalAmount = (stock.currentPrice || 0) * parseInt(quantity || 0);
-  const priceChange = stock.priceChange || 0;
+  // 백엔드 응답 구조에 맞게 데이터 매핑
+  const displayName = stock.issuer?.displayName || stock.issuer?.username || stock.name || '크리에이터';
+  const username = stock.issuer?.username || stock.symbol || '';
+  const currentPrice = stock.sharePrice || stock.currentPrice || 0;
+  const totalAmount = currentPrice * parseInt(quantity || 0);
   const priceChangePercent = stock.priceChangePercent || 0;
-  const isPositive = priceChange >= 0;
+  const isPositive = priceChangePercent >= 0;
+  const marketCap = stock.marketCapTotal || stock.marketCap || 0;
+  const totalShares = stock.totalShares || 0;
+  const availableShares = stock.availableShares || 0;
+  const dividendRate = stock.dividendRate || 0;
+  const tier = stock.tier || 'BRONZE';
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
-            {stock.symbol?.charAt(0) || stock.name?.charAt(0)}
+            {displayName.charAt(0).toUpperCase()}
           </Text>
         </View>
-        <Text style={styles.stockName}>{stock.name}</Text>
-        <Text style={styles.stockSymbol}>{stock.symbol}</Text>
+        <Text style={styles.stockName}>{displayName}</Text>
+        <Text style={styles.stockSymbol}>@{username}</Text>
+        <View style={styles.tierBadge}>
+          <Text style={styles.tierText}>{tier}</Text>
+        </View>
       </View>
 
       <View style={styles.priceSection}>
         <Text style={styles.currentPrice}>
-          {stock.currentPrice?.toLocaleString() || 0}원
+          {currentPrice.toLocaleString()}원
         </Text>
         <Text style={[styles.priceChange, isPositive ? styles.positive : styles.negative]}>
-          {isPositive ? '▲' : '▼'} {Math.abs(priceChange).toLocaleString()}원 ({isPositive ? '+' : ''}{priceChangePercent.toFixed(2)}%)
+          {isPositive ? '▲' : '▼'} {isPositive ? '+' : ''}{priceChangePercent.toFixed(2)}%
         </Text>
       </View>
 
       <View style={styles.infoSection}>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>시가총액</Text>
-          <Text style={styles.infoValue}>{(stock.marketCap || 0).toLocaleString()}원</Text>
+          <Text style={styles.infoValue}>{marketCap.toLocaleString()}원</Text>
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>거래량</Text>
-          <Text style={styles.infoValue}>{(stock.volume || 0).toLocaleString()}</Text>
+          <Text style={styles.infoLabel}>총 발행량</Text>
+          <Text style={styles.infoValue}>{totalShares.toLocaleString()}주</Text>
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>최고가</Text>
-          <Text style={styles.infoValue}>{(stock.highPrice || 0).toLocaleString()}원</Text>
+          <Text style={styles.infoLabel}>거래 가능</Text>
+          <Text style={styles.infoValue}>{availableShares.toLocaleString()}주</Text>
         </View>
         <View style={styles.infoRow}>
-          <Text style={styles.infoLabel}>최저가</Text>
-          <Text style={styles.infoValue}>{(stock.lowPrice || 0).toLocaleString()}원</Text>
+          <Text style={styles.infoLabel}>배당률</Text>
+          <Text style={styles.infoValue}>{dividendRate}%</Text>
         </View>
       </View>
 
@@ -266,6 +278,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginTop: 4,
+  },
+  tierBadge: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  tierText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
   },
   priceSection: {
     backgroundColor: '#fff',

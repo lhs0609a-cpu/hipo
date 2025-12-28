@@ -66,9 +66,11 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const renderStockItem = ({ item }) => {
-    const priceChange = item.priceChange || 0;
     const priceChangePercent = item.priceChangePercent || 0;
-    const isPositive = priceChange >= 0;
+    const isPositive = priceChangePercent >= 0;
+    const displayName = item.issuer?.displayName || item.issuer?.username || '크리에이터';
+    const username = item.issuer?.username || '';
+    const price = item.sharePrice || item.currentPrice || 0;
 
     return (
       <TouchableOpacity
@@ -78,17 +80,17 @@ const HomeScreen = ({ navigation }) => {
         <View style={styles.stockLeft}>
           <View style={styles.stockAvatar}>
             <Text style={styles.stockAvatarText}>
-              {item.symbol?.charAt(0) || item.name?.charAt(0)}
+              {displayName.charAt(0).toUpperCase()}
             </Text>
           </View>
           <View style={styles.stockInfo}>
-            <Text style={styles.stockName}>{item.name}</Text>
-            <Text style={styles.stockSymbol}>{item.symbol}</Text>
+            <Text style={styles.stockName}>{displayName}</Text>
+            <Text style={styles.stockSymbol}>@{username}</Text>
           </View>
         </View>
         <View style={styles.stockRight}>
           <Text style={styles.stockPrice}>
-            {item.currentPrice?.toLocaleString() || 0}원
+            {price.toLocaleString()}원
           </Text>
           <Text style={[styles.stockChange, isPositive ? styles.positive : styles.negative]}>
             {isPositive ? '+' : ''}{priceChangePercent.toFixed(2)}%

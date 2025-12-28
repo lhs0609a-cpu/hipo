@@ -68,26 +68,31 @@ const PortfolioScreen = ({ navigation }) => {
   }, []);
 
   const renderHoldingItem = ({ item }) => {
-    const currentValue = (item.currentPrice || 0) * (item.quantity || 0);
-    const purchaseValue = (item.avgPrice || 0) * (item.quantity || 0);
+    // 백엔드 응답 구조에 맞게 데이터 매핑
+    const currentPrice = item.stock?.sharePrice || item.currentPrice || 0;
+    const avgPrice = item.averagePrice || item.avgPrice || 0;
+    const quantity = item.quantity || 0;
+    const currentValue = currentPrice * quantity;
+    const purchaseValue = avgPrice * quantity;
     const profitLoss = currentValue - purchaseValue;
     const profitLossPercent = purchaseValue > 0 ? ((profitLoss / purchaseValue) * 100) : 0;
     const isPositive = profitLoss >= 0;
+    const displayName = item.stock?.issuer?.displayName || item.stock?.issuer?.username || item.stock?.name || '주식';
 
     return (
       <TouchableOpacity
         style={styles.holdingItem}
-        onPress={() => navigation.navigate('StockDetail', { stockId: item.stockId })}
+        onPress={() => navigation.navigate('StockDetail', { stockId: item.stockId, stock: item.stock })}
       >
         <View style={styles.holdingLeft}>
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>
-              {item.stock?.symbol?.charAt(0) || 'S'}
+              {displayName.charAt(0).toUpperCase()}
             </Text>
           </View>
           <View style={styles.holdingInfo}>
-            <Text style={styles.stockName}>{item.stock?.name || '주식'}</Text>
-            <Text style={styles.quantity}>{item.quantity}주 보유</Text>
+            <Text style={styles.stockName}>{displayName}</Text>
+            <Text style={styles.quantity}>{quantity}주 보유</Text>
           </View>
         </View>
         <View style={styles.holdingRight}>

@@ -64,7 +64,21 @@
       "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" auth login --web -h github.com)",
       "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" repo create hipo --public --source=. --remote=origin --push)",
       "Bash(git push)",
-      "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" --version)"
+      "Bash(\"C:/Program Files/GitHub CLI/gh.exe\" --version)",
+      "WebFetch(domain:backend-seven-psi-91.vercel.app)",
+      "Bash(fly version:*)",
+      "Bash(flyctl version:*)",
+      "Bash(fly auth whoami:*)",
+      "Bash(fly apps:*)",
+      "Bash(fly volumes create:*)",
+      "Bash(fly secrets set:*)",
+      "Bash(fly deploy:*)",
+      "WebFetch(domain:hipo-backend.fly.dev)",
+      "Bash(fly logs:*)",
+      "Bash(npx vercel:*)",
+      "Bash(git restore:*)",
+      "Bash(git push:*)",
+      "WebFetch(domain:hipo-ochre.vercel.app)"
     ],
     "deny": [],
     "ask": []
