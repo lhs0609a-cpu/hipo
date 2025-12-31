@@ -129,19 +129,23 @@ export default function MenuScreen({ navigation }) {
         <Text style={styles.sectionTitle}>💰 내 지갑</Text>
         <View style={styles.walletCard}>
           <View style={styles.walletHeader}>
-            <Text style={styles.walletLabel}>충전 잔액</Text>
-            {loadingBalance ? (
-              <ActivityIndicator size="small" color={COLORS.primary} />
-            ) : (
-              <Text style={styles.walletBalance}>{balance.toLocaleString()}원</Text>
-            )}
+            <Text style={styles.walletLabel}>PO 잔액</Text>
+            <Text style={styles.walletBalance}>{user.poBalance?.toLocaleString() || 0} PO</Text>
           </View>
-          <TouchableOpacity
-            style={styles.chargeButton}
-            onPress={() => navigation.navigate('Charge')}
-          >
-            <Text style={styles.chargeButtonText}>💳 충전하기</Text>
-          </TouchableOpacity>
+          <View style={styles.walletButtons}>
+            <TouchableOpacity
+              style={[styles.chargeButton, styles.chargeButtonHalf]}
+              onPress={() => navigation.navigate('POCharge')}
+            >
+              <Text style={styles.chargeButtonText}>💳 충전</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.chargeButton, styles.chargeButtonHalf, styles.secondaryButton]}
+              onPress={() => navigation.navigate('Wallet')}
+            >
+              <Text style={styles.secondaryButtonText}>📊 내역</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
@@ -159,6 +163,43 @@ export default function MenuScreen({ navigation }) {
             <Text style={styles.infoValue}>x{user.trustMultiplier || 1}</Text>
           </View>
         </View>
+      </View>
+
+      {/* 이벤트 & 보상 */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>이벤트 & 보상</Text>
+        <TouchableOpacity
+          style={[styles.menuItem, styles.highlightMenuItem]}
+          onPress={() => navigation.navigate('Invite')}
+        >
+          <Text style={styles.menuIcon}>🎁</Text>
+          <View style={styles.menuTextContainer}>
+            <Text style={styles.menuText}>친구 초대</Text>
+            <Text style={styles.menuSubtext}>친구 초대하고 1,500 PO 받기</Text>
+          </View>
+          <View style={styles.newBadge}>
+            <Text style={styles.newBadgeText}>HOT</Text>
+          </View>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('Attendance')}
+        >
+          <Text style={styles.menuIcon}>📅</Text>
+          <View style={styles.menuTextContainer}>
+            <Text style={styles.menuText}>출석 체크</Text>
+            <Text style={styles.menuSubtext}>매일 100 PO, 7일 연속 2배!</Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('FriendRanking')}
+        >
+          <Text style={styles.menuIcon}>🏆</Text>
+          <Text style={styles.menuText}>친구 랭킹</Text>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
       </View>
 
       {/* 뉴스 메뉴 */}
@@ -187,6 +228,22 @@ export default function MenuScreen({ navigation }) {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.menuItem}
+          onPress={() => navigation.navigate('Watchlist')}
+        >
+          <Text style={styles.menuIcon}>⭐</Text>
+          <Text style={styles.menuText}>관심종목</Text>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('PortfolioAnalysis')}
+        >
+          <Text style={styles.menuIcon}>📈</Text>
+          <Text style={styles.menuText}>포트폴리오 분석</Text>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.menuItem}
           onPress={() => navigation.navigate('StockAlert')}
         >
           <Text style={styles.menuIcon}>🎯</Text>
@@ -197,7 +254,7 @@ export default function MenuScreen({ navigation }) {
           style={styles.menuItem}
           onPress={() => navigation.navigate('Strategy')}
         >
-          <Text style={styles.menuIcon}>📈</Text>
+          <Text style={styles.menuIcon}>💡</Text>
           <Text style={styles.menuText}>투자 전략</Text>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
@@ -205,7 +262,7 @@ export default function MenuScreen({ navigation }) {
           style={styles.menuItem}
           onPress={() => navigation.navigate('Competition')}
         >
-          <Text style={styles.menuIcon}>🏆</Text>
+          <Text style={styles.menuIcon}>🏅</Text>
           <Text style={styles.menuText}>트레이딩 대회</Text>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
@@ -284,6 +341,17 @@ export default function MenuScreen({ navigation }) {
       {/* 설정 메뉴 */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>설정</Text>
+        <TouchableOpacity
+          style={styles.menuItem}
+          onPress={() => navigation.navigate('SecuritySettings')}
+        >
+          <Text style={styles.menuIcon}>🔐</Text>
+          <View style={styles.menuTextContainer}>
+            <Text style={styles.menuText}>보안 설정</Text>
+            <Text style={styles.menuSubtext}>2FA, 거래 PIN, 일일 한도</Text>
+          </View>
+          <Text style={styles.chevron}>›</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.menuItem}>
           <Text style={styles.menuIcon}>🔔</Text>
           <Text style={styles.menuText}>알림 설정</Text>
@@ -306,7 +374,7 @@ export default function MenuScreen({ navigation }) {
           style={styles.menuItem}
           onPress={() => navigation.navigate('PrivacyPolicy')}
         >
-          <Text style={styles.menuIcon}>🔒</Text>
+          <Text style={styles.menuIcon}>📄</Text>
           <Text style={styles.menuText}>개인정보 처리방침</Text>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
@@ -316,6 +384,24 @@ export default function MenuScreen({ navigation }) {
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>
       </View>
+
+      {/* 크리에이터 메뉴 (상장인인 경우) */}
+      {user.isCreator && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>크리에이터</Text>
+          <TouchableOpacity
+            style={[styles.menuItem, styles.creatorMenuItem]}
+            onPress={() => navigation.navigate('IPOManagement')}
+          >
+            <Text style={styles.menuIcon}>👑</Text>
+            <View style={styles.menuTextContainer}>
+              <Text style={styles.menuText}>IPO 관리</Text>
+              <Text style={styles.menuSubtext}>티어, 유상증자, 자사주 관리</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* 인증 메뉴 */}
       {!user.isVerified && (
@@ -341,9 +427,20 @@ export default function MenuScreen({ navigation }) {
           <Text style={styles.sectionTitle}>관리자</Text>
           <TouchableOpacity
             style={styles.adminMenuItem}
+            onPress={() => navigation.navigate('AdminDashboard')}
+          >
+            <Text style={styles.menuIcon}>📊</Text>
+            <View style={styles.menuTextContainer}>
+              <Text style={styles.menuText}>관리자 대시보드</Text>
+              <Text style={styles.menuSubtext}>통계, IPO 심사, 이상 탐지</Text>
+            </View>
+            <Text style={styles.chevron}>›</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.adminMenuItem}
             onPress={() => navigation.navigate('AdminVerification')}
           >
-            <Text style={styles.menuIcon}>👑</Text>
+            <Text style={styles.menuIcon}>✓</Text>
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuText}>인증 관리</Text>
               <Text style={styles.menuSubtext}>사용자 인증 요청 검토</Text>
@@ -520,14 +617,29 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#FFFFFF',
   },
+  walletButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
   chargeButton: {
     backgroundColor: '#FFFFFF',
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
   },
+  chargeButtonHalf: {
+    flex: 1,
+  },
+  secondaryButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
   chargeButtonText: {
     color: COLORS.primary,
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  secondaryButtonText: {
+    color: '#FFFFFF',
     fontSize: 15,
     fontWeight: 'bold',
   },
@@ -578,6 +690,27 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderWidth: 1,
     borderColor: COLORS.warning + '30',
+  },
+  highlightMenuItem: {
+    backgroundColor: '#FFF8E1',
+    borderWidth: 1,
+    borderColor: '#FFD54F',
+  },
+  newBadge: {
+    backgroundColor: '#FF5252',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  newBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+  creatorMenuItem: {
+    backgroundColor: '#E8F5E9',
+    borderWidth: 1,
+    borderColor: '#81C784',
   },
   logoutButton: {
     backgroundColor: COLORS.danger,

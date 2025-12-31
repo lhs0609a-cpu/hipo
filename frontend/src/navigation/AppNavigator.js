@@ -63,6 +63,20 @@ import SearchScreen from '../screens/SearchScreen';
 // Language & Settings
 import LanguageSelectionScreen from '../screens/LanguageSelectionScreen';
 
+// Advanced Feature Screens
+import SecuritySettingsScreen from '../screens/SecuritySettingsScreen';
+import PortfolioAnalysisScreen from '../screens/PortfolioAnalysisScreen';
+import IPOManagementScreen from '../screens/IPOManagementScreen';
+import WatchlistScreen from '../screens/WatchlistScreen';
+import POChargeScreen from '../screens/POChargeScreen';
+import AdvancedOrderScreen from '../screens/AdvancedOrderScreen';
+import AdminDashboardScreen from '../screens/AdminDashboardScreen';
+
+// Viral/Marketing Screens
+import InviteScreen from '../screens/InviteScreen';
+import AttendanceScreen from '../screens/AttendanceScreen';
+import FriendRankingScreen from '../screens/FriendRankingScreen';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -346,6 +360,60 @@ function MainStack() {
         name="LanguageSelection"
         component={LanguageSelectionScreen}
         options={{ title: '언어 설정' }}
+      />
+
+      {/* Advanced Feature Screens */}
+      <Stack.Screen
+        name="SecuritySettings"
+        component={SecuritySettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PortfolioAnalysis"
+        component={PortfolioAnalysisScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="IPOManagement"
+        component={IPOManagementScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Watchlist"
+        component={WatchlistScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="POCharge"
+        component={POChargeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AdvancedOrder"
+        component={AdvancedOrderScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AdminDashboard"
+        component={AdminDashboardScreen}
+        options={{ headerShown: false }}
+      />
+
+      {/* Viral/Marketing Screens */}
+      <Stack.Screen
+        name="Invite"
+        component={InviteScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Attendance"
+        component={AttendanceScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="FriendRanking"
+        component={FriendRankingScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

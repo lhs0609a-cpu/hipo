@@ -77,6 +77,16 @@ function loadRoutes() {
     app.use('/api/feedback', require('./src/routes/feedback'));
     app.use('/api/creator-rankings', require('./src/routes/creatorRanking'));
 
+    // === 신규 고급 기능 라우트 ===
+    app.use('/api/trading', require('./src/routes/advancedTrading'));
+    app.use('/api/security', require('./src/routes/security'));
+    app.use('/api/ipo', require('./src/routes/ipo'));
+    app.use('/api/portfolio', require('./src/routes/portfolio'));
+    app.use('/api/watchlist', require('./src/routes/watchlist'));
+
+    // === 바이럴/마케팅 기능 라우트 ===
+    app.use('/api/viral', require('./src/routes/viral'));
+
     console.log('✅ All routes loaded successfully');
     return true;
   } catch (error) {

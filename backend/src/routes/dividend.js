@@ -18,4 +18,21 @@ router.get('/creator/:creatorId/stats', authenticateToken, dividendController.ge
 // 특정 크리에이터 주식의 예상 배당 계산
 router.get('/creator/:creatorId/calculate', authenticateToken, dividendController.calculateExpectedDividend);
 
+// === 고급 배당 기능 ===
+
+// 배당 일정 조회
+router.get('/schedule', authenticateToken, dividendController.getDividendSchedule);
+
+// 배당 재투자 설정
+router.post('/reinvestment', authenticateToken, dividendController.setDividendReinvestment);
+
+// 배당률 변경 (크리에이터용)
+router.put('/rate', authenticateToken, dividendController.updateDividendRate);
+
+// 특별 배당 지급 (크리에이터용)
+router.post('/special', authenticateToken, dividendController.paySpecialDividend);
+
+// 상세 배당 통계
+router.get('/stats', authenticateToken, dividendController.getDetailedDividendStats);
+
 module.exports = router;

@@ -317,3 +317,216 @@ exports.processWithdrawal = async (req, res) => {
     res.status(500).json({ error: '출금 처리 중 오류가 발생했습니다.' });
   }
 };
+
+// === PO 충전/교환 시스템 ===
+
+/**
+ * PO 충전 (결제 후)
+ */
+exports.chargePO = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const userId = req.user.id;
+    const { amount, paymentMethod, paymentId } = req.body;
+
+    if (!amount || amount <= 0) {
+      await transaction.rollback();
+      return res.status(400).json({ error: '충전 금액은 0보다 커야 합니다' });
+    }
+
+    // 충전 금액별 보너스
+    let bonus = 0;
+    if (amount >= 100000) bonus = Math.floor(amount * 0.05); // 10만원 이상 5%
+    else if (amount >= 50000) bonus = Math.floor(amount * 0.03); // 5만원 이상 3%
+    else if (amount >= 10000) bonus = Math.floor(amount * 0.01); // 1만원 이상 1%
+
+    const totalPO = amount + bonus;
+
+    // 사용자 PO 잔액 증가
+    const user = await User.findByPk(userId, { transaction });
+    await user.update({
+      poBalance: user.poBalance + totalPO
+    }, { transaction });
+
+    // 거래 내역 기록
+    await CoinTransaction.create({
+      userId,
+      transactionType: 'DEPOSIT',
+      amount: totalPO,
+      balanceAfter: user.poBalance + totalPO,
+      relatedId: paymentId,
+      description: `PO 충전 (${paymentMethod || '결제'})`
+    }, { transaction });
+
+    await transaction.commit();
+
+    res.json({
+      message: 'PO 충전이 완료되었습니다',
+      charged: amount,
+      bonus,
+      total: totalPO,
+      newBalance: user.poBalance + totalPO
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error('PO 충전 오류:', error);
+    res.status(500).json({ error: 'PO 충전 중 오류가 발생했습니다' });
+  }
+};
+
+/**
+ * PO 잔액 조회
+ */
+exports.getPOBalance = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findByPk(userId, {
+      attributes: ['poBalance', 'balance']
+    });
+
+    // 오늘 받은 배당금
+    const { Op } = require('sequelize');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayDividend = await CoinTransaction.sum('amount', {
+      where: {
+        userId,
+        transactionType: 'EARN',
+        source: 'dividend',
+        createdAt: { [Op.gte]: today }
+      }
+    }) || 0;
+
+    res.json({
+      poBalance: user.poBalance,
+      cashBalance: user.balance || 0,
+      todayDividend
+    });
+  } catch (error) {
+    console.error('PO 잔액 조회 오류:', error);
+    res.status(500).json({ error: '잔액 조회 중 오류가 발생했습니다' });
+  }
+};
+
+/**
+ * PO → 현금 전환 요청
+ */
+exports.convertPOToCash = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const userId = req.user.id;
+    const { amount, bankName, accountNumber, accountHolder } = req.body;
+
+    if (!amount || amount < 10000) {
+      await transaction.rollback();
+      return res.status(400).json({ error: '최소 전환 금액은 10,000 PO입니다' });
+    }
+
+    const user = await User.findByPk(userId, { transaction });
+    if (user.poBalance < amount) {
+      await transaction.rollback();
+      return res.status(400).json({
+        error: 'PO가 부족합니다',
+        required: amount,
+        available: user.poBalance
+      });
+    }
+
+    // 전환 수수료 10%
+    const feeRate = 0.1;
+    const fee = Math.floor(amount * feeRate);
+    const netAmount = amount - fee;
+
+    // PO 차감
+    await user.update({
+      poBalance: user.poBalance - amount
+    }, { transaction });
+
+    // 출금 요청 생성
+    await Withdrawal.create({
+      userId,
+      amount,
+      feeAmount: fee,
+      netAmount,
+      feeRate,
+      bankName,
+      accountNumber,
+      accountHolder,
+      status: 'PENDING',
+      type: 'PO_CONVERSION'
+    }, { transaction });
+
+    await transaction.commit();
+
+    res.json({
+      message: 'PO 전환 요청이 접수되었습니다',
+      amount,
+      fee,
+      netAmount,
+      newBalance: user.poBalance - amount
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error('PO 전환 오류:', error);
+    res.status(500).json({ error: 'PO 전환 중 오류가 발생했습니다' });
+  }
+};
+
+/**
+ * PO 사용 내역 조회
+ */
+exports.getPOHistory = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { type, page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const { Op } = require('sequelize');
+    const where = { userId };
+    if (type) where.transactionType = type;
+
+    const { count, rows: transactions } = await CoinTransaction.findAndCountAll({
+      where,
+      order: [['createdAt', 'DESC']],
+      limit: parseInt(limit),
+      offset
+    });
+
+    res.json({
+      transactions,
+      pagination: {
+        total: count,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        totalPages: Math.ceil(count / limit)
+      }
+    });
+  } catch (error) {
+    console.error('PO 내역 조회 오류:', error);
+    res.status(500).json({ error: '내역 조회 중 오류가 발생했습니다' });
+  }
+};
+
+/**
+ * 충전 상품 목록
+ */
+exports.getChargeProducts = async (req, res) => {
+  try {
+    const products = [
+      { id: 1, amount: 5000, bonus: 0, price: 5000, label: '5,000 PO' },
+      { id: 2, amount: 10000, bonus: 100, price: 10000, label: '10,000 PO (+1%)' },
+      { id: 3, amount: 30000, bonus: 300, price: 30000, label: '30,000 PO (+1%)' },
+      { id: 4, amount: 50000, bonus: 1500, price: 50000, label: '50,000 PO (+3%)' },
+      { id: 5, amount: 100000, bonus: 5000, price: 100000, label: '100,000 PO (+5%)' },
+      { id: 6, amount: 300000, bonus: 15000, price: 300000, label: '300,000 PO (+5%)' },
+      { id: 7, amount: 500000, bonus: 30000, price: 500000, label: '500,000 PO (+6%)' },
+      { id: 8, amount: 1000000, bonus: 80000, price: 1000000, label: '1,000,000 PO (+8%)' }
+    ];
+
+    res.json({ products });
+  } catch (error) {
+    console.error('충전 상품 조회 오류:', error);
+    res.status(500).json({ error: '상품 조회 중 오류가 발생했습니다' });
+  }
+};

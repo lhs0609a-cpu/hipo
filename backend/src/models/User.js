@@ -141,6 +141,68 @@ module.exports = (sequelize) => {
         system: true
       },
       comment: '알림 설정 (JSON)'
+    },
+    // === 보안 관련 필드 ===
+    tradingPin: {
+      type: DataTypes.STRING(255),
+      field: 'trading_pin',
+      comment: '거래 비밀번호 (해시됨)'
+    },
+    twoFactorEnabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'two_factor_enabled',
+      comment: '2단계 인증 활성화'
+    },
+    twoFactorSecret: {
+      type: DataTypes.STRING(255),
+      field: 'two_factor_secret',
+      comment: '2FA 시크릿 키'
+    },
+    biometricEnabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'biometric_enabled',
+      comment: '생체 인증 활성화'
+    },
+    dailyTradeLimit: {
+      type: DataTypes.INTEGER,
+      defaultValue: 10000000,
+      field: 'daily_trade_limit',
+      comment: '일일 거래 한도 (PO)'
+    },
+    dailyTradeAmount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      field: 'daily_trade_amount',
+      comment: '오늘 거래 금액 (PO)'
+    },
+    dailyTradeResetAt: {
+      type: DataTypes.DATE,
+      field: 'daily_trade_reset_at',
+      comment: '일일 거래량 리셋 시간'
+    },
+    loginAttempts: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      field: 'login_attempts',
+      comment: '로그인 시도 횟수'
+    },
+    lockedUntil: {
+      type: DataTypes.DATE,
+      field: 'locked_until',
+      comment: '계정 잠금 해제 시간'
+    },
+    identityVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'identity_verified',
+      comment: '신분증 본인인증 완료'
+    },
+    identityVerifiedAt: {
+      type: DataTypes.DATE,
+      field: 'identity_verified_at',
+      comment: '본인인증 완료일'
     }
   }, {
     tableName: 'users',

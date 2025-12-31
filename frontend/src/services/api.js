@@ -296,4 +296,128 @@ export const feedbackAPI = {
   submit: (data) => api.post('/feedback', data),
 };
 
+// === 신규 고급 기능 APIs ===
+
+// Security APIs (보안)
+export const securityAPI = {
+  getSettings: () => api.get('/security/settings'),
+  setTradingPin: (pin, confirmPin) => api.post('/security/trading-pin', { pin, confirmPin }),
+  verifyPin: (pin) => api.post('/security/verify-pin', { pin }),
+  setup2FA: () => api.post('/security/2fa/setup'),
+  verify2FA: (token) => api.post('/security/2fa/verify', { token }),
+  disable2FA: (token, password) => api.post('/security/2fa/disable', { token, password }),
+  requestIdentityVerification: (data) => api.post('/security/identity-verification', data),
+  setDailyLimit: (limit, pin) => api.put('/security/daily-limit', { limit, pin }),
+  getLoginHistory: () => api.get('/security/login-history'),
+};
+
+// Advanced Trading APIs (고급 거래)
+export const tradingAPI = {
+  createLimitOrder: (data) => api.post('/trading/limit-order', data),
+  createStopOrder: (data) => api.post('/trading/stop-order', data),
+  cancelOrder: (orderId) => api.delete(`/trading/orders/${orderId}`),
+  getMyOrders: (status = 'PENDING') => api.get(`/trading/orders?status=${status}`),
+};
+
+// IPO APIs
+export const ipoAPI = {
+  apply: (data) => api.post('/ipo/apply', data),
+  secondaryOffering: (shares, price) => api.post('/ipo/secondary-offering', { shares, price }),
+  buyback: (shares, maxPrice) => api.post('/ipo/buyback', { shares, maxPrice }),
+  burnTreasury: (shares) => api.post('/ipo/burn-treasury', { shares }),
+  checkTierUpgrade: () => api.get('/ipo/tier-check'),
+  upgradeTier: () => api.post('/ipo/upgrade-tier'),
+  requestDelisting: (reason, buybackPrice) => api.post('/ipo/request-delisting', { reason, buybackPrice }),
+  getLockupStatus: () => api.get('/ipo/lockup-status'),
+  getMyStatus: () => api.get('/ipo/my-status'),
+};
+
+// Portfolio APIs (포트폴리오)
+export const portfolioAPI = {
+  getSummary: () => api.get('/portfolio/summary'),
+  getProfitAnalysis: (period = '30d') => api.get(`/portfolio/profit-analysis?period=${period}`),
+  getSectorAnalysis: () => api.get('/portfolio/sector-analysis'),
+  getTradeStatistics: (period = 'all') => api.get(`/portfolio/trade-statistics?period=${period}`),
+  getDividendAnalysis: () => api.get('/portfolio/dividend-analysis'),
+  getReport: () => api.get('/portfolio/report'),
+};
+
+// Watchlist APIs (관심종목)
+export const watchlistAPI = {
+  getAll: () => api.get('/watchlist'),
+  add: (stockId, notes) => api.post('/watchlist', { stockId, notes }),
+  remove: (stockId) => api.delete(`/watchlist/${stockId}`),
+  setAlert: (stockId, priceAlert, alertCondition) => api.put(`/watchlist/${stockId}/alert`, { priceAlert, alertCondition }),
+  updateNote: (stockId, notes) => api.put(`/watchlist/${stockId}/note`, { notes }),
+  check: (stockId) => api.get(`/watchlist/check/${stockId}`),
+  getCategories: () => api.get('/watchlist/categories'),
+  getByCategory: (category, params) => api.get(`/watchlist/category/${category}`, { params }),
+};
+
+// PO Wallet APIs (PO 충전)
+export const poWalletAPI = {
+  getBalance: () => api.get('/wallet/po/balance'),
+  charge: (amount, paymentMethod, paymentId) => api.post('/wallet/po/charge', { amount, paymentMethod, paymentId }),
+  convert: (amount, bankName, accountNumber, accountHolder) => api.post('/wallet/po/convert', { amount, bankName, accountNumber, accountHolder }),
+  getHistory: (type, page = 1, limit = 20) => api.get(`/wallet/po/history?type=${type}&page=${page}&limit=${limit}`),
+  getProducts: () => api.get('/wallet/po/products'),
+};
+
+// Advanced Dividend APIs (배당 고급)
+export const advancedDividendAPI = {
+  getSchedule: () => api.get('/dividend/schedule'),
+  setReinvestment: (stockId, enabled, percentage) => api.post('/dividend/reinvestment', { stockId, enabled, percentage }),
+  updateRate: (newRate) => api.put('/dividend/rate', { newRate }),
+  paySpecial: (amount, reason) => api.post('/dividend/special', { amount, reason }),
+  getStats: (period = '30d') => api.get(`/dividend/stats?period=${period}`),
+};
+
+// Admin APIs (관리자)
+export const adminAPI = {
+  getDashboard: () => api.get('/admin/dashboard'),
+  getUsers: (params) => api.get('/admin/users', { params }),
+  sanctionUser: (userId, action, reason, duration) => api.post(`/admin/users/${userId}/sanction`, { action, reason, duration }),
+  getStocks: (params) => api.get('/admin/stocks', { params }),
+  updateStockStatus: (stockId, status, reason) => api.patch(`/admin/stocks/${stockId}/status`, { status, reason }),
+  getPendingIPOs: () => api.get('/admin/ipo/pending'),
+  reviewIPO: (stockId, approved, reason, initialPrice, lockupDays) => api.post(`/admin/ipo/${stockId}/review`, { approved, reason, initialPrice, lockupDays }),
+  getAnomalyAlerts: (page = 1) => api.get(`/admin/anomaly-alerts?page=${page}`),
+  createAnnouncement: (title, content, type) => api.post('/admin/announcements', { title, content, type }),
+};
+
+// === 바이럴/마케팅 기능 APIs ===
+
+// 추천 코드 시스템
+export const viralReferralAPI = {
+  getMyCode: () => api.get('/viral/referral/code'),
+  applyCode: (code) => api.post('/viral/referral/apply', { code }),
+  getMyReferrals: () => api.get('/viral/referral/list'),
+};
+
+// 출석 체크 시스템
+export const attendanceAPI = {
+  checkIn: () => api.post('/viral/attendance/check-in'),
+  getStatus: () => api.get('/viral/attendance/status'),
+};
+
+// 친구 랭킹
+export const friendRankingAPI = {
+  getRanking: () => api.get('/viral/friends/ranking'),
+};
+
+// 초대 리더보드
+export const inviteLeaderboardAPI = {
+  getWeekly: () => api.get('/viral/leaderboard/weekly'),
+};
+
+// 소셜 공유
+export const shareAPI = {
+  getShareCard: () => api.get('/viral/share/card'),
+};
+
+// 얼리버드 뱃지
+export const earlyBirdAPI = {
+  getMyBadges: () => api.get('/viral/badges/early-bird'),
+};
+
 export default api;

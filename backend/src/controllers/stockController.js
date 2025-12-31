@@ -10,6 +10,7 @@ const {
   calculateMACD
 } = require('../utils/technicalIndicators');
 const { getMaxSharesByTier } = require('../utils/tierSystem');
+const viralController = require('./viralController');
 
 /**
  * 주식 목록 조회
@@ -272,6 +273,26 @@ exports.buyStock = async (req, res) => {
       });
     } catch (err) {
       console.error('거래 피드 브로드캐스트 오류:', err);
+    }
+
+    // 바이럴 기능 실행 (비동기, 에러가 나도 매수에 영향 없음)
+    try {
+      // 1. Ego Viral - 크리에이터에게 알림
+      await viralController.notifyStockPurchaseInternal(buyerId, stock.id, shares);
+
+      // 2. 얼리버드 뱃지 확인 및 부여
+      await viralController.grantEarlyBirdBadgeInternal(buyerId, stock.id);
+
+      // 3. 첫 거래인지 확인하고 추천인 보상 처리
+      const transactionCount = await Transaction.count({
+        where: { buyerId }
+      });
+      if (transactionCount === 1) {
+        // 첫 거래! 추천인에게 보상
+        await viralController.onReferredUserFirstTradeInternal(buyerId);
+      }
+    } catch (viralError) {
+      console.error('바이럴 기능 실행 오류 (무시됨):', viralError);
     }
 
     res.json({
@@ -950,6 +971,209 @@ exports.issueStock = async (req, res) => {
     await t.rollback();
     console.error('주식 발행 오류:', error);
     res.status(500).json({ error: '주식 발행 중 오류가 발생했습니다' });
+  }
+};
+
+/**
+ * 호가창 데이터 조회 (시뮬레이션)
+ */
+exports.getOrderBook = async (req, res) => {
+  try {
+    const { stockId } = req.params;
+
+    const stock = await Stock.findByPk(stockId);
+    if (!stock) {
+      return res.status(404).json({ error: '주식을 찾을 수 없습니다' });
+    }
+
+    const currentPrice = stock.sharePrice;
+    const priceStep = Math.max(1, Math.floor(currentPrice * 0.005)); // 0.5% 단위
+
+    // 매도 호가 생성 (현재가 위로 10단계)
+    const asks = [];
+    for (let i = 1; i <= 10; i++) {
+      const price = currentPrice + (priceStep * i);
+      // 현재가에 가까울수록 더 많은 물량
+      const baseQuantity = Math.floor(Math.random() * 300 + 50);
+      const quantity = Math.floor(baseQuantity * (11 - i) / 10);
+      asks.push({
+        price,
+        quantity: Math.max(10, quantity),
+        totalVolume: price * Math.max(10, quantity),
+      });
+    }
+
+    // 매수 호가 생성 (현재가 아래로 10단계)
+    const bids = [];
+    for (let i = 1; i <= 10; i++) {
+      const price = currentPrice - (priceStep * i);
+      if (price <= 0) break;
+      const baseQuantity = Math.floor(Math.random() * 300 + 50);
+      const quantity = Math.floor(baseQuantity * (11 - i) / 10);
+      bids.push({
+        price,
+        quantity: Math.max(10, quantity),
+        totalVolume: price * Math.max(10, quantity),
+      });
+    }
+
+    // 최대 물량 계산 (바 차트 비율용)
+    const maxQuantity = Math.max(
+      ...asks.map(a => a.quantity),
+      ...bids.map(b => b.quantity)
+    );
+
+    // 각 호가에 비율 추가
+    asks.forEach(a => a.percentage = (a.quantity / maxQuantity) * 100);
+    bids.forEach(b => b.percentage = (b.quantity / maxQuantity) * 100);
+
+    // 총 물량 계산
+    const totalAskQuantity = asks.reduce((sum, a) => sum + a.quantity, 0);
+    const totalBidQuantity = bids.reduce((sum, b) => sum + b.quantity, 0);
+
+    // 스프레드 계산
+    const bestAsk = asks.length > 0 ? asks[asks.length - 1].price : currentPrice;
+    const bestBid = bids.length > 0 ? bids[0].price : currentPrice;
+
+    res.json({
+      asks: asks.reverse(), // 높은 가격이 위로
+      bids,
+      currentPrice,
+      priceChangePercent: stock.priceChangePercent || 0,
+      totalAskQuantity,
+      totalBidQuantity,
+      spread: bestAsk - bestBid,
+      spreadPercent: ((bestAsk - bestBid) / currentPrice * 100).toFixed(2),
+    });
+  } catch (error) {
+    console.error('호가창 조회 오류:', error);
+    res.status(500).json({ error: '호가창 조회 중 오류가 발생했습니다' });
+  }
+};
+
+/**
+ * 주식 상세 통계 조회 (시가, 고가, 저가, 거래량)
+ */
+exports.getStockStats = async (req, res) => {
+  try {
+    const { stockId } = req.params;
+
+    const stock = await Stock.findByPk(stockId, {
+      include: [{
+        model: User,
+        as: 'issuer',
+        attributes: ['id', 'username', 'displayName', 'profileImage']
+      }]
+    });
+
+    if (!stock) {
+      return res.status(404).json({ error: '주식을 찾을 수 없습니다' });
+    }
+
+    // 오늘 시작 시간
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    // 오늘의 가격 히스토리 조회
+    const todayHistory = await PriceHistory.findAll({
+      where: {
+        stockId,
+        timestamp: { [Op.gte]: todayStart }
+      },
+      order: [['timestamp', 'ASC']]
+    });
+
+    // 52주 전 날짜
+    const week52Ago = new Date();
+    week52Ago.setDate(week52Ago.getDate() - 365);
+
+    // 52주간 가격 히스토리 조회
+    const yearHistory = await PriceHistory.findAll({
+      where: {
+        stockId,
+        timestamp: { [Op.gte]: week52Ago }
+      },
+      attributes: [
+        [sequelize.fn('MAX', sequelize.col('high')), 'maxHigh'],
+        [sequelize.fn('MIN', sequelize.col('low')), 'minLow']
+      ]
+    });
+
+    // 오늘 거래량 조회
+    const todayVolume = await Transaction.sum('shares', {
+      where: {
+        stockId,
+        createdAt: { [Op.gte]: todayStart }
+      }
+    });
+
+    // 오늘 거래대금 조회
+    const todayTurnover = await Transaction.sum('totalAmount', {
+      where: {
+        stockId,
+        createdAt: { [Op.gte]: todayStart }
+      }
+    });
+
+    // 시가, 고가, 저가 계산
+    let openPrice = stock.sharePrice;
+    let highPrice = stock.sharePrice;
+    let lowPrice = stock.sharePrice;
+    let previousClose = stock.sharePrice;
+
+    if (todayHistory.length > 0) {
+      openPrice = parseFloat(todayHistory[0].open);
+      highPrice = Math.max(...todayHistory.map(h => parseFloat(h.high)));
+      lowPrice = Math.min(...todayHistory.map(h => parseFloat(h.low)));
+    }
+
+    // 전일 종가 조회
+    const yesterday = new Date(todayStart);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayHistory = await PriceHistory.findOne({
+      where: {
+        stockId,
+        timestamp: { [Op.lt]: todayStart, [Op.gte]: yesterday }
+      },
+      order: [['timestamp', 'DESC']]
+    });
+
+    if (yesterdayHistory) {
+      previousClose = parseFloat(yesterdayHistory.close);
+    }
+
+    // 52주 고가/저가
+    const week52High = yearHistory[0]?.dataValues?.maxHigh || stock.sharePrice;
+    const week52Low = yearHistory[0]?.dataValues?.minLow || stock.sharePrice;
+
+    // 변동 금액 계산
+    const priceChange = stock.sharePrice - previousClose;
+    const priceChangePercent = previousClose > 0
+      ? ((priceChange / previousClose) * 100).toFixed(2)
+      : 0;
+
+    res.json({
+      stockId: stock.id,
+      currentPrice: stock.sharePrice,
+      previousClose,
+      priceChange,
+      priceChangePercent: parseFloat(priceChangePercent),
+      openPrice,
+      highPrice,
+      lowPrice,
+      week52High: parseFloat(week52High),
+      week52Low: parseFloat(week52Low),
+      volume: todayVolume || 0,
+      turnover: todayTurnover || 0,
+      marketCap: stock.marketCapTotal || 0,
+      issuedShares: stock.issuedShares,
+      totalShares: stock.totalShares,
+      dividendRate: stock.dividendRate,
+      issuer: stock.issuer
+    });
+  } catch (error) {
+    console.error('주식 통계 조회 오류:', error);
+    res.status(500).json({ error: '주식 통계 조회 중 오류가 발생했습니다' });
   }
 };
 

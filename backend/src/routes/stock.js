@@ -76,6 +76,18 @@ router.get('/me/shareholders', authenticateToken, stockController.getMySharehold
 router.get('/:stockId/history', stockController.getPriceHistory);
 
 /**
+ * GET /api/stocks/:stockId/orderbook
+ * 호가창 데이터 조회
+ */
+router.get('/:stockId/orderbook', stockController.getOrderBook);
+
+/**
+ * GET /api/stocks/:stockId/stats
+ * 주식 상세 통계 조회 (시가, 고가, 저가, 거래량)
+ */
+router.get('/:stockId/stats', stockController.getStockStats);
+
+/**
  * POST /api/stocks/:stockId/generate-demo-history
  * 데모용 가격 히스토리 생성 (개발용)
  */

@@ -101,3 +101,19 @@ export const getMarketChartData = async (timeframe = '1d', limit = 24) => {
   });
   return response.data;
 };
+
+/**
+ * 호가창 데이터 조회
+ */
+export const getOrderBook = async (stockId) => {
+  const response = await api.get(`/stocks/${stockId}/orderbook`);
+  return response.data;
+};
+
+/**
+ * 주식 상세 통계 조회 (시가, 고가, 저가, 거래량)
+ */
+export const getStockStats = async (stockId) => {
+  const response = await api.get(`/stocks/${stockId}/stats`);
+  return response.data;
+};

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,36 +8,67 @@ import {
   ScrollView,
   ActivityIndicator,
 } from 'react-native';
-import { VictoryChart, VictoryLine, VictoryAxis, VictoryCandlestick, VictoryArea, VictoryBar } from 'victory-native';
+import {
+  VictoryChart,
+  VictoryLine,
+  VictoryAxis,
+  VictoryCandlestick,
+  VictoryArea,
+  VictoryBar,
+  VictoryVoronoiContainer,
+  VictoryTooltip,
+  VictoryScatter,
+} from 'victory-native';
 import { getPriceHistory } from '../api/stocks';
 import { COLORS } from '../constants/colors';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CHART_WIDTH = SCREEN_WIDTH - 40;
-const CHART_HEIGHT = 300;
+const CHART_WIDTH = SCREEN_WIDTH - 32;
+const CHART_HEIGHT = 280;
 
-export default function StockChart({ stockId, mini = false }) {
+export default function StockChart({
+  stockId,
+  mini = false,
+  period = '1M',
+  chartType = 'candle',
+  showIndicators = true,
+  onDataPointTouch,
+}) {
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState([]);
+  const [selectedPoint, setSelectedPoint] = useState(null);
   const [selectedIndicators, setSelectedIndicators] = useState({
     sma20: true,
     sma50: false,
     bollinger: false,
-    ema: false
+    ema: false,
   });
   const [showRSI, setShowRSI] = useState(false);
   const [showMACD, setShowMACD] = useState(false);
 
-  useEffect(() => {
-    if (stockId) {
-      loadHistory();
+  // 기간에 따른 데이터 로드 설정
+  const getPeriodConfig = useCallback(() => {
+    switch (period) {
+      case '1D':
+        return { timeframe: '1h', limit: 24 };
+      case '1W':
+        return { timeframe: '1d', limit: 7 };
+      case '1M':
+        return { timeframe: '1d', limit: 30 };
+      case '3M':
+        return { timeframe: '1d', limit: 90 };
+      case '1Y':
+        return { timeframe: '1d', limit: 365 };
+      default:
+        return { timeframe: '1d', limit: mini ? 30 : 90 };
     }
-  }, [stockId]);
+  }, [period, mini]);
 
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await getPriceHistory(stockId, '1d', mini ? 30 : 90);
+      const config = getPeriodConfig();
+      const data = await getPriceHistory(stockId, config.timeframe, config.limit);
       if (data.history && data.history.length > 0) {
         setHistory(data.history);
       }
@@ -46,14 +77,30 @@ export default function StockChart({ stockId, mini = false }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [stockId, getPeriodConfig]);
+
+  useEffect(() => {
+    if (stockId) {
+      loadHistory();
+    }
+  }, [stockId, loadHistory]);
 
   const toggleIndicator = (indicator) => {
-    setSelectedIndicators(prev => ({
+    setSelectedIndicators((prev) => ({
       ...prev,
-      [indicator]: !prev[indicator]
+      [indicator]: !prev[indicator],
     }));
   };
+
+  const handleDataPointClick = useCallback(
+    (datum) => {
+      setSelectedPoint(datum);
+      if (onDataPointTouch) {
+        onDataPointTouch(datum);
+      }
+    },
+    [onDataPointTouch]
+  );
 
   if (loading) {
     return (
@@ -78,28 +125,42 @@ export default function StockChart({ stockId, mini = false }) {
     high: parseFloat(h.high),
     low: parseFloat(h.low),
     close: parseFloat(h.close),
-    date: new Date(h.timestamp)
+    date: new Date(h.timestamp),
+  }));
+
+  // 라인 차트용 데이터
+  const lineData = history.map((h, i) => ({
+    x: i + 1,
+    y: parseFloat(h.close),
+    date: new Date(h.timestamp),
+    open: parseFloat(h.open),
+    high: parseFloat(h.high),
+    low: parseFloat(h.low),
+    close: parseFloat(h.close),
   }));
 
   // 가격 범위 계산
-  const allPrices = history.flatMap(h => [
-    parseFloat(h.high),
-    parseFloat(h.low),
-    h.bollingerUpper ? parseFloat(h.bollingerUpper) : 0,
-    h.bollingerLower ? parseFloat(h.bollingerLower) : 0
-  ]).filter(p => p > 0);
+  const allPrices = history.flatMap((h) =>
+    [
+      parseFloat(h.high),
+      parseFloat(h.low),
+      h.bollingerUpper ? parseFloat(h.bollingerUpper) : 0,
+      h.bollingerLower ? parseFloat(h.bollingerLower) : 0,
+    ].filter((p) => p > 0)
+  );
 
   const minPrice = Math.min(...allPrices) * 0.98;
   const maxPrice = Math.max(...allPrices) * 1.02;
+
+  const isUp =
+    parseFloat(history[history.length - 1].close) >= parseFloat(history[0].close);
 
   // 미니 차트 렌더링 (간단한 라인 차트)
   if (mini) {
     const closePrices = history.map((h, i) => ({
       x: i + 1,
-      y: parseFloat(h.close)
+      y: parseFloat(h.close),
     }));
-
-    const isUp = parseFloat(history[history.length - 1].close) >= parseFloat(history[0].close);
 
     return (
       <View style={styles.miniContainer}>
@@ -112,7 +173,7 @@ export default function StockChart({ stockId, mini = false }) {
           <VictoryLine
             data={closePrices}
             style={{
-              data: { stroke: isUp ? COLORS.up : COLORS.down, strokeWidth: 2 }
+              data: { stroke: isUp ? COLORS.up : COLORS.down, strokeWidth: 2 },
             }}
           />
           <VictoryArea
@@ -120,8 +181,8 @@ export default function StockChart({ stockId, mini = false }) {
             style={{
               data: {
                 fill: isUp ? COLORS.up : COLORS.down,
-                fillOpacity: 0.1
-              }
+                fillOpacity: 0.1,
+              },
             }}
           />
         </VictoryChart>
@@ -129,86 +190,185 @@ export default function StockChart({ stockId, mini = false }) {
     );
   }
 
+  // 선택된 포인트 정보 표시
+  const renderSelectedPointInfo = () => {
+    if (!selectedPoint) return null;
+
+    const date = selectedPoint.date || new Date();
+    const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
+
+    return (
+      <View style={styles.selectedPointInfo}>
+        <Text style={styles.selectedPointDate}>{dateStr}</Text>
+        <View style={styles.selectedPointPrices}>
+          <View style={styles.priceItem}>
+            <Text style={styles.priceLabel}>시</Text>
+            <Text style={styles.priceValue}>
+              {(selectedPoint.open || 0).toLocaleString()}
+            </Text>
+          </View>
+          <View style={styles.priceItem}>
+            <Text style={styles.priceLabel}>고</Text>
+            <Text style={[styles.priceValue, { color: COLORS.up }]}>
+              {(selectedPoint.high || 0).toLocaleString()}
+            </Text>
+          </View>
+          <View style={styles.priceItem}>
+            <Text style={styles.priceLabel}>저</Text>
+            <Text style={[styles.priceValue, { color: COLORS.down }]}>
+              {(selectedPoint.low || 0).toLocaleString()}
+            </Text>
+          </View>
+          <View style={styles.priceItem}>
+            <Text style={styles.priceLabel}>종</Text>
+            <Text style={styles.priceValue}>
+              {(selectedPoint.close || selectedPoint.y || 0).toLocaleString()}
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   // 전체 차트 렌더링
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* 지표 선택 버튼 */}
-      <View style={styles.indicatorButtons}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <TouchableOpacity
-            style={[styles.indicatorButton, selectedIndicators.sma20 && styles.indicatorButtonActive]}
-            onPress={() => toggleIndicator('sma20')}
-          >
-            <Text style={[styles.indicatorButtonText, selectedIndicators.sma20 && styles.indicatorButtonTextActive]}>
-              SMA(20)
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.indicatorButton, selectedIndicators.sma50 && styles.indicatorButtonActive]}
-            onPress={() => toggleIndicator('sma50')}
-          >
-            <Text style={[styles.indicatorButtonText, selectedIndicators.sma50 && styles.indicatorButtonTextActive]}>
-              SMA(50)
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.indicatorButton, selectedIndicators.bollinger && styles.indicatorButtonActive]}
-            onPress={() => toggleIndicator('bollinger')}
-          >
-            <Text style={[styles.indicatorButtonText, selectedIndicators.bollinger && styles.indicatorButtonTextActive]}>
-              Bollinger
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.indicatorButton, selectedIndicators.ema && styles.indicatorButtonActive]}
-            onPress={() => toggleIndicator('ema')}
-          >
-            <Text style={[styles.indicatorButtonText, selectedIndicators.ema && styles.indicatorButtonTextActive]}>
-              EMA(12/26)
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.indicatorButton, showRSI && styles.indicatorButtonActive]}
-            onPress={() => setShowRSI(!showRSI)}
-          >
-            <Text style={[styles.indicatorButtonText, showRSI && styles.indicatorButtonTextActive]}>
-              RSI
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.indicatorButton, showMACD && styles.indicatorButtonActive]}
-            onPress={() => setShowMACD(!showMACD)}
-          >
-            <Text style={[styles.indicatorButtonText, showMACD && styles.indicatorButtonTextActive]}>
-              MACD
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+      {/* 선택된 포인트 정보 */}
+      {renderSelectedPointInfo()}
 
-      {/* 메인 차트 (캔들스틱) */}
+      {/* 지표 선택 버튼 */}
+      {showIndicators && (
+        <View style={styles.indicatorButtons}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <TouchableOpacity
+              style={[
+                styles.indicatorButton,
+                selectedIndicators.sma20 && styles.indicatorButtonActive,
+              ]}
+              onPress={() => toggleIndicator('sma20')}
+            >
+              <Text
+                style={[
+                  styles.indicatorButtonText,
+                  selectedIndicators.sma20 && styles.indicatorButtonTextActive,
+                ]}
+              >
+                SMA(20)
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.indicatorButton,
+                selectedIndicators.sma50 && styles.indicatorButtonActive,
+              ]}
+              onPress={() => toggleIndicator('sma50')}
+            >
+              <Text
+                style={[
+                  styles.indicatorButtonText,
+                  selectedIndicators.sma50 && styles.indicatorButtonTextActive,
+                ]}
+              >
+                SMA(50)
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.indicatorButton,
+                selectedIndicators.bollinger && styles.indicatorButtonActive,
+              ]}
+              onPress={() => toggleIndicator('bollinger')}
+            >
+              <Text
+                style={[
+                  styles.indicatorButtonText,
+                  selectedIndicators.bollinger && styles.indicatorButtonTextActive,
+                ]}
+              >
+                Bollinger
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.indicatorButton,
+                selectedIndicators.ema && styles.indicatorButtonActive,
+              ]}
+              onPress={() => toggleIndicator('ema')}
+            >
+              <Text
+                style={[
+                  styles.indicatorButtonText,
+                  selectedIndicators.ema && styles.indicatorButtonTextActive,
+                ]}
+              >
+                EMA(12/26)
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.indicatorButton, showRSI && styles.indicatorButtonActive]}
+              onPress={() => setShowRSI(!showRSI)}
+            >
+              <Text
+                style={[
+                  styles.indicatorButtonText,
+                  showRSI && styles.indicatorButtonTextActive,
+                ]}
+              >
+                RSI
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.indicatorButton, showMACD && styles.indicatorButtonActive]}
+              onPress={() => setShowMACD(!showMACD)}
+            >
+              <Text
+                style={[
+                  styles.indicatorButtonText,
+                  showMACD && styles.indicatorButtonTextActive,
+                ]}
+              >
+                MACD
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+      )}
+
+      {/* 메인 차트 */}
       <View style={styles.chartContainer}>
-        <Text style={styles.chartTitle}>가격 차트</Text>
         <VictoryChart
           width={CHART_WIDTH}
           height={CHART_HEIGHT}
           padding={{ top: 20, bottom: 30, left: 50, right: 20 }}
           domain={{ y: [minPrice, maxPrice] }}
+          containerComponent={
+            <VictoryVoronoiContainer
+              voronoiDimension="x"
+              labels={({ datum }) => ''}
+              onActivated={(points) => {
+                if (points.length > 0) {
+                  handleDataPointClick(points[0]);
+                }
+              }}
+            />
+          }
         >
           <VictoryAxis
             dependentAxis
             style={{
               axis: { stroke: COLORS.border },
-              tickLabels: { fill: COLORS.textSecondary, fontSize: 10 }
+              tickLabels: { fill: COLORS.textSecondary, fontSize: 10 },
+              grid: { stroke: COLORS.border, strokeDasharray: '4,4', strokeOpacity: 0.3 },
             }}
           />
           <VictoryAxis
             style={{
               axis: { stroke: COLORS.border },
-              tickLabels: { fill: COLORS.textSecondary, fontSize: 10 }
+              tickLabels: { fill: COLORS.textSecondary, fontSize: 10 },
             }}
             tickFormat={(t) => {
-              if (t % 10 === 0) {
+              const interval = Math.ceil(history.length / 5);
+              if (t % interval === 0 || t === 1 || t === history.length) {
                 const date = candleData[t - 1]?.date;
                 if (date) {
                   return `${date.getMonth() + 1}/${date.getDate()}`;
@@ -218,45 +378,67 @@ export default function StockChart({ stockId, mini = false }) {
             }}
           />
 
-          {/* 캔들스틱 */}
-          <VictoryCandlestick
-            data={candleData}
-            candleColors={{ positive: COLORS.up, negative: COLORS.down }}
-            style={{
-              data: {
-                strokeWidth: 0.5
-              }
-            }}
-          />
+          {/* 캔들스틱 또는 라인 차트 */}
+          {chartType === 'candle' ? (
+            <VictoryCandlestick
+              data={candleData}
+              candleColors={{ positive: COLORS.up, negative: COLORS.down }}
+              style={{
+                data: {
+                  strokeWidth: 1,
+                },
+              }}
+            />
+          ) : (
+            <>
+              <VictoryArea
+                data={lineData}
+                style={{
+                  data: {
+                    fill: isUp ? COLORS.up : COLORS.down,
+                    fillOpacity: 0.1,
+                    stroke: isUp ? COLORS.up : COLORS.down,
+                    strokeWidth: 2,
+                  },
+                }}
+              />
+            </>
+          )}
 
           {/* 볼린저 밴드 */}
           {selectedIndicators.bollinger && (
             <>
               <VictoryLine
-                data={history.map((h, i) => ({
-                  x: i + 1,
-                  y: h.bollingerUpper ? parseFloat(h.bollingerUpper) : null
-                })).filter(d => d.y !== null)}
+                data={history
+                  .map((h, i) => ({
+                    x: i + 1,
+                    y: h.bollingerUpper ? parseFloat(h.bollingerUpper) : null,
+                  }))
+                  .filter((d) => d.y !== null)}
                 style={{
-                  data: { stroke: '#9C27B0', strokeWidth: 1, strokeDasharray: '4,4' }
+                  data: { stroke: '#9C27B0', strokeWidth: 1, strokeDasharray: '4,4' },
                 }}
               />
               <VictoryLine
-                data={history.map((h, i) => ({
-                  x: i + 1,
-                  y: h.bollingerMiddle ? parseFloat(h.bollingerMiddle) : null
-                })).filter(d => d.y !== null)}
+                data={history
+                  .map((h, i) => ({
+                    x: i + 1,
+                    y: h.bollingerMiddle ? parseFloat(h.bollingerMiddle) : null,
+                  }))
+                  .filter((d) => d.y !== null)}
                 style={{
-                  data: { stroke: '#9C27B0', strokeWidth: 1.5 }
+                  data: { stroke: '#9C27B0', strokeWidth: 1.5 },
                 }}
               />
               <VictoryLine
-                data={history.map((h, i) => ({
-                  x: i + 1,
-                  y: h.bollingerLower ? parseFloat(h.bollingerLower) : null
-                })).filter(d => d.y !== null)}
+                data={history
+                  .map((h, i) => ({
+                    x: i + 1,
+                    y: h.bollingerLower ? parseFloat(h.bollingerLower) : null,
+                  }))
+                  .filter((d) => d.y !== null)}
                 style={{
-                  data: { stroke: '#9C27B0', strokeWidth: 1, strokeDasharray: '4,4' }
+                  data: { stroke: '#9C27B0', strokeWidth: 1, strokeDasharray: '4,4' },
                 }}
               />
             </>
@@ -265,12 +447,14 @@ export default function StockChart({ stockId, mini = false }) {
           {/* SMA(20) */}
           {selectedIndicators.sma20 && (
             <VictoryLine
-              data={history.map((h, i) => ({
-                x: i + 1,
-                y: h.sma20 ? parseFloat(h.sma20) : null
-              })).filter(d => d.y !== null)}
+              data={history
+                .map((h, i) => ({
+                  x: i + 1,
+                  y: h.sma20 ? parseFloat(h.sma20) : null,
+                }))
+                .filter((d) => d.y !== null)}
               style={{
-                data: { stroke: '#FF9800', strokeWidth: 1.5 }
+                data: { stroke: '#FF9800', strokeWidth: 1.5 },
               }}
             />
           )}
@@ -278,12 +462,14 @@ export default function StockChart({ stockId, mini = false }) {
           {/* SMA(50) */}
           {selectedIndicators.sma50 && (
             <VictoryLine
-              data={history.map((h, i) => ({
-                x: i + 1,
-                y: h.sma50 ? parseFloat(h.sma50) : null
-              })).filter(d => d.y !== null)}
+              data={history
+                .map((h, i) => ({
+                  x: i + 1,
+                  y: h.sma50 ? parseFloat(h.sma50) : null,
+                }))
+                .filter((d) => d.y !== null)}
               style={{
-                data: { stroke: '#2196F3', strokeWidth: 1.5 }
+                data: { stroke: '#2196F3', strokeWidth: 1.5 },
               }}
             />
           )}
@@ -292,21 +478,25 @@ export default function StockChart({ stockId, mini = false }) {
           {selectedIndicators.ema && (
             <>
               <VictoryLine
-                data={history.map((h, i) => ({
-                  x: i + 1,
-                  y: h.ema12 ? parseFloat(h.ema12) : null
-                })).filter(d => d.y !== null)}
+                data={history
+                  .map((h, i) => ({
+                    x: i + 1,
+                    y: h.ema12 ? parseFloat(h.ema12) : null,
+                  }))
+                  .filter((d) => d.y !== null)}
                 style={{
-                  data: { stroke: '#4CAF50', strokeWidth: 1.5 }
+                  data: { stroke: '#4CAF50', strokeWidth: 1.5 },
                 }}
               />
               <VictoryLine
-                data={history.map((h, i) => ({
-                  x: i + 1,
-                  y: h.ema26 ? parseFloat(h.ema26) : null
-                })).filter(d => d.y !== null)}
+                data={history
+                  .map((h, i) => ({
+                    x: i + 1,
+                    y: h.ema26 ? parseFloat(h.ema26) : null,
+                  }))
+                  .filter((d) => d.y !== null)}
                 style={{
-                  data: { stroke: '#F44336', strokeWidth: 1.5 }
+                  data: { stroke: '#F44336', strokeWidth: 1.5 },
                 }}
               />
             </>
@@ -354,7 +544,7 @@ export default function StockChart({ stockId, mini = false }) {
           <Text style={styles.chartTitle}>RSI (14)</Text>
           <VictoryChart
             width={CHART_WIDTH}
-            height={150}
+            height={120}
             padding={{ top: 20, bottom: 30, left: 50, right: 20 }}
             domain={{ y: [0, 100] }}
           >
@@ -363,37 +553,45 @@ export default function StockChart({ stockId, mini = false }) {
               style={{
                 axis: { stroke: COLORS.border },
                 tickLabels: { fill: COLORS.textSecondary, fontSize: 10 },
-                grid: { stroke: COLORS.border, strokeDasharray: '4,4' }
+                grid: { stroke: COLORS.border, strokeDasharray: '4,4', strokeOpacity: 0.3 },
               }}
               tickValues={[30, 50, 70]}
             />
             <VictoryAxis
               style={{
                 axis: { stroke: COLORS.border },
-                tickLabels: { fill: COLORS.textSecondary, fontSize: 10 }
+                tickLabels: { fill: COLORS.textSecondary, fontSize: 10 },
               }}
               tickFormat={() => ''}
             />
             <VictoryLine
-              data={history.map((h, i) => ({
-                x: i + 1,
-                y: h.rsi ? parseFloat(h.rsi) : null
-              })).filter(d => d.y !== null)}
+              data={history
+                .map((h, i) => ({
+                  x: i + 1,
+                  y: h.rsi ? parseFloat(h.rsi) : null,
+                }))
+                .filter((d) => d.y !== null)}
               style={{
-                data: { stroke: '#673AB7', strokeWidth: 2 }
+                data: { stroke: '#673AB7', strokeWidth: 2 },
               }}
             />
             {/* 과매수/과매도 기준선 */}
             <VictoryLine
-              data={[{ x: 0, y: 70 }, { x: history.length + 1, y: 70 }]}
+              data={[
+                { x: 0, y: 70 },
+                { x: history.length + 1, y: 70 },
+              ]}
               style={{
-                data: { stroke: COLORS.down, strokeWidth: 1, strokeDasharray: '4,4' }
+                data: { stroke: COLORS.up, strokeWidth: 1, strokeDasharray: '4,4' },
               }}
             />
             <VictoryLine
-              data={[{ x: 0, y: 30 }, { x: history.length + 1, y: 30 }]}
+              data={[
+                { x: 0, y: 30 },
+                { x: history.length + 1, y: 30 },
+              ]}
               style={{
-                data: { stroke: COLORS.up, strokeWidth: 1, strokeDasharray: '4,4' }
+                data: { stroke: COLORS.down, strokeWidth: 1, strokeDasharray: '4,4' },
               }}
             />
           </VictoryChart>
@@ -406,7 +604,7 @@ export default function StockChart({ stockId, mini = false }) {
           <Text style={styles.chartTitle}>MACD</Text>
           <VictoryChart
             width={CHART_WIDTH}
-            height={150}
+            height={120}
             padding={{ top: 20, bottom: 30, left: 50, right: 20 }}
           >
             <VictoryAxis
@@ -414,13 +612,13 @@ export default function StockChart({ stockId, mini = false }) {
               style={{
                 axis: { stroke: COLORS.border },
                 tickLabels: { fill: COLORS.textSecondary, fontSize: 10 },
-                grid: { stroke: COLORS.border, strokeDasharray: '4,4' }
+                grid: { stroke: COLORS.border, strokeDasharray: '4,4', strokeOpacity: 0.3 },
               }}
             />
             <VictoryAxis
               style={{
                 axis: { stroke: COLORS.border },
-                tickLabels: { fill: COLORS.textSecondary, fontSize: 10 }
+                tickLabels: { fill: COLORS.textSecondary, fontSize: 10 },
               }}
               tickFormat={() => ''}
             />
@@ -428,33 +626,37 @@ export default function StockChart({ stockId, mini = false }) {
             <VictoryBar
               data={history.map((h, i) => ({
                 x: i + 1,
-                y: h.macdHistogram ? parseFloat(h.macdHistogram) : 0
+                y: h.macdHistogram ? parseFloat(h.macdHistogram) : 0,
               }))}
               style={{
                 data: {
-                  fill: ({ datum }) => datum.y >= 0 ? COLORS.up : COLORS.down,
-                  opacity: 0.5
-                }
+                  fill: ({ datum }) => (datum.y >= 0 ? COLORS.up : COLORS.down),
+                  opacity: 0.5,
+                },
               }}
             />
             {/* MACD 라인 */}
             <VictoryLine
-              data={history.map((h, i) => ({
-                x: i + 1,
-                y: h.macd ? parseFloat(h.macd) : null
-              })).filter(d => d.y !== null)}
+              data={history
+                .map((h, i) => ({
+                  x: i + 1,
+                  y: h.macd ? parseFloat(h.macd) : null,
+                }))
+                .filter((d) => d.y !== null)}
               style={{
-                data: { stroke: '#2196F3', strokeWidth: 1.5 }
+                data: { stroke: '#2196F3', strokeWidth: 1.5 },
               }}
             />
             {/* 시그널 라인 */}
             <VictoryLine
-              data={history.map((h, i) => ({
-                x: i + 1,
-                y: h.macdSignal ? parseFloat(h.macdSignal) : null
-              })).filter(d => d.y !== null)}
+              data={history
+                .map((h, i) => ({
+                  x: i + 1,
+                  y: h.macdSignal ? parseFloat(h.macdSignal) : null,
+                }))
+                .filter((d) => d.y !== null)}
               style={{
-                data: { stroke: '#FF9800', strokeWidth: 1.5 }
+                data: { stroke: '#FF9800', strokeWidth: 1.5 },
               }}
             />
           </VictoryChart>
@@ -487,8 +689,38 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontSize: 14,
   },
+  selectedPointInfo: {
+    backgroundColor: COLORS.background,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  selectedPointDate: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginBottom: 6,
+  },
+  selectedPointPrices: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  priceItem: {
+    alignItems: 'center',
+  },
+  priceLabel: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginBottom: 2,
+  },
+  priceValue: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
   indicatorButtons: {
     paddingVertical: 12,
+    paddingLeft: 16,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
@@ -514,20 +746,20 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   chartContainer: {
-    marginVertical: 16,
+    marginVertical: 8,
   },
   chartTitle: {
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.text,
     marginBottom: 8,
-    marginLeft: 20,
+    marginLeft: 16,
   },
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginTop: 8,
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
   },
   legendItem: {
     flexDirection: 'row',
