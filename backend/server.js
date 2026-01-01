@@ -87,6 +87,9 @@ function loadRoutes() {
     // === 바이럴/마케팅 기능 라우트 ===
     app.use('/api/viral', require('./src/routes/viral'));
 
+    // === 시드 데이터 라우트 (개발용) ===
+    app.use('/api/seed', require('./src/routes/seed'));
+
     console.log('✅ All routes loaded successfully');
     return true;
   } catch (error) {

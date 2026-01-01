@@ -8,6 +8,7 @@
     "dev": "nodemon server.js",
     "migrate": "node src/config/migrate.js",
     "seed": "node src/config/seed.js",
+    "seed:data": "node src/scripts/seedData.js",
     "test": "jest --detectOpenHandles --forceExit",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
