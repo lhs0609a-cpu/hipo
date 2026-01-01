@@ -82,7 +82,8 @@
       "Bash(tree:*)",
       "WebFetch(domain:vercel.com)",
       "Bash(npm run build:web:*)",
-      "Bash(npm cache clean:*)"
+      "Bash(npm cache clean:*)",
+      "Bash(npm view:*)"
     ],
     "deny": [],
     "ask": []
