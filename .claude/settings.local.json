@@ -78,7 +78,8 @@
       "Bash(npx vercel:*)",
       "Bash(git restore:*)",
       "Bash(git push:*)",
-      "WebFetch(domain:hipo-ochre.vercel.app)"
+      "WebFetch(domain:hipo-ochre.vercel.app)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

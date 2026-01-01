@@ -3,46 +3,45 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
   StyleSheet,
   Alert,
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
   Linking,
+  Pressable,
+  SafeAreaView,
 } from 'react-native';
 import { login } from '../api/auth';
-import { COLORS } from '../constants/colors';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import theme from '../styles/theme';
+import Button from '../components/Button';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const handleLogin = async () => {
-    // 각 필드를 개별적으로 검증
     const errors = [];
 
-    // 이메일 검증
     if (!email || email.trim() === '') {
       errors.push('이메일을 입력해주세요');
     } else if (!email.includes('@')) {
       errors.push('올바른 이메일 형식이 아닙니다');
     }
 
-    // 비밀번호 검증
     if (!password || password.trim() === '') {
       errors.push('비밀번호를 입력해주세요');
     }
 
-    // 에러가 있으면 표시
     if (errors.length > 0) {
-      const errorMessage = '입력 오류:\n\n' + errors.map((err, idx) => `${idx + 1}. ${err}`).join('\n');
+      const errorMessage = errors.join('\n');
       if (Platform.OS === 'web') {
         alert(errorMessage);
       } else {
-        Alert.alert('입력 오류', errors.join('\n\n'));
+        Alert.alert('입력 오류', errorMessage);
       }
       return;
     }
@@ -50,29 +49,20 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
 
     try {
-      console.log('로그인 시도:', email);
       const data = await login(email, password);
-      console.log('로그인 성공:', data);
 
-      // 웹에서는 페이지를 새로고침하여 인증 상태 업데이트
       if (Platform.OS === 'web') {
         window.location.href = '/';
       } else {
-        Alert.alert('성공', `환영합니다, ${data.user.username}님!`, [
-          {
-            text: '확인',
-            onPress: () => navigation.replace('Main'),
-          },
+        Alert.alert('환영합니다', `${data.user.username}님, 반갑습니다!`, [
+          { text: '확인', onPress: () => navigation.replace('Main') },
         ]);
       }
     } catch (error) {
-      console.error('로그인 실패:', error);
-      console.error('에러 응답:', error.response?.data);
-
       const errorMsg = error.response?.data?.error || error.message || '로그인 중 오류가 발생했습니다';
 
       if (Platform.OS === 'web') {
-        alert('로그인 실패: ' + errorMsg);
+        alert(errorMsg);
       } else {
         Alert.alert('로그인 실패', errorMsg);
       }
@@ -83,14 +73,11 @@ export default function LoginScreen({ navigation }) {
 
   const handleGoogleLogin = async () => {
     try {
-      // Google OAuth URL (포트 5555로 변경)
       const googleAuthUrl = 'http://localhost:5555/api/auth/google';
 
       if (Platform.OS === 'web') {
-        // 웹에서는 직접 페이지 이동
         window.location.href = googleAuthUrl;
       } else {
-        // 모바일에서는 Linking API 사용
         const supported = await Linking.canOpenURL(googleAuthUrl);
         if (supported) {
           await Linking.openURL(googleAuthUrl);
@@ -99,7 +86,6 @@ export default function LoginScreen({ navigation }) {
         }
       }
     } catch (error) {
-      console.error('Google 로그인 오류:', error);
       if (Platform.OS === 'web') {
         alert('Google 로그인 중 오류가 발생했습니다');
       } else {
@@ -108,167 +94,224 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
+  const isFormValid = email.includes('@') && password.length > 0;
+
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <View style={styles.content}>
-        <Text style={styles.title}>HIPO</Text>
-        <Text style={styles.subtitle}>사람을 주식처럼 거래하는 SNS</Text>
-
-        <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="이메일"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-            {email && !email.includes('@') && (
-              <Text style={styles.helperText}>올바른 이메일 형식을 입력해주세요</Text>
-            )}
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <View style={styles.content}>
+          {/* Logo Section */}
+          <View style={styles.logoSection}>
+            <Text style={styles.logo}>HIPO</Text>
+            <Text style={styles.tagline}>크리에이터 주식 플랫폼</Text>
           </View>
 
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="비밀번호"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-            />
+          {/* Form Section */}
+          <View style={styles.formSection}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>이메일</Text>
+              <View style={[
+                styles.inputWrapper,
+                emailFocused && styles.inputWrapperFocused,
+                email && !email.includes('@') && styles.inputWrapperError,
+              ]}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="example@email.com"
+                  placeholderTextColor={theme.colors.textDisabled}
+                  value={email}
+                  onChangeText={setEmail}
+                  onFocus={() => setEmailFocused(true)}
+                  onBlur={() => setEmailFocused(false)}
+                  autoCapitalize="none"
+                  keyboardType="email-address"
+                  autoCorrect={false}
+                />
+              </View>
+              {email && !email.includes('@') && (
+                <Text style={styles.errorText}>올바른 이메일 형식을 입력해주세요</Text>
+              )}
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>비밀번호</Text>
+              <View style={[
+                styles.inputWrapper,
+                passwordFocused && styles.inputWrapperFocused,
+              ]}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="비밀번호를 입력하세요"
+                  placeholderTextColor={theme.colors.textDisabled}
+                  value={password}
+                  onChangeText={setPassword}
+                  onFocus={() => setPasswordFocused(true)}
+                  onBlur={() => setPasswordFocused(false)}
+                  secureTextEntry
+                />
+              </View>
+            </View>
+
+            <Button
+              onPress={handleLogin}
+              loading={loading}
+              disabled={!isFormValid}
+              fullWidth
+              size="lg"
+              style={styles.loginButton}
+            >
+              로그인
+            </Button>
+
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>또는</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            <Button
+              variant="outline"
+              onPress={handleGoogleLogin}
+              fullWidth
+              size="lg"
+              icon={<Text style={styles.googleIcon}>G</Text>}
+            >
+              Google로 계속하기
+            </Button>
           </View>
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>로그인</Text>
-            )}
-          </TouchableOpacity>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>또는</Text>
-            <View style={styles.dividerLine} />
+          {/* Footer Section */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>계정이 없으신가요?</Text>
+            <Pressable
+              onPress={() => navigation.navigate('Register')}
+              style={({ pressed }) => pressed && { opacity: 0.7 }}
+            >
+              <Text style={styles.signupLink}>회원가입</Text>
+            </Pressable>
           </View>
-
-          <TouchableOpacity
-            style={styles.googleButton}
-            onPress={handleGoogleLogin}
-          >
-            <Text style={styles.googleButtonText}>Google로 로그인</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.linkButton}
-            onPress={() => navigation.navigate('Register')}
-          >
-            <Text style={styles.linkText}>계정이 없으신가요? 회원가입</Text>
-          </TouchableOpacity>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.colors.white,
+  },
+  keyboardView: {
+    flex: 1,
   },
   content: {
     flex: 1,
+    paddingHorizontal: theme.spacing.xl,
     justifyContent: 'center',
-    padding: 20,
   },
-  title: {
+
+  // Logo Section
+  logoSection: {
+    alignItems: 'center',
+    marginBottom: theme.spacing['4xl'],
+  },
+  logo: {
     fontSize: 48,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    textAlign: 'center',
-    marginBottom: 10,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.primary,
+    letterSpacing: theme.typography.letterSpacing.tight,
+    marginBottom: theme.spacing.sm,
   },
-  subtitle: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    marginBottom: 50,
+  tagline: {
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.textSecondary,
+    fontWeight: theme.typography.fontWeight.medium,
   },
-  form: {
-    width: '100%',
+
+  // Form Section
+  formSection: {
+    marginBottom: theme.spacing['2xl'],
   },
-  inputContainer: {
-    marginBottom: 15,
+  inputGroup: {
+    marginBottom: theme.spacing.lg,
+  },
+  inputLabel: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
+  },
+  inputWrapper: {
+    backgroundColor: theme.colors.gray50,
+    borderRadius: theme.borderRadius.base,
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
+  inputWrapperFocused: {
+    borderColor: theme.colors.primary,
+    backgroundColor: theme.colors.white,
+  },
+  inputWrapperError: {
+    borderColor: theme.colors.error,
   },
   input: {
-    backgroundColor: COLORS.surface,
-    padding: 15,
-    borderRadius: 10,
-    fontSize: 16,
+    paddingHorizontal: theme.spacing.base,
+    paddingVertical: theme.spacing.base,
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.textPrimary,
   },
-  helperText: {
-    fontSize: 12,
-    color: COLORS.danger,
-    marginTop: 6,
-    marginLeft: 4,
+  errorText: {
+    fontSize: theme.typography.fontSize.xs,
+    color: theme.colors.error,
+    marginTop: theme.spacing.xs,
+    marginLeft: theme.spacing.xs,
   },
-  button: {
-    backgroundColor: COLORS.primary,
-    padding: 18,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
+  loginButton: {
+    marginTop: theme.spacing.sm,
   },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  linkButton: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: COLORS.primary,
-    fontSize: 14,
-  },
+
+  // Divider
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: theme.spacing.xl,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.border,
+    backgroundColor: theme.colors.gray200,
   },
   dividerText: {
-    marginHorizontal: 10,
-    color: COLORS.textSecondary,
-    fontSize: 14,
+    marginHorizontal: theme.spacing.base,
+    color: theme.colors.textTertiary,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.medium,
   },
-  googleButton: {
-    backgroundColor: '#fff',
-    padding: 18,
-    borderRadius: 10,
+
+  // Google Button
+  googleIcon: {
+    fontSize: 18,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
+  },
+
+  // Footer
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    gap: theme.spacing.sm,
   },
-  googleButtonText: {
-    color: COLORS.text,
-    fontSize: 16,
-    fontWeight: '600',
+  footerText: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textSecondary,
+  },
+  signupLink: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.primary,
+    fontWeight: theme.typography.fontWeight.semibold,
   },
 });

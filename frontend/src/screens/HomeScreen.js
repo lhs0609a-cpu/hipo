@@ -2,19 +2,21 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   StyleSheet,
   RefreshControl,
   ActivityIndicator,
   ScrollView,
   Dimensions,
+  Pressable,
+  Image,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import { getStocks, getRecommendedStocks, getMarketChartData } from '../api/stocks';
 import { getSavedUser } from '../api/auth';
 import { getTrendingPosts } from '../api/posts';
 import { getTrendingByCategories } from '../api/users';
-import { COLORS, TRUST_LEVEL_COLORS } from '../constants/colors';
+import theme from '../styles/theme';
+import { SectionCard, ListItem, StockCard } from '../components/Card';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -54,11 +56,10 @@ export default function HomeScreen({ navigation }) {
       setTrendingPosts(trendingPostsData.posts || []);
       setCategories(categoriesData.categories || {});
 
-      // 내 보유 크리에이터 필터링 (실제로는 별도 API 호출이 필요할 수 있음)
       const holdings = stocksData.stocks.filter(s => s.myShares > 0).slice(0, 3);
       setMyHoldings(holdings);
     } catch (error) {
-      console.error('데이터 로드 오류:', error);
+      console.error('Data load error:', error);
     } finally {
       setLoading(false);
     }
@@ -75,298 +76,300 @@ export default function HomeScreen({ navigation }) {
     return `${sign}${change.toFixed(2)}%`;
   };
 
-  // 자주 쓰는 메뉴
+  // Quick Actions - Toss Style
   const renderQuickActions = () => {
     const actions = [
-      { icon: '💸', label: '충전', onPress: () => {} },
+      { icon: '💸', label: '충전', onPress: () => navigation.navigate('POCharge') },
       { icon: '📤', label: '송금', onPress: () => {} },
-      { icon: '💼', label: '보유크리에이터', onPress: () => navigation.navigate('Portfolio') },
+      { icon: '💼', label: '내 주식', onPress: () => navigation.navigate('Portfolio') },
       { icon: '📱', label: '피드', onPress: () => navigation.navigate('Community') },
-      { icon: '📰', label: '뉴스', onPress: () => navigation.navigate('News') },
-      { icon: '📋', label: '거래내역', onPress: () => navigation.navigate('TransactionHistory') },
-      { icon: '👥', label: '내주주', onPress: () => navigation.navigate('MyShareholders') },
-      { icon: '📊', label: '투자현황', onPress: () => navigation.navigate('MyInvestments') },
-      { icon: '💬', label: '메시지', onPress: () => navigation.navigate('Messages') },
+      { icon: '📊', label: '랭킹', onPress: () => navigation.navigate('Ranking') },
     ];
 
     return (
-      <View style={styles.quickActionsContainer}>
-        <View style={styles.quickActionsHeader}>
-          <Text style={styles.quickActionsTitle}>자주 쓰는 메뉴</Text>
-        </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.quickActionsScroll}
-        >
-          {actions.map((action, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.actionButton}
-              onPress={action.onPress}
-              activeOpacity={0.7}
-            >
-              <View style={styles.actionIcon}>
-                <Text style={styles.actionIconText}>{action.icon}</Text>
-              </View>
-              <Text style={styles.actionLabel}>{action.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    );
-  };
-
-  // 내 보유 크리에이터 카드
-  const renderMyHoldingsCard = () => {
-    if (myHoldings.length === 0) return null;
-
-    return (
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>내 보유 크리에이터</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Portfolio')}>
-            <Text style={styles.sectionMore}>전체보기 →</Text>
-          </TouchableOpacity>
-        </View>
-        {myHoldings.map((item) => {
-          const priceChange = item.priceChangePercent || 0;
-          const isUp = priceChange >= 0;
-          const changeColor = isUp ? COLORS.up : COLORS.down;
-          const totalValue = (item.myShares || 0) * item.sharePrice;
-
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.holdingCard}
-              onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
-              activeOpacity={0.7}
-            >
-              <View style={styles.holdingHeader}>
-                <Text style={styles.holdingName}>{item.issuer.username}</Text>
-                <Text style={styles.holdingValue}>{totalValue.toLocaleString()} PO</Text>
-              </View>
-              <View style={styles.holdingDetails}>
-                <Text style={styles.holdingShares}>{item.myShares}주 · {item.sharePrice.toLocaleString()} PO</Text>
-                <Text style={[styles.holdingChange, { color: changeColor }]}>
-                  {isUp ? '▲' : '▼'} {formatChange(priceChange)}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-    );
-  };
-
-  // 시장 차트 섹션
-  const renderMarketChart = () => {
-    if (!chartData || !chartData.chartData || chartData.chartData.length === 0) return null;
-
-    const data = {
-      labels: chartData.chartData.map((_, idx) => idx % 3 === 0 ? `${idx}h` : ''),
-      datasets: [{
-        data: chartData.chartData.map(d => d.price)
-      }]
-    };
-
-    const stats = chartData.marketStats;
-    const priceChange = parseFloat(stats.priceChangePercent || 0);
-    const isUp = priceChange >= 0;
-
-    return (
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>📈 실시간 시장 현황</Text>
-        </View>
-
-        {/* 시장 통계 카드 */}
-        <View style={styles.marketStatsCard}>
-          <View style={styles.mainStatContainer}>
-            <Text style={styles.mainStatLabel}>현재가</Text>
-            <View style={styles.priceRow}>
-              <Text style={styles.currentPrice}>{parseFloat(stats.currentPrice || 0).toLocaleString()} PO</Text>
-              <View style={[styles.changeBadge, { backgroundColor: isUp ? COLORS.up + '20' : COLORS.down + '20' }]}>
-                <Text style={[styles.changeText, { color: isUp ? COLORS.up : COLORS.down }]}>
-                  {isUp ? '▲' : '▼'} {Math.abs(priceChange).toFixed(2)}%
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>거래대금 (24h)</Text>
-              <Text style={styles.statValue}>{parseInt(stats.totalVolume || 0).toLocaleString()} PO</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>시가총액</Text>
-              <Text style={styles.statValue}>{parseInt(stats.totalMarketCap || 0).toLocaleString()} PO</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* 차트 */}
-        <View style={styles.chartContainer}>
-          <LineChart
-            data={data}
-            width={screenWidth - 40}
-            height={180}
-            chartConfig={{
-              backgroundColor: COLORS.surface,
-              backgroundGradientFrom: COLORS.background,
-              backgroundGradientTo: COLORS.background,
-              decimalPlaces: 0,
-              color: (opacity = 1) => isUp ? `rgba(76, 175, 80, ${opacity})` : `rgba(244, 67, 54, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(153, 153, 153, ${opacity})`,
-              style: {
-                borderRadius: 16
-              },
-              propsForDots: {
-                r: '2',
-                strokeWidth: '2',
-                stroke: isUp ? COLORS.up : COLORS.down
-              }
-            }}
-            bezier
-            style={styles.chart}
-          />
-        </View>
-      </View>
-    );
-  };
-
-  // 카테고리별 인플루언서 섹션
-  const renderCategorySection = () => {
-    const categoriesArray = Object.values(categories);
-    if (categoriesArray.length === 0) return null;
-
-    return (
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>🔥 지금 뜨는 카테고리</Text>
-        </View>
-        {categoriesArray.map((category, idx) => {
-          if (!category.users || category.users.length === 0) return null;
-
-          return (
-            <View key={idx} style={styles.categoryContainer}>
-              <Text style={styles.categoryTitle}>{category.icon} {category.name}</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-                {category.users.slice(0, 5).map((user) => (
-                  <TouchableOpacity
-                    key={user.id}
-                    style={styles.categoryUserCard}
-                    onPress={() => navigation.navigate('Profile', { userId: user.id })}
-                    activeOpacity={0.7}
-                  >
-                    <View style={[styles.categoryUserAvatar, { backgroundColor: TRUST_LEVEL_COLORS[user.trustLevel] || COLORS.textSecondary }]}>
-                      <Text style={styles.categoryUserAvatarText}>{user.username[0].toUpperCase()}</Text>
-                    </View>
-                    <Text style={styles.categoryUserName} numberOfLines={1}>{user.username}</Text>
-                    <Text style={styles.categoryUserFollowers}>{user.followersCount || 0} 팔로워</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          );
-        })}
-      </View>
-    );
-  };
-
-  // 트렌딩 피드 섹션
-  const renderTrendingFeed = () => {
-    if (trendingPosts.length === 0) return null;
-
-    return (
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <View>
-            <Text style={styles.sectionTitle}>🔥 실시간 핫한 피드</Text>
-            <Text style={styles.sectionSubtitle}>지금 가장 인기 있는 포스트</Text>
-          </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Community')}>
-            <Text style={styles.sectionMore}>전체보기 →</Text>
-          </TouchableOpacity>
-        </View>
-        {trendingPosts.slice(0, 3).map((post) => (
-          <TouchableOpacity
-            key={post.id}
-            style={styles.trendingPostCard}
-            onPress={() => navigation.navigate('Community')}
-            activeOpacity={0.7}
+      <View style={styles.quickActions}>
+        {actions.map((action, index) => (
+          <Pressable
+            key={index}
+            style={({ pressed }) => [
+              styles.quickActionItem,
+              pressed && styles.quickActionPressed
+            ]}
+            onPress={action.onPress}
           >
-            <View style={styles.trendingPostHeader}>
-              <Text style={styles.trendingPostAuthor}>{post.author?.username}</Text>
-              <View style={[styles.trendingPostBadge, { backgroundColor: TRUST_LEVEL_COLORS[post.author?.trustLevel] || COLORS.textSecondary }]}>
-                <Text style={styles.trendingPostBadgeText}>{post.author?.trustLevel}</Text>
-              </View>
+            <View style={styles.quickActionIcon}>
+              <Text style={styles.quickActionEmoji}>{action.icon}</Text>
             </View>
-            <Text style={styles.trendingPostContent} numberOfLines={2}>{post.content}</Text>
-            <View style={styles.trendingPostFooter}>
-              <Text style={styles.trendingPostStat}>❤️ {post.likesCount || 0}</Text>
-              <Text style={styles.trendingPostStat}>💬 {post.commentsCount || 0}</Text>
-            </View>
-          </TouchableOpacity>
+            <Text style={styles.quickActionLabel}>{action.label}</Text>
+          </Pressable>
         ))}
       </View>
     );
   };
 
-  // 추천 크리에이터 섹션
-  const renderRecommendedSection = (title, data, icon, subtitle) => {
-    if (!data || data.length === 0) return null;
+  // Asset Card - Toss Style Header
+  const renderAssetHeader = () => {
+    return (
+      <View style={styles.assetSection}>
+        <Pressable
+          style={({ pressed }) => [
+            styles.assetCard,
+            pressed && { opacity: 0.95 }
+          ]}
+          onPress={() => navigation.navigate('Wallet')}
+        >
+          <View style={styles.assetLabelRow}>
+            <Text style={styles.assetLabel}>내 자산</Text>
+            <Text style={styles.assetChevron}>›</Text>
+          </View>
+          <View style={styles.assetAmountRow}>
+            <Text style={styles.assetAmount}>{(user?.poBalance || 0).toLocaleString()}</Text>
+            <Text style={styles.assetCurrency}> P</Text>
+          </View>
+        </Pressable>
+
+        {renderQuickActions()}
+      </View>
+    );
+  };
+
+  // My Holdings Section
+  const renderMyHoldings = () => {
+    if (myHoldings.length === 0) return null;
 
     return (
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <View>
-            <Text style={styles.sectionTitle}>{icon} {title}</Text>
-            {subtitle && <Text style={styles.sectionSubtitle}>{subtitle}</Text>}
-          </View>
-          <TouchableOpacity>
-            <Text style={styles.sectionMore}>더보기 →</Text>
-          </TouchableOpacity>
-        </View>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-          {data.slice(0, 10).map((item) => {
-            const priceChange = item.priceChangePercent || 0;
-            const isUp = priceChange >= 0;
-            const changeColor = isUp ? COLORS.up : COLORS.down;
+      <SectionCard
+        title="내 보유 주식"
+        action={
+          <Pressable onPress={() => navigation.navigate('Portfolio')}>
+            <Text style={styles.sectionMore}>전체보기</Text>
+          </Pressable>
+        }
+      >
+        {myHoldings.map((item) => {
+          const priceChange = item.priceChangePercent || 0;
+          const isUp = priceChange >= 0;
+          const totalValue = (item.myShares || 0) * item.sharePrice;
 
-            return (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.recommendCard}
-                onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
-                activeOpacity={0.7}
-              >
-                <View style={styles.recommendHeader}>
-                  <View style={[styles.recommendTrustBadge, { backgroundColor: TRUST_LEVEL_COLORS[item.issuer.trustLevel] || COLORS.textSecondary }]}>
-                    <Text style={styles.recommendTrustText}>{item.issuer.trustLevel}</Text>
-                  </View>
-                </View>
-                <Text style={styles.recommendName} numberOfLines={1}>{item.issuer.username}</Text>
-                <Text style={styles.recommendPrice}>{item.sharePrice.toLocaleString()}<Text style={styles.recommendCurrency}> PO</Text></Text>
-                <View style={styles.recommendFooter}>
-                  <Text style={[styles.recommendChange, { color: changeColor }]}>
-                    {isUp ? '▲' : '▼'} {Math.abs(priceChange).toFixed(2)}%
+          return (
+            <ListItem
+              key={item.id}
+              title={item.issuer.username}
+              subtitle={`${item.myShares}주 · ${item.sharePrice.toLocaleString()} P`}
+              right={
+                <View style={styles.holdingRight}>
+                  <Text style={styles.holdingValue}>{totalValue.toLocaleString()} P</Text>
+                  <Text style={[
+                    styles.holdingChange,
+                    { color: isUp ? theme.colors.stockUp : theme.colors.stockDown }
+                  ]}>
+                    {formatChange(priceChange)}
                   </Text>
                 </View>
-              </TouchableOpacity>
-            );
-          })}
+              }
+              onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
+              showChevron
+            />
+          );
+        })}
+      </SectionCard>
+    );
+  };
+
+  // Market Overview Section
+  const renderMarketOverview = () => {
+    if (!chartData || !chartData.chartData || chartData.chartData.length === 0) return null;
+
+    const stats = chartData.marketStats;
+    const priceChange = parseFloat(stats.priceChangePercent || 0);
+    const isUp = priceChange >= 0;
+
+    const data = {
+      labels: chartData.chartData.map((_, idx) => idx % 3 === 0 ? '' : ''),
+      datasets: [{
+        data: chartData.chartData.map(d => d.price)
+      }]
+    };
+
+    return (
+      <SectionCard title="시장 현황">
+        <View style={styles.marketCard}>
+          <View style={styles.marketHeader}>
+            <View>
+              <Text style={styles.marketLabel}>현재 지수</Text>
+              <Text style={styles.marketPrice}>{parseFloat(stats.currentPrice || 0).toLocaleString()} P</Text>
+            </View>
+            <View style={[
+              styles.marketChangeBadge,
+              { backgroundColor: isUp ? theme.colors.stockUpBackground : theme.colors.stockDownBackground }
+            ]}>
+              <Text style={[
+                styles.marketChangeText,
+                { color: isUp ? theme.colors.stockUp : theme.colors.stockDown }
+              ]}>
+                {isUp ? '+' : ''}{priceChange.toFixed(2)}%
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.chartWrapper}>
+            <LineChart
+              data={data}
+              width={screenWidth - 72}
+              height={120}
+              withDots={false}
+              withInnerLines={false}
+              withOuterLines={false}
+              withVerticalLabels={false}
+              withHorizontalLabels={false}
+              chartConfig={{
+                backgroundColor: 'transparent',
+                backgroundGradientFrom: theme.colors.white,
+                backgroundGradientTo: theme.colors.white,
+                decimalPlaces: 0,
+                color: () => isUp ? theme.colors.stockUp : theme.colors.stockDown,
+                strokeWidth: 2,
+              }}
+              bezier
+              style={styles.chart}
+            />
+          </View>
+
+          <View style={styles.marketStats}>
+            <View style={styles.marketStatItem}>
+              <Text style={styles.marketStatLabel}>거래대금</Text>
+              <Text style={styles.marketStatValue}>{parseInt(stats.totalVolume || 0).toLocaleString()} P</Text>
+            </View>
+            <View style={styles.marketStatDivider} />
+            <View style={styles.marketStatItem}>
+              <Text style={styles.marketStatLabel}>시가총액</Text>
+              <Text style={styles.marketStatValue}>{parseInt(stats.totalMarketCap || 0).toLocaleString()} P</Text>
+            </View>
+          </View>
+        </View>
+      </SectionCard>
+    );
+  };
+
+  // Trending Creators Section
+  const renderTrendingCreators = () => {
+    if (!recommended.trending || recommended.trending.length === 0) return null;
+
+    return (
+      <SectionCard
+        title="급상승"
+        subtitle="지금 가장 핫한 크리에이터"
+        action={
+          <Pressable onPress={() => navigation.navigate('StockMarket')}>
+            <Text style={styles.sectionMore}>전체보기</Text>
+          </Pressable>
+        }
+      >
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalScroll}
+        >
+          {recommended.trending.slice(0, 10).map((item) => (
+            <Pressable
+              key={item.id}
+              style={({ pressed }) => [
+                styles.creatorCard,
+                pressed && styles.cardPressed
+              ]}
+              onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
+            >
+              <View style={styles.creatorAvatar}>
+                <Text style={styles.creatorAvatarText}>
+                  {item.issuer?.username?.charAt(0)?.toUpperCase() || '?'}
+                </Text>
+              </View>
+              <Text style={styles.creatorName} numberOfLines={1}>{item.issuer?.username}</Text>
+              <Text style={styles.creatorPrice}>{item.sharePrice?.toLocaleString()} P</Text>
+              <Text style={[
+                styles.creatorChange,
+                { color: (item.priceChangePercent || 0) >= 0 ? theme.colors.stockUp : theme.colors.stockDown }
+              ]}>
+                {(item.priceChangePercent || 0) >= 0 ? '+' : ''}{(item.priceChangePercent || 0).toFixed(2)}%
+              </Text>
+            </Pressable>
+          ))}
         </ScrollView>
-      </View>
+      </SectionCard>
+    );
+  };
+
+  // Category Section
+  const renderCategories = () => {
+    const categoriesArray = Object.values(categories);
+    if (categoriesArray.length === 0) return null;
+
+    return categoriesArray.slice(0, 3).map((category, idx) => {
+      if (!category.users || category.users.length === 0) return null;
+
+      return (
+        <SectionCard key={idx} title={`${category.icon || '🔥'} ${category.name}`}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalScroll}
+          >
+            {category.users.slice(0, 8).map((user) => (
+              <Pressable
+                key={user.id}
+                style={({ pressed }) => [
+                  styles.categoryUserCard,
+                  pressed && styles.cardPressed
+                ]}
+                onPress={() => navigation.navigate('Profile', { userId: user.id })}
+              >
+                <View style={styles.categoryUserAvatar}>
+                  <Text style={styles.categoryUserAvatarText}>{user.username[0].toUpperCase()}</Text>
+                </View>
+                <Text style={styles.categoryUserName} numberOfLines={1}>{user.username}</Text>
+                <Text style={styles.categoryUserMeta}>{user.followersCount || 0} 팔로워</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </SectionCard>
+      );
+    });
+  };
+
+  // All Creators List
+  const renderAllCreators = () => {
+    if (stocks.length === 0) return null;
+
+    return (
+      <SectionCard
+        title="전체 크리에이터"
+        subtitle={`${stocks.length}명의 크리에이터`}
+      >
+        {stocks.slice(0, 20).map((item) => {
+          const priceChange = item.priceChangePercent || 0;
+          const isUp = priceChange >= 0;
+
+          return (
+            <StockCard
+              key={item.id}
+              stockName={item.issuer?.username || '알 수 없음'}
+              username={item.issuer?.username}
+              currentPrice={item.sharePrice}
+              priceChange={item.priceChange || 0}
+              priceChangePercent={priceChange}
+              onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
+              compact
+            />
+          );
+        })}
+      </SectionCard>
     );
   };
 
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -374,106 +377,24 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <ScrollView
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
+        }
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
-        {/* 토스 스타일 헤더 - 자산 카드 */}
-        <View style={styles.assetHeader}>
-          <View style={styles.assetCard}>
-            <Text style={styles.assetLabel}>내 자산</Text>
-            <View style={styles.assetAmountContainer}>
-              <Text style={styles.assetAmount}>{(user?.poBalance || 0).toLocaleString()}</Text>
-              <Text style={styles.assetCurrency}> PO</Text>
-            </View>
-            <View style={styles.assetMeta}>
-              <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>신뢰도</Text>
-                <View style={[styles.metaBadge, { backgroundColor: TRUST_LEVEL_COLORS[user?.trustLevel] || COLORS.textSecondary }]}>
-                  <Text style={styles.metaBadgeText}>{user?.trustLevel || 0}</Text>
-                </View>
-              </View>
-              <View style={styles.metaDivider} />
-              <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>신뢰 배수</Text>
-                <Text style={styles.metaValue}>x{user?.trustMultiplier || 1}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* 빠른 액션 버튼들 */}
-        {renderQuickActions()}
-
-        {/* 시장 차트 */}
-        {renderMarketChart()}
-
-        {/* 카테고리별 인플루언서 */}
-        {renderCategorySection()}
-
-        {/* 트렌딩 피드 */}
-        {renderTrendingFeed()}
-
-        {/* 내 보유 크리에이터 */}
-        {renderMyHoldingsCard()}
-
-        {/* 추천 섹션들 */}
-        {renderRecommendedSection('급상승 크리에이터', recommended.trending, '🔥', '지금 가장 핫한 크리에이터')}
-        {renderRecommendedSection('인기 크리에이터', recommended.popular, '⭐', '많은 사람들이 주목하는')}
-        {renderRecommendedSection('신규 상장', recommended.newest, '🆕', '새로 거래를 시작한')}
-
-        {/* 전체 크리에이터 목록 */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>👥 전체 크리에이터</Text>
-            <Text style={styles.sectionSubtitle}>{stocks.length}명의 크리에이터</Text>
-          </View>
-          <View style={styles.stockList}>
-            {stocks.slice(0, 50).map((item) => {
-              const priceChange = item.priceChangePercent || 0;
-              const isUp = priceChange >= 0;
-              const changeColor = isUp ? COLORS.up : COLORS.down;
-
-              const trustColor = TRUST_LEVEL_COLORS[item.issuer?.trustLevel] || COLORS.textSecondary;
-
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  style={styles.stockCard}
-                  onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.stockAvatar}>
-                    <Text style={styles.stockAvatarText}>
-                      {item.issuer?.username?.charAt(0)?.toUpperCase() || '?'}
-                    </Text>
-                  </View>
-                  <View style={styles.stockLeft}>
-                    <View style={styles.stockNameRow}>
-                      <Text style={styles.stockName}>{item.issuer?.username || '알 수 없음'}</Text>
-                      {item.issuer?.isVerified && <Text style={styles.verifiedBadge}>✓</Text>}
-                    </View>
-                    <Text style={styles.stockMeta}>
-                      {item.holderCount || 0}명 보유 · 배당 {item.dividendRate}%
-                    </Text>
-                    {item.issuer?.trustLevel && (
-                      <View style={[styles.trustLevelBadge, { backgroundColor: trustColor }]}>
-                        <Text style={styles.trustLevelText}>{item.issuer.trustLevel}</Text>
-                      </View>
-                    )}
-                  </View>
-                  <View style={styles.stockRight}>
-                    <Text style={styles.stockPrice}>{item.sharePrice.toLocaleString()} PO</Text>
-                    <Text style={[styles.stockChange, { color: changeColor }]}>
-                      {isUp ? '▲' : '▼'} {Math.abs(priceChange).toFixed(2)}%
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={{ height: 40 }} />
+        {renderAssetHeader()}
+        {renderMyHoldings()}
+        {renderMarketOverview()}
+        {renderTrendingCreators()}
+        {renderCategories()}
+        {renderAllCreators()}
+        <View style={styles.bottomSpacing} />
       </ScrollView>
     </View>
   );
@@ -482,488 +403,261 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.colors.background,
   },
-  centerContainer: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.colors.background,
   },
-  // 토스 스타일 자산 헤더
-  assetHeader: {
-    backgroundColor: COLORS.primary,
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+  scrollContent: {
+    paddingBottom: theme.spacing['2xl'],
+  },
+
+  // Asset Section - Toss Style
+  assetSection: {
+    backgroundColor: theme.colors.white,
+    paddingTop: 60,
+    paddingBottom: theme.spacing.lg,
   },
   assetCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 20,
-    padding: 24,
-    backdropFilter: 'blur(10px)',
+    marginHorizontal: theme.spacing.lg,
+    marginBottom: theme.spacing.xl,
+  },
+  assetLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: theme.spacing.sm,
   },
   assetLabel: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginBottom: 8,
-    fontWeight: '500',
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textSecondary,
+    fontWeight: theme.typography.fontWeight.medium,
   },
-  assetAmountContainer: {
+  assetChevron: {
+    fontSize: 20,
+    color: theme.colors.textTertiary,
+  },
+  assetAmountRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: 20,
   },
   assetAmount: {
-    fontSize: 40,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontSize: theme.typography.fontSize['4xl'],
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
+    letterSpacing: theme.typography.letterSpacing.tight,
   },
   assetCurrency: {
-    fontSize: 24,
-    color: 'rgba(255, 255, 255, 0.9)',
-    fontWeight: '600',
+    fontSize: theme.typography.fontSize.xl,
+    color: theme.colors.textPrimary,
+    fontWeight: theme.typography.fontWeight.semibold,
   },
-  assetMeta: {
+
+  // Quick Actions - Toss Style
+  quickActions: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: theme.spacing.base,
+  },
+  quickActionItem: {
     alignItems: 'center',
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
   },
-  metaItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  quickActionPressed: {
+    opacity: 0.7,
   },
-  metaLabel: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  metaBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  metaBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  metaValue: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  metaDivider: {
-    width: 1,
-    height: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-    marginHorizontal: 16,
-  },
-  // 빠른 액션
-  quickActionsContainer: {
-    backgroundColor: COLORS.surface,
-    paddingVertical: 20,
-    marginBottom: 8,
-  },
-  quickActionsHeader: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  quickActionsTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  quickActionsScroll: {
-    paddingHorizontal: 20,
-    gap: 16,
-  },
-  actionButton: {
-    alignItems: 'center',
-    width: 80,
-  },
-  actionIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 16,
-    backgroundColor: COLORS.background,
+  quickActionIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: theme.borderRadius.base,
+    backgroundColor: theme.colors.gray100,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    marginBottom: theme.spacing.sm,
   },
-  actionIconText: {
-    fontSize: 28,
+  quickActionEmoji: {
+    fontSize: 24,
   },
-  actionLabel: {
-    fontSize: 11,
-    color: COLORS.text,
-    fontWeight: '500',
-    textAlign: 'center',
+  quickActionLabel: {
+    fontSize: theme.typography.fontSize.xs,
+    color: theme.colors.textPrimary,
+    fontWeight: theme.typography.fontWeight.medium,
   },
-  // 섹션
-  section: {
-    marginTop: 8,
-    paddingVertical: 20,
-    backgroundColor: COLORS.surface,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  sectionSubtitle: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: 4,
-  },
+
+  // Section Styles
   sectionMore: {
-    fontSize: 14,
-    color: COLORS.primary,
-    fontWeight: '600',
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textTertiary,
+    fontWeight: theme.typography.fontWeight.medium,
   },
-  // 내 보유 크리에이터
-  holdingCard: {
-    backgroundColor: COLORS.background,
-    marginHorizontal: 20,
-    marginBottom: 8,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  holdingHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  holdingName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
+
+  // Holdings
+  holdingRight: {
+    alignItems: 'flex-end',
   },
   holdingValue: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  holdingDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  holdingShares: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+    marginBottom: 2,
   },
   holdingChange: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.medium,
   },
-  // 추천 카드
-  horizontalScroll: {
-    paddingLeft: 20,
+
+  // Market Card
+  marketCard: {
+    marginHorizontal: theme.spacing.lg,
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.gray50,
+    borderRadius: theme.borderRadius.md,
   },
-  recommendCard: {
-    backgroundColor: COLORS.background,
-    padding: 16,
-    borderRadius: 16,
-    marginRight: 12,
-    width: 150,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  recommendHeader: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 8,
-  },
-  recommendTrustBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  recommendTrustText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  recommendName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  recommendPrice: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 8,
-  },
-  recommendCurrency: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    fontWeight: '600',
-  },
-  recommendFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  recommendChange: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  // 전체 크리에이터 리스트
-  stockList: {
-    paddingHorizontal: 20,
-    gap: 8,
-  },
-  stockCard: {
+  marketHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    alignItems: 'flex-start',
+    marginBottom: theme.spacing.base,
   },
-  stockAvatar: {
+  marketLabel: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xs,
+  },
+  marketPrice: {
+    fontSize: theme.typography.fontSize['2xl'],
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
+  },
+  marketChangeBadge: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+  },
+  marketChangeText: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+  },
+  chartWrapper: {
+    marginHorizontal: -theme.spacing.sm,
+    marginBottom: theme.spacing.base,
+  },
+  chart: {
+    borderRadius: theme.borderRadius.sm,
+  },
+  marketStats: {
+    flexDirection: 'row',
+    paddingTop: theme.spacing.base,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.gray200,
+  },
+  marketStatItem: {
+    flex: 1,
+  },
+  marketStatLabel: {
+    fontSize: theme.typography.fontSize.xs,
+    color: theme.colors.textTertiary,
+    marginBottom: theme.spacing.xs,
+  },
+  marketStatValue: {
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+  },
+  marketStatDivider: {
+    width: 1,
+    backgroundColor: theme.colors.gray200,
+    marginHorizontal: theme.spacing.base,
+  },
+
+  // Horizontal Scroll
+  horizontalScroll: {
+    paddingHorizontal: theme.spacing.lg,
+    gap: theme.spacing.md,
+  },
+
+  // Creator Card
+  creatorCard: {
+    width: 120,
+    padding: theme.spacing.base,
+    backgroundColor: theme.colors.gray50,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+  },
+  cardPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
+  },
+  creatorAvatar: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginBottom: theme.spacing.sm,
   },
-  stockAvatarText: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#FFFFFF',
+  creatorAvatarText: {
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.white,
   },
-  stockLeft: {
-    flex: 1,
+  creatorName: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.xs,
+    textAlign: 'center',
   },
-  stockNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 4,
-  },
-  stockName: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  verifiedBadge: {
-    fontSize: 14,
-    color: COLORS.primary,
-  },
-  stockMeta: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: 6,
-  },
-  trustLevelBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-  },
-  trustLevelText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    textTransform: 'uppercase',
-  },
-  stockRight: {
-    alignItems: 'flex-end',
-  },
-  stockPrice: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  stockChange: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  // 시장 차트 스타일
-  chart: {
-    marginVertical: 8,
-    borderRadius: 16,
-  },
-  chartContainer: {
-    paddingHorizontal: 20,
-  },
-  marketStatsCard: {
-    backgroundColor: COLORS.surface,
-    borderRadius: 16,
-    padding: 20,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  mainStatContainer: {
-    marginBottom: 16,
-  },
-  mainStatLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-    fontWeight: '500',
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  currentPrice: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  changeBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  changeText: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-  },
-  statItem: {
-    flex: 1,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: 6,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  statDivider: {
-    width: 1,
-    height: 32,
-    backgroundColor: COLORS.border,
-    marginHorizontal: 16,
-  },
-  marketStats: {
-    alignItems: 'flex-end',
-  },
-  marketStatLabel: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
+  creatorPrice: {
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
     marginBottom: 2,
   },
-  marketStatValue: {
-    fontSize: 16,
-    fontWeight: '700',
+  creatorChange: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.medium,
   },
-  // 카테고리 스타일
-  categoryContainer: {
-    marginBottom: 16,
-  },
-  categoryTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
+
+  // Category User Card
   categoryUserCard: {
-    width: 100,
+    width: 80,
     alignItems: 'center',
-    marginRight: 12,
   },
   categoryUserAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: theme.colors.primaryBackground,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   categoryUserAvatarText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#FFFFFF',
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.primary,
   },
   categoryUserName: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.text,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.medium,
+    color: theme.colors.textPrimary,
     marginBottom: 2,
+    textAlign: 'center',
   },
-  categoryUserFollowers: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
+  categoryUserMeta: {
+    fontSize: theme.typography.fontSize.xs,
+    color: theme.colors.textTertiary,
+    textAlign: 'center',
   },
-  // 트렌딩 피드 스타일
-  trendingPostCard: {
-    backgroundColor: COLORS.background,
-    marginHorizontal: 20,
-    marginBottom: 8,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  trendingPostHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  trendingPostAuthor: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginRight: 8,
-  },
-  trendingPostBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  trendingPostBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#FFFFFF',
-  },
-  trendingPostContent: {
-    fontSize: 14,
-    color: COLORS.text,
-    marginBottom: 8,
-    lineHeight: 20,
-  },
-  trendingPostFooter: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  trendingPostStat: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
+
+  // Bottom Spacing
+  bottomSpacing: {
+    height: theme.spacing['3xl'],
   },
 });

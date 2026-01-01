@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
   ScrollView,
   Alert,
   Platform,
@@ -11,13 +10,18 @@ import {
   Dimensions,
   TextInput,
   Modal,
+  Pressable,
 } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSavedUser } from '../api/auth';
 import { getUserProfile, followUser } from '../api/users';
-import { COLORS, TRUST_LEVEL_COLORS } from '../constants/colors';
 import api from '../api/client';
+import theme from '../styles/theme';
+import Button from '../components/Button';
+import { SectionCard, ListItem, StatsCard } from '../components/Card';
+
+const screenWidth = Dimensions.get('window').width;
 
 export default function ProfileScreen({ navigation, route }) {
   const [user, setUser] = useState(null);
@@ -27,7 +31,7 @@ export default function ProfileScreen({ navigation, route }) {
   const [stockData, setStockData] = useState(null);
   const [priceHistory, setPriceHistory] = useState([]);
   const [showTradeModal, setShowTradeModal] = useState(false);
-  const [tradeType, setTradeType] = useState('buy'); // 'buy' or 'sell'
+  const [tradeType, setTradeType] = useState('buy');
   const [quantity, setQuantity] = useState('');
   const [tradeLoading, setTradeLoading] = useState(false);
   const userId = route?.params?.userId;
@@ -39,25 +43,19 @@ export default function ProfileScreen({ navigation, route }) {
   const loadProfile = async () => {
     try {
       setLoading(true);
-      // 현재 로그인한 사용자 정보
       const currentUserData = await getSavedUser();
       setCurrentUser(currentUserData);
 
-      // 프로필 사용자 정보
       if (userId && userId !== currentUserData.id) {
-        // 다른 사용자의 프로필 조회
         const profileData = await getUserProfile(userId);
         setUser(profileData.user);
-
-        // 주식 정보 및 히스토리 로드
         await loadStockData(userId);
       } else {
-        // 본인 프로필
         setUser(currentUserData);
         await loadStockData(currentUserData.id);
       }
     } catch (error) {
-      console.error('프로필 조회 오류:', error);
+      console.error('Profile load error:', error);
     } finally {
       setLoading(false);
     }
@@ -65,12 +63,10 @@ export default function ProfileScreen({ navigation, route }) {
 
   const loadStockData = async (targetUserId) => {
     try {
-      // 사용자의 크리에이터 정보 조회
       const stockResponse = await api.get(`/stocks/user/${targetUserId}`);
       if (stockResponse.data.success && stockResponse.data.stock) {
         setStockData(stockResponse.data.stock);
 
-        // 가격 히스토리 조회
         const historyResponse = await api.get(`/stocks/${stockResponse.data.stock.id}/history`, {
           params: { timeframe: '7d' }
         });
@@ -80,7 +76,7 @@ export default function ProfileScreen({ navigation, route }) {
         }
       }
     } catch (error) {
-      console.error('크리에이터 데이터 로드 오류:', error);
+      console.error('Stock data load error:', error);
     }
   };
 
@@ -89,27 +85,14 @@ export default function ProfileScreen({ navigation, route }) {
       setFollowLoading(true);
       const result = await followUser(user.id);
 
-      // 팔로우 상태 업데이트
       setUser({
         ...user,
         isFollowing: result.isFollowing,
         followersCount: result.isFollowing ? user.followersCount + 1 : user.followersCount - 1
       });
-
-      const message = result.isFollowing ? '팔로우했습니다' : '언팔로우했습니다';
-      if (Platform.OS === 'web') {
-        alert(message);
-      } else {
-        Alert.alert('알림', message);
-      }
     } catch (error) {
-      console.error('팔로우 오류:', error);
-      const message = '팔로우 처리 중 오류가 발생했습니다';
-      if (Platform.OS === 'web') {
-        alert(message);
-      } else {
-        Alert.alert('오류', message);
-      }
+      console.error('Follow error:', error);
+      Alert.alert('오류', '팔로우 처리 중 오류가 발생했습니다');
     } finally {
       setFollowLoading(false);
     }
@@ -117,12 +100,7 @@ export default function ProfileScreen({ navigation, route }) {
 
   const handleTrade = async () => {
     if (!quantity || parseFloat(quantity) <= 0) {
-      const message = '수량을 입력해주세요';
-      if (Platform.OS === 'web') {
-        window.alert(message);
-      } else {
-        Alert.alert('알림', message);
-      }
+      Alert.alert('알림', '수량을 입력해주세요');
       return;
     }
 
@@ -136,7 +114,6 @@ export default function ProfileScreen({ navigation, route }) {
       });
 
       if (response.data.success) {
-        // 매수 성공 시 자동 팔로우
         if (tradeType === 'buy' && !user.isFollowing) {
           try {
             await api.post(`/users/${userId}/follow`);
@@ -146,33 +123,24 @@ export default function ProfileScreen({ navigation, route }) {
               followersCount: (user.followersCount || 0) + 1
             });
           } catch (followError) {
-            console.error('자동 팔로우 오류:', followError);
-            // 팔로우 실패해도 거래는 성공했으므로 계속 진행
+            console.error('Auto follow error:', followError);
           }
         }
 
-        const message = tradeType === 'buy'
-          ? `${quantity}주를 매수했습니다! ${!user.isFollowing ? '자동으로 팔로우되었습니다.' : ''}`
-          : `${quantity}주를 매도했습니다!`;
-
-        if (Platform.OS === 'web') {
-          window.alert(message);
-        } else {
-          Alert.alert('성공', message);
-        }
+        Alert.alert(
+          '완료',
+          tradeType === 'buy'
+            ? `${quantity}주를 매수했습니다`
+            : `${quantity}주를 매도했습니다`
+        );
 
         setShowTradeModal(false);
         setQuantity('');
-        loadProfile(); // 프로필 새로고침
+        loadProfile();
       }
     } catch (error) {
-      console.error('거래 오류:', error);
-      const message = error.response?.data?.error || '거래 처리 중 오류가 발생했습니다';
-      if (Platform.OS === 'web') {
-        window.alert(message);
-      } else {
-        Alert.alert('오류', message);
-      }
+      console.error('Trade error:', error);
+      Alert.alert('오류', error.response?.data?.error || '거래 처리 중 오류가 발생했습니다');
     } finally {
       setTradeLoading(false);
     }
@@ -185,302 +153,324 @@ export default function ProfileScreen({ navigation, route }) {
   };
 
   const handleLogout = async () => {
-    if (Platform.OS === 'web') {
-      if (window.confirm('로그아웃 하시겠습니까?')) {
-        await AsyncStorage.removeItem('token');
-        await AsyncStorage.removeItem('user');
-        window.location.href = '/';
-      }
-    } else {
-      Alert.alert(
-        '로그아웃',
-        '로그아웃 하시겠습니까?',
-        [
-          { text: '취소', style: 'cancel' },
-          {
-            text: '확인',
-            onPress: async () => {
-              await AsyncStorage.removeItem('token');
-              await AsyncStorage.removeItem('user');
+    Alert.alert(
+      '로그아웃',
+      '로그아웃 하시겠습니까?',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '확인',
+          onPress: async () => {
+            await AsyncStorage.removeItem('token');
+            await AsyncStorage.removeItem('user');
+            if (Platform.OS === 'web') {
+              window.location.href = '/';
+            } else {
               navigation.replace('Auth');
-            },
+            }
           },
-        ]
-      );
-    }
+        },
+      ]
+    );
   };
 
   if (loading || !user) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
-  const trustLevelColor = TRUST_LEVEL_COLORS[user.trustLevel] || COLORS.textSecondary;
   const isOwnProfile = !userId || userId === currentUser?.id;
+  const priceChange = stockData?.priceChangePercent || 0;
+  const isUp = priceChange >= 0;
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Profile Header */}
       <View style={styles.header}>
-        <View style={styles.profileInfo}>
-          <View style={styles.usernameRow}>
-            <Text style={styles.username}>{user.username}</Text>
+        <View style={styles.profileSection}>
+          <View style={styles.avatarContainer}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>
+                {user.username?.charAt(0)?.toUpperCase() || '?'}
+              </Text>
+            </View>
             {user.isVerified && (
               <View style={styles.verifiedBadge}>
-                <Text style={styles.verifiedText}>✓</Text>
+                <Text style={styles.verifiedIcon}>✓</Text>
               </View>
             )}
           </View>
-          <Text style={styles.email}>{user.email}</Text>
-          <View style={[styles.trustBadge, { backgroundColor: trustLevelColor }]}>
-            <Text style={styles.trustText}>신뢰도 {user.trustLevel}</Text>
+
+          <View style={styles.profileInfo}>
+            <Text style={styles.username}>{user.username}</Text>
+            <Text style={styles.email}>{user.email}</Text>
           </View>
         </View>
 
-        {/* 팔로우 버튼 (다른 사용자 프로필인 경우) */}
         {!isOwnProfile && (
-          <TouchableOpacity
-            style={[
-              styles.followButton,
-              user.isFollowing && styles.followingButton
-            ]}
+          <Button
+            variant={user.isFollowing ? 'outline' : 'primary'}
+            size="sm"
+            loading={followLoading}
             onPress={handleFollow}
-            disabled={followLoading}
+            style={styles.followButton}
           >
-            {followLoading ? (
-              <ActivityIndicator size="small" color={user.isFollowing ? COLORS.primary : '#FFFFFF'} />
-            ) : (
-              <Text style={[
-                styles.followButtonText,
-                user.isFollowing && styles.followingButtonText
-              ]}>
-                {user.isFollowing ? '팔로잉' : '팔로우'}
-              </Text>
-            )}
-          </TouchableOpacity>
+            {user.isFollowing ? '팔로잉' : '팔로우'}
+          </Button>
         )}
       </View>
 
-      {/* 팔로워/팔로잉/포스트 수 */}
-      <View style={styles.statsContainer}>
+      {/* Stats Row */}
+      <View style={styles.statsRow}>
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{user.postsCount || 0}</Text>
+          <Text style={styles.statValue}>{user.postsCount || 0}</Text>
           <Text style={styles.statLabel}>게시물</Text>
         </View>
+        <View style={styles.statDivider} />
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{user.followersCount || 0}</Text>
+          <Text style={styles.statValue}>{user.followersCount || 0}</Text>
           <Text style={styles.statLabel}>팔로워</Text>
         </View>
+        <View style={styles.statDivider} />
         <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{user.followingCount || 0}</Text>
+          <Text style={styles.statValue}>{user.followingCount || 0}</Text>
           <Text style={styles.statLabel}>팔로잉</Text>
         </View>
       </View>
 
-      {/* 크리에이터 정보 및 차트 */}
+      {/* Stock Info Section */}
       {stockData && (
-        <View style={styles.stockSection}>
-          <View style={styles.stockHeader}>
-            <View>
-              <Text style={styles.stockLabel}>현재 가격</Text>
-              <Text style={styles.stockPrice}>{stockData.sharePrice?.toLocaleString() || 0} PO</Text>
+        <SectionCard title="주식 정보">
+          <View style={styles.stockCard}>
+            <View style={styles.stockPriceRow}>
+              <View>
+                <Text style={styles.stockLabel}>현재가</Text>
+                <Text style={styles.stockPrice}>{stockData.sharePrice?.toLocaleString() || 0} P</Text>
+              </View>
+              <View style={[
+                styles.changeBadge,
+                { backgroundColor: isUp ? theme.colors.stockUpBackground : theme.colors.stockDownBackground }
+              ]}>
+                <Text style={[
+                  styles.changeText,
+                  { color: isUp ? theme.colors.stockUp : theme.colors.stockDown }
+                ]}>
+                  {isUp ? '+' : ''}{priceChange.toFixed(2)}%
+                </Text>
+              </View>
             </View>
-            <View>
-              <Text style={styles.stockLabel}>시가총액</Text>
-              <Text style={styles.stockMarketCap}>
-                {(stockData.marketCapTotal || 0).toLocaleString()} PO
-              </Text>
-            </View>
-            <View>
-              <Text style={styles.stockLabel}>발행 주식</Text>
-              <Text style={styles.stockShares}>{stockData.totalShares?.toLocaleString() || 0}주</Text>
-            </View>
-          </View>
 
-          {/* 가격 차트 */}
-          {priceHistory.length > 0 && (
-            <View style={styles.chartContainer}>
-              <Text style={styles.chartTitle}>7일 가격 추이</Text>
-              <LineChart
-                data={{
-                  labels: priceHistory.map((item) => {
-                    const date = new Date(item.timestamp);
-                    return `${date.getMonth() + 1}/${date.getDate()}`;
-                  }),
-                  datasets: [
-                    {
+            <View style={styles.stockMetaRow}>
+              <View style={styles.stockMetaItem}>
+                <Text style={styles.stockMetaLabel}>시가총액</Text>
+                <Text style={styles.stockMetaValue}>{(stockData.marketCapTotal || 0).toLocaleString()} P</Text>
+              </View>
+              <View style={styles.stockMetaItem}>
+                <Text style={styles.stockMetaLabel}>발행 주식</Text>
+                <Text style={styles.stockMetaValue}>{stockData.totalShares?.toLocaleString() || 0}주</Text>
+              </View>
+              <View style={styles.stockMetaItem}>
+                <Text style={styles.stockMetaLabel}>보유자</Text>
+                <Text style={styles.stockMetaValue}>{stockData.holderCount || 0}명</Text>
+              </View>
+            </View>
+
+            {/* Price Chart */}
+            {priceHistory.length > 0 && (
+              <View style={styles.chartSection}>
+                <Text style={styles.chartTitle}>7일 추이</Text>
+                <LineChart
+                  data={{
+                    labels: [],
+                    datasets: [{
                       data: priceHistory.map((item) => item.price),
-                    },
-                  ],
-                }}
-                width={Dimensions.get('window').width - 32}
-                height={200}
-                chartConfig={{
-                  backgroundColor: COLORS.surface,
-                  backgroundGradientFrom: COLORS.surface,
-                  backgroundGradientTo: COLORS.surface,
-                  decimalPlaces: 0,
-                  color: (opacity = 1) => `rgba(76, 175, 80, ${opacity})`,
-                  labelColor: (opacity = 1) => COLORS.textSecondary,
-                  style: {
-                    borderRadius: 16,
-                  },
-                  propsForDots: {
-                    r: '4',
-                    strokeWidth: '2',
-                    stroke: COLORS.primary,
-                  },
-                }}
-                bezier
-                style={styles.chart}
-              />
-            </View>
-          )}
+                    }],
+                  }}
+                  width={screenWidth - 80}
+                  height={120}
+                  withDots={false}
+                  withInnerLines={false}
+                  withOuterLines={false}
+                  withVerticalLabels={false}
+                  withHorizontalLabels={false}
+                  chartConfig={{
+                    backgroundColor: 'transparent',
+                    backgroundGradientFrom: theme.colors.gray50,
+                    backgroundGradientTo: theme.colors.gray50,
+                    decimalPlaces: 0,
+                    color: () => isUp ? theme.colors.stockUp : theme.colors.stockDown,
+                    strokeWidth: 2,
+                  }}
+                  bezier
+                  style={styles.chart}
+                />
+              </View>
+            )}
 
-          {/* 매수/매도 버튼 (다른 사용자 프로필인 경우) */}
-          {!isOwnProfile && (
-            <View style={styles.tradeButtons}>
-              <TouchableOpacity
-                style={[styles.tradeButton, styles.buyButton]}
-                onPress={() => openTradeModal('buy')}
-              >
-                <Text style={styles.tradeButtonText}>매수</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.tradeButton, styles.sellButton]}
-                onPress={() => openTradeModal('sell')}
-              >
-                <Text style={styles.tradeButtonText}>매도</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
+            {/* Trade Buttons */}
+            {!isOwnProfile && (
+              <View style={styles.tradeButtonsRow}>
+                <Button
+                  variant="buy"
+                  onPress={() => openTradeModal('buy')}
+                  style={styles.tradeButton}
+                >
+                  매수
+                </Button>
+                <Button
+                  variant="sell"
+                  onPress={() => openTradeModal('sell')}
+                  style={styles.tradeButton}
+                >
+                  매도
+                </Button>
+              </View>
+            )}
+          </View>
+        </SectionCard>
       )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>자산 정보</Text>
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>PO 잔액</Text>
-            <Text style={styles.infoValue}>{user.poBalance?.toLocaleString() || 0} PO</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>신뢰 배수</Text>
-            <Text style={styles.infoValue}>x{user.trustMultiplier || 1}</Text>
-          </View>
-        </View>
-      </View>
+      {/* Asset Info */}
+      <SectionCard title="자산 정보">
+        <ListItem
+          title="PO 잔액"
+          right={<Text style={styles.assetValue}>{(user.poBalance || 0).toLocaleString()} P</Text>}
+        />
+        <ListItem
+          title="신뢰도"
+          right={
+            <View style={styles.trustBadge}>
+              <Text style={styles.trustBadgeText}>{user.trustLevel || 'Bronze'}</Text>
+            </View>
+          }
+        />
+        <ListItem
+          title="신뢰 배수"
+          right={<Text style={styles.assetValue}>x{user.trustMultiplier || 1}</Text>}
+        />
+      </SectionCard>
 
+      {/* Bio */}
       {user.bio && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>소개</Text>
-          <View style={styles.infoCard}>
+        <SectionCard title="소개">
+          <View style={styles.bioContainer}>
             <Text style={styles.bioText}>{user.bio}</Text>
           </View>
-        </View>
+        </SectionCard>
       )}
 
-      {/* 설정 (본인 프로필인 경우만) */}
+      {/* Settings (Own Profile Only) */}
       {isOwnProfile && (
         <>
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>설정</Text>
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuText}>알림 설정</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuText}>개인정보 설정</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
-              <Text style={styles.menuText}>약관 및 정책</Text>
-            </TouchableOpacity>
-          </View>
+          <SectionCard title="설정">
+            <ListItem
+              title="알림 설정"
+              showChevron
+              onPress={() => {}}
+            />
+            <ListItem
+              title="개인정보 설정"
+              showChevron
+              onPress={() => navigation.navigate('SecuritySettings')}
+            />
+            <ListItem
+              title="약관 및 정책"
+              showChevron
+              onPress={() => navigation.navigate('Terms')}
+            />
+          </SectionCard>
 
-          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-            <Text style={styles.logoutText}>로그아웃</Text>
-          </TouchableOpacity>
+          <View style={styles.logoutSection}>
+            <Button
+              variant="danger"
+              onPress={handleLogout}
+              fullWidth
+            >
+              로그아웃
+            </Button>
+          </View>
         </>
       )}
 
-      {/* 거래 모달 */}
+      <View style={styles.bottomSpacing} />
+
+      {/* Trade Modal */}
       <Modal
         visible={showTradeModal}
         transparent={true}
         animationType="slide"
         onRequestClose={() => setShowTradeModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <Pressable style={styles.modalOverlay} onPress={() => setShowTradeModal(false)}>
+          <Pressable style={styles.modalContent} onPress={e => e.stopPropagation()}>
+            <View style={styles.modalHandle} />
+
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {tradeType === 'buy' ? '주식 매수' : '주식 매도'}
+                {tradeType === 'buy' ? '매수' : '매도'}
               </Text>
-              <TouchableOpacity onPress={() => setShowTradeModal(false)}>
+              <Pressable onPress={() => setShowTradeModal(false)}>
                 <Text style={styles.modalClose}>✕</Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
 
             <View style={styles.modalBody}>
-              <View style={styles.tradeInfo}>
+              <View style={styles.tradeInfoCard}>
                 <View style={styles.tradeInfoRow}>
-                  <Text style={styles.tradeInfoLabel}>사용자</Text>
+                  <Text style={styles.tradeInfoLabel}>크리에이터</Text>
                   <Text style={styles.tradeInfoValue}>{user.username}</Text>
                 </View>
                 <View style={styles.tradeInfoRow}>
                   <Text style={styles.tradeInfoLabel}>현재가</Text>
                   <Text style={styles.tradeInfoValue}>
-                    {stockData?.sharePrice?.toLocaleString() || 0} PO
+                    {stockData?.sharePrice?.toLocaleString() || 0} P
                   </Text>
                 </View>
               </View>
 
               <Text style={styles.inputLabel}>수량</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="매수/매도할 주식 수량"
-                value={quantity}
-                onChangeText={setQuantity}
-                keyboardType="numeric"
-              />
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="매수할 주식 수량"
+                  placeholderTextColor={theme.colors.textDisabled}
+                  value={quantity}
+                  onChangeText={setQuantity}
+                  keyboardType="numeric"
+                />
+              </View>
 
               {quantity && stockData && (
-                <View style={styles.totalAmount}>
+                <View style={styles.totalCard}>
                   <Text style={styles.totalLabel}>총 금액</Text>
                   <Text style={styles.totalValue}>
-                    {(parseInt(quantity) * stockData.sharePrice).toLocaleString()} PO
+                    {(parseInt(quantity || 0) * stockData.sharePrice).toLocaleString()} P
                   </Text>
                 </View>
               )}
 
               {tradeType === 'buy' && !user.isFollowing && (
-                <View style={styles.autoFollowNotice}>
-                  <Text style={styles.autoFollowText}>
-                    💡 매수 시 자동으로 팔로우됩니다
-                  </Text>
+                <View style={styles.noticeCard}>
+                  <Text style={styles.noticeText}>매수 시 자동으로 팔로우됩니다</Text>
                 </View>
               )}
 
-              <TouchableOpacity
-                style={[
-                  styles.confirmButton,
-                  tradeType === 'buy' ? styles.confirmBuyButton : styles.confirmSellButton,
-                ]}
+              <Button
+                variant={tradeType === 'buy' ? 'buy' : 'sell'}
+                size="lg"
+                fullWidth
+                loading={tradeLoading}
                 onPress={handleTrade}
-                disabled={tradeLoading}
+                style={styles.confirmButton}
               >
-                {tradeLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
-                ) : (
-                  <Text style={styles.confirmButtonText}>
-                    {tradeType === 'buy' ? '매수하기' : '매도하기'}
-                  </Text>
-                )}
-              </TouchableOpacity>
+                {tradeType === 'buy' ? '매수하기' : '매도하기'}
+              </Button>
             </View>
-          </View>
-        </View>
+          </Pressable>
+        </Pressable>
       </Modal>
     </ScrollView>
   );
@@ -489,343 +479,338 @@ export default function ProfileScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.colors.background,
   },
-  centerContainer: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.colors.background,
   },
+
+  // Header
   header: {
-    backgroundColor: COLORS.surface,
-    padding: 20,
-    paddingTop: 40,
-    paddingBottom: 30,
+    backgroundColor: theme.colors.white,
+    paddingTop: 60,
+    paddingBottom: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  profileSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  avatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: theme.colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    fontSize: theme.typography.fontSize.xl,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.white,
+  },
+  verifiedBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: theme.colors.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.white,
+  },
+  verifiedIcon: {
+    fontSize: 10,
+    color: theme.colors.white,
+    fontWeight: theme.typography.fontWeight.bold,
   },
   profileInfo: {
-    alignItems: 'center',
+    marginLeft: theme.spacing.base,
+  },
+  username: {
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
+    marginBottom: 2,
+  },
+  email: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textSecondary,
   },
   followButton: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 32,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginTop: 16,
-    alignItems: 'center',
-    minWidth: 120,
+    minWidth: 80,
   },
-  followingButton: {
-    backgroundColor: COLORS.surface,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-  },
-  followButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  followingButtonText: {
-    color: COLORS.primary,
-  },
-  statsContainer: {
+
+  // Stats Row
+  statsRow: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
-    paddingVertical: 20,
+    backgroundColor: theme.colors.white,
+    paddingVertical: theme.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.colors.divider,
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
   },
-  statNumber: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 4,
+  statValue: {
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
+    marginBottom: 2,
   },
   statLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textSecondary,
   },
-  usernameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+  statDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: theme.colors.gray200,
+    alignSelf: 'center',
   },
-  username: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.text,
+
+  // Stock Card
+  stockCard: {
+    marginHorizontal: theme.spacing.lg,
+    padding: theme.spacing.lg,
+    backgroundColor: theme.colors.gray50,
+    borderRadius: theme.borderRadius.md,
   },
-  verifiedBadge: {
-    backgroundColor: COLORS.success,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  verifiedText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  email: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 12,
-  },
-  trustBadge: {
-    paddingHorizontal: 16,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  trustText: {
-    color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  section: {
-    marginTop: 20,
-    paddingHorizontal: 15,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 12,
-  },
-  infoCard: {
-    backgroundColor: COLORS.surface,
-    padding: 15,
-    borderRadius: 12,
-  },
-  infoRow: {
+  stockPriceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 10,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  infoValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  bioText: {
-    fontSize: 14,
-    color: COLORS.text,
-    lineHeight: 20,
-  },
-  menuItem: {
-    backgroundColor: COLORS.surface,
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  menuText: {
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  logoutButton: {
-    backgroundColor: COLORS.danger,
-    padding: 15,
-    borderRadius: 12,
-    margin: 15,
-    marginTop: 30,
-    marginBottom: 40,
-    alignItems: 'center',
-  },
-  logoutText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  stockSection: {
-    backgroundColor: COLORS.surface,
-    padding: 16,
-    marginTop: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  stockHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
+    alignItems: 'flex-start',
+    marginBottom: theme.spacing.lg,
   },
   stockLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: 4,
-    textAlign: 'center',
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.xs,
   },
   stockPrice: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.primary,
-    textAlign: 'center',
+    fontSize: theme.typography.fontSize['2xl'],
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
   },
-  stockMarketCap: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    textAlign: 'center',
+  changeBadge: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
   },
-  stockShares: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    textAlign: 'center',
+  changeText: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
   },
-  chartContainer: {
-    marginVertical: 16,
+  stockMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: theme.spacing.base,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.gray200,
+  },
+  stockMetaItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  stockMetaLabel: {
+    fontSize: theme.typography.fontSize.xs,
+    color: theme.colors.textTertiary,
+    marginBottom: 4,
+  },
+  stockMetaValue: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+  },
+  chartSection: {
+    marginTop: theme.spacing.lg,
+    paddingTop: theme.spacing.base,
+    borderTopWidth: 1,
+    borderTopColor: theme.colors.gray200,
   },
   chartTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 12,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.medium,
+    color: theme.colors.textSecondary,
+    marginBottom: theme.spacing.sm,
   },
   chart: {
-    marginVertical: 8,
-    borderRadius: 16,
+    borderRadius: theme.borderRadius.sm,
+    marginLeft: -theme.spacing.sm,
   },
-  tradeButtons: {
+  tradeButtonsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 16,
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.lg,
   },
   tradeButton: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 8,
-    alignItems: 'center',
   },
-  buyButton: {
-    backgroundColor: COLORS.success,
+
+  // Asset Value
+  assetValue: {
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textPrimary,
   },
-  sellButton: {
-    backgroundColor: COLORS.danger,
+  trustBadge: {
+    backgroundColor: theme.colors.primaryBackground,
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
   },
-  tradeButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+  trustBadgeText: {
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.primary,
   },
+
+  // Bio
+  bioContainer: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: theme.spacing.sm,
+  },
+  bioText: {
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.textPrimary,
+    lineHeight: theme.typography.fontSize.base * theme.typography.lineHeight.relaxed,
+  },
+
+  // Logout
+  logoutSection: {
+    paddingHorizontal: theme.spacing.lg,
+    marginTop: theme.spacing.lg,
+  },
+
+  // Bottom Spacing
+  bottomSpacing: {
+    height: theme.spacing['4xl'],
+  },
+
+  // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: theme.colors.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: COLORS.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '80%',
+    backgroundColor: theme.colors.white,
+    borderTopLeftRadius: theme.borderRadius.xl,
+    borderTopRightRadius: theme.borderRadius.xl,
+    maxHeight: '85%',
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    backgroundColor: theme.colors.gray300,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginTop: theme.spacing.sm,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.base,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.colors.divider,
   },
   modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
   },
   modalClose: {
-    fontSize: 24,
-    color: COLORS.textSecondary,
+    fontSize: 20,
+    color: theme.colors.textTertiary,
+    padding: theme.spacing.xs,
   },
   modalBody: {
-    padding: 20,
+    padding: theme.spacing.lg,
   },
-  tradeInfo: {
-    backgroundColor: COLORS.background,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
+  tradeInfoCard: {
+    backgroundColor: theme.colors.gray50,
+    borderRadius: theme.borderRadius.base,
+    padding: theme.spacing.base,
+    marginBottom: theme.spacing.lg,
   },
   tradeInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: theme.spacing.sm,
   },
   tradeInfoLabel: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textSecondary,
   },
   tradeInfoValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textPrimary,
   },
   inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 8,
+    fontSize: theme.typography.fontSize.sm,
+    fontWeight: theme.typography.fontWeight.semibold,
+    color: theme.colors.textPrimary,
+    marginBottom: theme.spacing.sm,
+  },
+  inputWrapper: {
+    backgroundColor: theme.colors.gray50,
+    borderRadius: theme.borderRadius.base,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   input: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    padding: 14,
-    fontSize: 16,
-    color: COLORS.text,
+    paddingHorizontal: theme.spacing.base,
+    paddingVertical: theme.spacing.base,
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.textPrimary,
   },
-  totalAmount: {
+  totalCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
-    padding: 16,
-    borderRadius: 8,
-    marginTop: 12,
+    backgroundColor: theme.colors.gray50,
+    padding: theme.spacing.base,
+    borderRadius: theme.borderRadius.base,
+    marginTop: theme.spacing.md,
   },
   totalLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
+    fontSize: theme.typography.fontSize.base,
+    fontWeight: theme.typography.fontWeight.medium,
+    color: theme.colors.textSecondary,
   },
   totalValue: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: COLORS.primary,
+    fontSize: theme.typography.fontSize.lg,
+    fontWeight: theme.typography.fontWeight.bold,
+    color: theme.colors.textPrimary,
   },
-  autoFollowNotice: {
-    backgroundColor: COLORS.primary + '20',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 12,
+  noticeCard: {
+    backgroundColor: theme.colors.primaryBackground,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.base,
+    marginTop: theme.spacing.md,
   },
-  autoFollowText: {
-    fontSize: 13,
-    color: COLORS.primary,
+  noticeText: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.primary,
     textAlign: 'center',
   },
   confirmButton: {
-    paddingVertical: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  confirmBuyButton: {
-    backgroundColor: COLORS.success,
-  },
-  confirmSellButton: {
-    backgroundColor: COLORS.danger,
-  },
-  confirmButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
+    marginTop: theme.spacing.lg,
   },
 });
