@@ -51,3 +51,4 @@ frontend/web-build/
 
 # Backend uploads
 backend/uploads/
+.vercel

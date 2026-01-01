@@ -9,14 +9,15 @@ import {
   Dimensions,
   Pressable,
   Image,
+  Platform,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { LineChart } from 'react-native-chart-kit';
 import { getStocks, getRecommendedStocks, getMarketChartData } from '../api/stocks';
 import { getSavedUser } from '../api/auth';
 import { getTrendingPosts } from '../api/posts';
 import { getTrendingByCategories } from '../api/users';
 import theme from '../styles/theme';
-import { SectionCard, ListItem, StockCard } from '../components/Card';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -56,7 +57,7 @@ export default function HomeScreen({ navigation }) {
       setTrendingPosts(trendingPostsData.posts || []);
       setCategories(categoriesData.categories || {});
 
-      const holdings = stocksData.stocks.filter(s => s.myShares > 0).slice(0, 3);
+      const holdings = stocksData.stocks.filter(s => s.myShares > 0).slice(0, 5);
       setMyHoldings(holdings);
     } catch (error) {
       console.error('Data load error:', error);
@@ -76,45 +77,26 @@ export default function HomeScreen({ navigation }) {
     return `${sign}${change.toFixed(2)}%`;
   };
 
-  // Quick Actions - Toss Style
-  const renderQuickActions = () => {
-    const actions = [
-      { icon: '💸', label: '충전', onPress: () => navigation.navigate('POCharge') },
-      { icon: '📤', label: '송금', onPress: () => {} },
-      { icon: '💼', label: '내 주식', onPress: () => navigation.navigate('Portfolio') },
-      { icon: '📱', label: '피드', onPress: () => navigation.navigate('Community') },
-      { icon: '📊', label: '랭킹', onPress: () => navigation.navigate('Ranking') },
-    ];
+  // 토스 스타일 Quick Action 아이콘
+  const QuickActionIcon = ({ colors, icon }) => (
+    <LinearGradient
+      colors={colors}
+      style={styles.quickActionIconBg}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+    >
+      <Text style={styles.quickActionIconText}>{icon}</Text>
+    </LinearGradient>
+  );
 
-    return (
-      <View style={styles.quickActions}>
-        {actions.map((action, index) => (
-          <Pressable
-            key={index}
-            style={({ pressed }) => [
-              styles.quickActionItem,
-              pressed && styles.quickActionPressed
-            ]}
-            onPress={action.onPress}
-          >
-            <View style={styles.quickActionIcon}>
-              <Text style={styles.quickActionEmoji}>{action.icon}</Text>
-            </View>
-            <Text style={styles.quickActionLabel}>{action.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-    );
-  };
-
-  // Asset Card - Toss Style Header
+  // Asset Header - 토스 스타일
   const renderAssetHeader = () => {
     return (
       <View style={styles.assetSection}>
         <Pressable
           style={({ pressed }) => [
             styles.assetCard,
-            pressed && { opacity: 0.95 }
+            pressed && { opacity: 0.9 }
           ]}
           onPress={() => navigation.navigate('Wallet')}
         >
@@ -124,252 +106,483 @@ export default function HomeScreen({ navigation }) {
           </View>
           <View style={styles.assetAmountRow}>
             <Text style={styles.assetAmount}>{(user?.poBalance || 0).toLocaleString()}</Text>
-            <Text style={styles.assetCurrency}> P</Text>
+            <Text style={styles.assetCurrency}>P</Text>
           </View>
         </Pressable>
 
-        {renderQuickActions()}
+        {/* Quick Actions */}
+        <View style={styles.quickActions}>
+          <Pressable
+            style={({ pressed }) => [styles.quickActionItem, pressed && styles.quickActionPressed]}
+            onPress={() => navigation.navigate('POCharge')}
+          >
+            <QuickActionIcon colors={['#10B981', '#34D399']} icon="₩" />
+            <Text style={styles.quickActionLabel}>충전</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.quickActionItem, pressed && styles.quickActionPressed]}
+            onPress={() => navigation.navigate('Transfer')}
+          >
+            <QuickActionIcon colors={['#3B82F6', '#60A5FA']} icon="↗" />
+            <Text style={styles.quickActionLabel}>송금</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.quickActionItem, pressed && styles.quickActionPressed]}
+            onPress={() => navigation.navigate('Portfolio')}
+          >
+            <QuickActionIcon colors={['#8B5CF6', '#A78BFA']} icon="📊" />
+            <Text style={styles.quickActionLabel}>내 주식</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.quickActionItem, pressed && styles.quickActionPressed]}
+            onPress={() => navigation.navigate('Community')}
+          >
+            <QuickActionIcon colors={['#EC4899', '#F472B6']} icon="💬" />
+            <Text style={styles.quickActionLabel}>피드</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [styles.quickActionItem, pressed && styles.quickActionPressed]}
+            onPress={() => navigation.navigate('Ranking')}
+          >
+            <QuickActionIcon colors={['#F59E0B', '#FBBF24']} icon="🏆" />
+            <Text style={styles.quickActionLabel}>랭킹</Text>
+          </Pressable>
+        </View>
       </View>
     );
   };
 
-  // My Holdings Section
+  // 내 보유 주식 섹션
   const renderMyHoldings = () => {
     if (myHoldings.length === 0) return null;
 
     return (
-      <SectionCard
-        title="내 보유 주식"
-        action={
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>내 보유 주식</Text>
           <Pressable onPress={() => navigation.navigate('Portfolio')}>
-            <Text style={styles.sectionMore}>전체보기</Text>
+            <Text style={styles.sectionMore}>전체보기 ›</Text>
           </Pressable>
-        }
-      >
-        {myHoldings.map((item) => {
+        </View>
+
+        {myHoldings.map((item, index) => {
           const priceChange = item.priceChangePercent || 0;
           const isUp = priceChange >= 0;
           const totalValue = (item.myShares || 0) * item.sharePrice;
 
           return (
-            <ListItem
+            <Pressable
               key={item.id}
-              title={item.issuer.username}
-              subtitle={`${item.myShares}주 · ${item.sharePrice.toLocaleString()} P`}
-              right={
-                <View style={styles.holdingRight}>
-                  <Text style={styles.holdingValue}>{totalValue.toLocaleString()} P</Text>
-                  <Text style={[
-                    styles.holdingChange,
-                    { color: isUp ? theme.colors.stockUp : theme.colors.stockDown }
-                  ]}>
-                    {formatChange(priceChange)}
-                  </Text>
-                </View>
-              }
+              style={({ pressed }) => [
+                styles.holdingItem,
+                pressed && styles.itemPressed,
+                index === myHoldings.length - 1 && styles.lastItem
+              ]}
               onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
-              showChevron
-            />
+            >
+              <View style={styles.holdingAvatar}>
+                <Text style={styles.holdingAvatarText}>
+                  {item.issuer?.username?.charAt(0)?.toUpperCase() || '?'}
+                </Text>
+              </View>
+              <View style={styles.holdingInfo}>
+                <Text style={styles.holdingName}>{item.issuer.username}</Text>
+                <Text style={styles.holdingShares}>{item.myShares}주</Text>
+              </View>
+              <View style={styles.holdingRight}>
+                <Text style={styles.holdingValue}>{totalValue.toLocaleString()}P</Text>
+                <Text style={[styles.holdingChange, { color: isUp ? '#F04452' : '#3182F6' }]}>
+                  {formatChange(priceChange)}
+                </Text>
+              </View>
+            </Pressable>
           );
         })}
-      </SectionCard>
+      </View>
     );
   };
 
-  // Market Overview Section
+  // 시장 현황 섹션
   const renderMarketOverview = () => {
-    if (!chartData || !chartData.chartData || chartData.chartData.length === 0) return null;
-
-    const stats = chartData.marketStats;
+    const stats = chartData?.marketStats || {};
     const priceChange = parseFloat(stats.priceChangePercent || 0);
     const isUp = priceChange >= 0;
 
-    const data = {
-      labels: chartData.chartData.map((_, idx) => idx % 3 === 0 ? '' : ''),
-      datasets: [{
-        data: chartData.chartData.map(d => d.price)
-      }]
-    };
+    const hasChartData = chartData?.chartData && chartData.chartData.length > 0;
 
     return (
-      <SectionCard title="시장 현황">
-        <View style={styles.marketCard}>
-          <View style={styles.marketHeader}>
-            <View>
-              <Text style={styles.marketLabel}>현재 지수</Text>
-              <Text style={styles.marketPrice}>{parseFloat(stats.currentPrice || 0).toLocaleString()} P</Text>
-            </View>
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>시장 현황</Text>
+        </View>
+
+        <View style={styles.marketContent}>
+          <View style={styles.marketMain}>
+            <Text style={styles.marketLabel}>HIPO 지수</Text>
+            <Text style={styles.marketPrice}>
+              {parseFloat(stats.currentPrice || 1000).toLocaleString()}
+            </Text>
             <View style={[
-              styles.marketChangeBadge,
-              { backgroundColor: isUp ? theme.colors.stockUpBackground : theme.colors.stockDownBackground }
+              styles.marketBadge,
+              { backgroundColor: isUp ? '#FFF0F1' : '#EBF4FF' }
             ]}>
-              <Text style={[
-                styles.marketChangeText,
-                { color: isUp ? theme.colors.stockUp : theme.colors.stockDown }
-              ]}>
-                {isUp ? '+' : ''}{priceChange.toFixed(2)}%
+              <Text style={[styles.marketBadgeText, { color: isUp ? '#F04452' : '#3182F6' }]}>
+                {isUp ? '▲' : '▼'} {Math.abs(priceChange).toFixed(2)}%
               </Text>
             </View>
           </View>
 
-          <View style={styles.chartWrapper}>
-            <LineChart
-              data={data}
-              width={screenWidth - 72}
-              height={120}
-              withDots={false}
-              withInnerLines={false}
-              withOuterLines={false}
-              withVerticalLabels={false}
-              withHorizontalLabels={false}
-              chartConfig={{
-                backgroundColor: 'transparent',
-                backgroundGradientFrom: theme.colors.white,
-                backgroundGradientTo: theme.colors.white,
-                decimalPlaces: 0,
-                color: () => isUp ? theme.colors.stockUp : theme.colors.stockDown,
-                strokeWidth: 2,
-              }}
-              bezier
-              style={styles.chart}
-            />
-          </View>
+          {hasChartData && (
+            <View style={styles.chartContainer}>
+              <LineChart
+                data={{
+                  labels: [],
+                  datasets: [{
+                    data: chartData.chartData.map(d => d.price)
+                  }]
+                }}
+                width={screenWidth - 80}
+                height={100}
+                withDots={false}
+                withInnerLines={false}
+                withOuterLines={false}
+                withVerticalLabels={false}
+                withHorizontalLabels={false}
+                chartConfig={{
+                  backgroundColor: 'transparent',
+                  backgroundGradientFrom: '#fff',
+                  backgroundGradientTo: '#fff',
+                  decimalPlaces: 0,
+                  color: () => isUp ? '#F04452' : '#3182F6',
+                  strokeWidth: 2.5,
+                }}
+                bezier
+                style={styles.chart}
+              />
+            </View>
+          )}
 
           <View style={styles.marketStats}>
             <View style={styles.marketStatItem}>
               <Text style={styles.marketStatLabel}>거래대금</Text>
-              <Text style={styles.marketStatValue}>{parseInt(stats.totalVolume || 0).toLocaleString()} P</Text>
+              <Text style={styles.marketStatValue}>
+                {parseInt(stats.totalVolume || 0).toLocaleString()}P
+              </Text>
             </View>
             <View style={styles.marketStatDivider} />
             <View style={styles.marketStatItem}>
               <Text style={styles.marketStatLabel}>시가총액</Text>
-              <Text style={styles.marketStatValue}>{parseInt(stats.totalMarketCap || 0).toLocaleString()} P</Text>
+              <Text style={styles.marketStatValue}>
+                {parseInt(stats.totalMarketCap || 0).toLocaleString()}P
+              </Text>
             </View>
           </View>
         </View>
-      </SectionCard>
+      </View>
     );
   };
 
-  // Trending Creators Section
+  // 급상승 크리에이터 섹션
   const renderTrendingCreators = () => {
-    if (!recommended.trending || recommended.trending.length === 0) return null;
+    const trendingList = recommended.trending || [];
+    if (trendingList.length === 0) return null;
 
     return (
-      <SectionCard
-        title="급상승"
-        subtitle="지금 가장 핫한 크리에이터"
-        action={
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>🔥 급상승</Text>
+            <Text style={styles.sectionSubtitle}>지금 가장 핫한 크리에이터</Text>
+          </View>
           <Pressable onPress={() => navigation.navigate('StockMarket')}>
-            <Text style={styles.sectionMore}>전체보기</Text>
+            <Text style={styles.sectionMore}>전체보기 ›</Text>
           </Pressable>
-        }
-      >
+        </View>
+
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalScroll}
         >
-          {recommended.trending.slice(0, 10).map((item) => (
-            <Pressable
-              key={item.id}
-              style={({ pressed }) => [
-                styles.creatorCard,
-                pressed && styles.cardPressed
-              ]}
-              onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
-            >
-              <View style={styles.creatorAvatar}>
-                <Text style={styles.creatorAvatarText}>
-                  {item.issuer?.username?.charAt(0)?.toUpperCase() || '?'}
+          {trendingList.slice(0, 10).map((item, index) => {
+            const change = item.priceChangePercent || 0;
+            const isUp = change >= 0;
+            const rankColors = [
+              ['#FFD700', '#FFA500'],  // 1등 금색
+              ['#C0C0C0', '#A0A0A0'],  // 2등 은색
+              ['#CD7F32', '#8B4513'],  // 3등 동색
+            ];
+
+            return (
+              <Pressable
+                key={item.id}
+                style={({ pressed }) => [
+                  styles.trendingCard,
+                  pressed && styles.cardPressed
+                ]}
+                onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
+              >
+                {index < 3 && (
+                  <LinearGradient
+                    colors={rankColors[index]}
+                    style={styles.rankBadge}
+                  >
+                    <Text style={styles.rankText}>{index + 1}</Text>
+                  </LinearGradient>
+                )}
+                <View style={[
+                  styles.trendingAvatar,
+                  index < 3 && { borderColor: rankColors[index][0], borderWidth: 2 }
+                ]}>
+                  <Text style={styles.trendingAvatarText}>
+                    {item.issuer?.username?.charAt(0)?.toUpperCase() || '?'}
+                  </Text>
+                </View>
+                <Text style={styles.trendingName} numberOfLines={1}>
+                  {item.issuer?.username}
                 </Text>
-              </View>
-              <Text style={styles.creatorName} numberOfLines={1}>{item.issuer?.username}</Text>
-              <Text style={styles.creatorPrice}>{item.sharePrice?.toLocaleString()} P</Text>
-              <Text style={[
-                styles.creatorChange,
-                { color: (item.priceChangePercent || 0) >= 0 ? theme.colors.stockUp : theme.colors.stockDown }
-              ]}>
-                {(item.priceChangePercent || 0) >= 0 ? '+' : ''}{(item.priceChangePercent || 0).toFixed(2)}%
-              </Text>
-            </Pressable>
-          ))}
+                <Text style={styles.trendingPrice}>
+                  {item.sharePrice?.toLocaleString()}P
+                </Text>
+                <View style={[
+                  styles.trendingBadge,
+                  { backgroundColor: isUp ? '#FFF0F1' : '#EBF4FF' }
+                ]}>
+                  <Text style={[
+                    styles.trendingBadgeText,
+                    { color: isUp ? '#F04452' : '#3182F6' }
+                  ]}>
+                    {isUp ? '+' : ''}{change.toFixed(1)}%
+                  </Text>
+                </View>
+              </Pressable>
+            );
+          })}
         </ScrollView>
-      </SectionCard>
+      </View>
     );
   };
 
-  // Category Section
-  const renderCategories = () => {
-    const categoriesArray = Object.values(categories);
-    if (categoriesArray.length === 0) return null;
+  // 인기 크리에이터 섹션
+  const renderPopularCreators = () => {
+    const popularList = recommended.popular || [];
+    if (popularList.length === 0) return null;
 
-    return categoriesArray.slice(0, 3).map((category, idx) => {
-      if (!category.users || category.users.length === 0) return null;
+    return (
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>💎 인기 크리에이터</Text>
+            <Text style={styles.sectionSubtitle}>많은 사람들이 투자하고 있어요</Text>
+          </View>
+        </View>
 
-      return (
-        <SectionCard key={idx} title={`${category.icon || '🔥'} ${category.name}`}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalScroll}
-          >
-            {category.users.slice(0, 8).map((user) => (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.horizontalScroll}
+        >
+          {popularList.slice(0, 8).map((item) => {
+            const change = item.priceChangePercent || 0;
+            const isUp = change >= 0;
+
+            return (
               <Pressable
-                key={user.id}
+                key={item.id}
                 style={({ pressed }) => [
-                  styles.categoryUserCard,
+                  styles.popularCard,
                   pressed && styles.cardPressed
                 ]}
-                onPress={() => navigation.navigate('Profile', { userId: user.id })}
+                onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
               >
-                <View style={styles.categoryUserAvatar}>
-                  <Text style={styles.categoryUserAvatarText}>{user.username[0].toUpperCase()}</Text>
+                <View style={styles.popularAvatar}>
+                  <Text style={styles.popularAvatarText}>
+                    {item.issuer?.username?.charAt(0)?.toUpperCase() || '?'}
+                  </Text>
                 </View>
-                <Text style={styles.categoryUserName} numberOfLines={1}>{user.username}</Text>
-                <Text style={styles.categoryUserMeta}>{user.followersCount || 0} 팔로워</Text>
+                <Text style={styles.popularName} numberOfLines={1}>
+                  {item.issuer?.username}
+                </Text>
+                <Text style={styles.popularPrice}>
+                  {item.sharePrice?.toLocaleString()}P
+                </Text>
+                <Text style={[
+                  styles.popularChange,
+                  { color: isUp ? '#F04452' : '#3182F6' }
+                ]}>
+                  {formatChange(change)}
+                </Text>
               </Pressable>
-            ))}
-          </ScrollView>
-        </SectionCard>
-      );
-    });
+            );
+          })}
+        </ScrollView>
+      </View>
+    );
   };
 
-  // All Creators List
+  // 신규 상장 섹션
+  const renderNewestCreators = () => {
+    const newestList = recommended.newest || [];
+    if (newestList.length === 0) return null;
+
+    return (
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>✨ 신규 상장</Text>
+            <Text style={styles.sectionSubtitle}>새로 등장한 크리에이터</Text>
+          </View>
+        </View>
+
+        {newestList.slice(0, 5).map((item, index) => {
+          const change = item.priceChangePercent || 0;
+          const isUp = change >= 0;
+
+          return (
+            <Pressable
+              key={item.id}
+              style={({ pressed }) => [
+                styles.newestItem,
+                pressed && styles.itemPressed,
+                index === Math.min(4, newestList.length - 1) && styles.lastItem
+              ]}
+              onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
+            >
+              <View style={styles.newestBadge}>
+                <Text style={styles.newestBadgeText}>NEW</Text>
+              </View>
+              <View style={styles.newestAvatar}>
+                <Text style={styles.newestAvatarText}>
+                  {item.issuer?.username?.charAt(0)?.toUpperCase() || '?'}
+                </Text>
+              </View>
+              <View style={styles.newestInfo}>
+                <Text style={styles.newestName}>{item.issuer?.username}</Text>
+                <Text style={styles.newestMeta}>
+                  시가총액 {(item.marketCap || 0).toLocaleString()}P
+                </Text>
+              </View>
+              <View style={styles.newestRight}>
+                <Text style={styles.newestPrice}>{item.sharePrice?.toLocaleString()}P</Text>
+                <Text style={[styles.newestChange, { color: isUp ? '#F04452' : '#3182F6' }]}>
+                  {formatChange(change)}
+                </Text>
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+    );
+  };
+
+  // 전체 크리에이터 리스트
   const renderAllCreators = () => {
     if (stocks.length === 0) return null;
 
     return (
-      <SectionCard
-        title="전체 크리에이터"
-        subtitle={`${stocks.length}명의 크리에이터`}
-      >
-        {stocks.slice(0, 20).map((item) => {
-          const priceChange = item.priceChangePercent || 0;
-          const isUp = priceChange >= 0;
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>📈 전체 크리에이터</Text>
+            <Text style={styles.sectionSubtitle}>{stocks.length}명의 크리에이터</Text>
+          </View>
+          <Pressable onPress={() => navigation.navigate('StockMarket')}>
+            <Text style={styles.sectionMore}>더보기 ›</Text>
+          </Pressable>
+        </View>
+
+        {stocks.slice(0, 10).map((item, index) => {
+          const change = item.priceChangePercent || 0;
+          const isUp = change >= 0;
 
           return (
-            <StockCard
+            <Pressable
               key={item.id}
-              stockName={item.issuer?.username || '알 수 없음'}
-              username={item.issuer?.username}
-              currentPrice={item.sharePrice}
-              priceChange={item.priceChange || 0}
-              priceChangePercent={priceChange}
+              style={({ pressed }) => [
+                styles.stockItem,
+                pressed && styles.itemPressed,
+                index === Math.min(9, stocks.length - 1) && styles.lastItem
+              ]}
               onPress={() => navigation.navigate('StockDetail', { stockId: item.id })}
-              compact
-            />
+            >
+              <Text style={styles.stockRank}>{index + 1}</Text>
+              <View style={styles.stockAvatar}>
+                <Text style={styles.stockAvatarText}>
+                  {item.issuer?.username?.charAt(0)?.toUpperCase() || '?'}
+                </Text>
+              </View>
+              <View style={styles.stockInfo}>
+                <Text style={styles.stockName}>{item.issuer?.username}</Text>
+                <Text style={styles.stockMeta}>
+                  거래량 {(item.totalVolume || 0).toLocaleString()}
+                </Text>
+              </View>
+              <View style={styles.stockRight}>
+                <Text style={styles.stockPrice}>{item.sharePrice?.toLocaleString()}P</Text>
+                <View style={[
+                  styles.stockBadge,
+                  { backgroundColor: isUp ? '#FFF0F1' : '#EBF4FF' }
+                ]}>
+                  <Text style={[styles.stockBadgeText, { color: isUp ? '#F04452' : '#3182F6' }]}>
+                    {formatChange(change)}
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
           );
         })}
-      </SectionCard>
+      </View>
+    );
+  };
+
+  // 커뮤니티 하이라이트
+  const renderCommunityHighlight = () => {
+    if (trendingPosts.length === 0) return null;
+
+    return (
+      <View style={styles.sectionCard}>
+        <View style={styles.sectionHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>💬 인기 게시물</Text>
+            <Text style={styles.sectionSubtitle}>지금 핫한 이야기</Text>
+          </View>
+          <Pressable onPress={() => navigation.navigate('Community')}>
+            <Text style={styles.sectionMore}>더보기 ›</Text>
+          </Pressable>
+        </View>
+
+        {trendingPosts.slice(0, 3).map((post, index) => (
+          <Pressable
+            key={post.id}
+            style={({ pressed }) => [
+              styles.postItem,
+              pressed && styles.itemPressed,
+              index === Math.min(2, trendingPosts.length - 1) && styles.lastItem
+            ]}
+            onPress={() => navigation.navigate('PostDetail', { postId: post.id })}
+          >
+            <View style={styles.postContent}>
+              <Text style={styles.postText} numberOfLines={2}>{post.content}</Text>
+              <View style={styles.postMeta}>
+                <Text style={styles.postAuthor}>@{post.author?.username}</Text>
+                <Text style={styles.postStats}>❤️ {post.likes || 0} · 💬 {post.comments || 0}</Text>
+              </View>
+            </View>
+          </Pressable>
+        ))}
+      </View>
     );
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <ActivityIndicator size="large" color="#3182F6" />
+        <Text style={styles.loadingText}>로딩 중...</Text>
       </View>
     );
   }
@@ -381,8 +594,8 @@ export default function HomeScreen({ navigation }) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={[theme.colors.primary]}
-            tintColor={theme.colors.primary}
+            colors={['#3182F6']}
+            tintColor="#3182F6"
           />
         }
         showsVerticalScrollIndicator={false}
@@ -392,7 +605,9 @@ export default function HomeScreen({ navigation }) {
         {renderMyHoldings()}
         {renderMarketOverview()}
         {renderTrendingCreators()}
-        {renderCategories()}
+        {renderPopularCreators()}
+        {renderNewestCreators()}
+        {renderCommunityHighlight()}
         {renderAllCreators()}
         <View style={styles.bottomSpacing} />
       </ScrollView>
@@ -403,261 +618,506 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: '#F7F8FA',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.colors.background,
+    backgroundColor: '#F7F8FA',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#6B7684',
   },
   scrollContent: {
-    paddingBottom: theme.spacing['2xl'],
+    paddingBottom: 100,
   },
 
-  // Asset Section - Toss Style
+  // Asset Section
   assetSection: {
-    backgroundColor: theme.colors.white,
-    paddingTop: 60,
-    paddingBottom: theme.spacing.lg,
+    backgroundColor: '#FFFFFF',
+    paddingTop: Platform.OS === 'ios' ? 60 : 50,
+    paddingBottom: 24,
   },
   assetCard: {
-    marginHorizontal: theme.spacing.lg,
-    marginBottom: theme.spacing.xl,
+    paddingHorizontal: 20,
+    marginBottom: 28,
   },
   assetLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: theme.spacing.sm,
+    marginBottom: 8,
   },
   assetLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textSecondary,
-    fontWeight: theme.typography.fontWeight.medium,
+    fontSize: 14,
+    color: '#6B7684',
+    fontWeight: '500',
   },
   assetChevron: {
-    fontSize: 20,
-    color: theme.colors.textTertiary,
+    fontSize: 22,
+    color: '#B0B8C1',
   },
   assetAmountRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
   },
   assetAmount: {
-    fontSize: theme.typography.fontSize['4xl'],
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textPrimary,
-    letterSpacing: theme.typography.letterSpacing.tight,
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#191F28',
+    letterSpacing: -1,
   },
   assetCurrency: {
-    fontSize: theme.typography.fontSize.xl,
-    color: theme.colors.textPrimary,
-    fontWeight: theme.typography.fontWeight.semibold,
+    fontSize: 24,
+    color: '#191F28',
+    fontWeight: '600',
+    marginLeft: 4,
   },
 
-  // Quick Actions - Toss Style
+  // Quick Actions
   quickActions: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    paddingHorizontal: theme.spacing.base,
+    paddingHorizontal: 16,
   },
   quickActionItem: {
     alignItems: 'center',
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
+    paddingVertical: 8,
   },
   quickActionPressed: {
     opacity: 0.7,
+    transform: [{ scale: 0.95 }],
   },
-  quickActionIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: theme.borderRadius.base,
-    backgroundColor: theme.colors.gray100,
+  quickActionIconBg: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: theme.spacing.sm,
+    marginBottom: 8,
   },
-  quickActionEmoji: {
+  quickActionIconText: {
     fontSize: 24,
+    color: '#FFFFFF',
   },
   quickActionLabel: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.textPrimary,
-    fontWeight: theme.typography.fontWeight.medium,
+    fontSize: 12,
+    color: '#4E5968',
+    fontWeight: '500',
   },
 
-  // Section Styles
+  // Section Card
+  sectionCard: {
+    backgroundColor: '#FFFFFF',
+    marginTop: 8,
+    paddingVertical: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#191F28',
+  },
+  sectionSubtitle: {
+    fontSize: 13,
+    color: '#8B95A1',
+    marginTop: 4,
+  },
   sectionMore: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textTertiary,
-    fontWeight: theme.typography.fontWeight.medium,
+    fontSize: 14,
+    color: '#8B95A1',
+    fontWeight: '500',
   },
 
   // Holdings
+  holdingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F4F6',
+  },
+  lastItem: {
+    borderBottomWidth: 0,
+  },
+  itemPressed: {
+    backgroundColor: '#F7F8FA',
+  },
+  holdingAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#3182F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  holdingAvatarText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  holdingInfo: {
+    flex: 1,
+  },
+  holdingName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#191F28',
+    marginBottom: 2,
+  },
+  holdingShares: {
+    fontSize: 13,
+    color: '#8B95A1',
+  },
   holdingRight: {
     alignItems: 'flex-end',
   },
   holdingValue: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#191F28',
     marginBottom: 2,
   },
   holdingChange: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.medium,
+    fontSize: 14,
+    fontWeight: '500',
   },
 
-  // Market Card
-  marketCard: {
-    marginHorizontal: theme.spacing.lg,
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.gray50,
-    borderRadius: theme.borderRadius.md,
+  // Market
+  marketContent: {
+    paddingHorizontal: 20,
   },
-  marketHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: theme.spacing.base,
+  marketMain: {
+    marginBottom: 16,
   },
   marketLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.xs,
+    fontSize: 13,
+    color: '#8B95A1',
+    marginBottom: 6,
   },
   marketPrice: {
-    fontSize: theme.typography.fontSize['2xl'],
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textPrimary,
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#191F28',
+    letterSpacing: -0.5,
   },
-  marketChangeBadge: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.sm,
+  marketBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    marginTop: 8,
   },
-  marketChangeText: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.semibold,
+  marketBadgeText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
-  chartWrapper: {
-    marginHorizontal: -theme.spacing.sm,
-    marginBottom: theme.spacing.base,
+  chartContainer: {
+    marginVertical: 16,
+    marginHorizontal: -10,
   },
   chart: {
-    borderRadius: theme.borderRadius.sm,
+    borderRadius: 8,
   },
   marketStats: {
     flexDirection: 'row',
-    paddingTop: theme.spacing.base,
+    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.gray200,
+    borderTopColor: '#F2F4F6',
   },
   marketStatItem: {
     flex: 1,
   },
   marketStatLabel: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.textTertiary,
-    marginBottom: theme.spacing.xs,
+    fontSize: 12,
+    color: '#8B95A1',
+    marginBottom: 4,
   },
   marketStatValue: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#191F28',
   },
   marketStatDivider: {
     width: 1,
-    backgroundColor: theme.colors.gray200,
-    marginHorizontal: theme.spacing.base,
+    backgroundColor: '#F2F4F6',
+    marginHorizontal: 16,
   },
 
   // Horizontal Scroll
   horizontalScroll: {
-    paddingHorizontal: theme.spacing.lg,
-    gap: theme.spacing.md,
+    paddingHorizontal: 20,
+    gap: 12,
   },
 
-  // Creator Card
-  creatorCard: {
-    width: 120,
-    padding: theme.spacing.base,
-    backgroundColor: theme.colors.gray50,
-    borderRadius: theme.borderRadius.md,
+  // Trending Card
+  trendingCard: {
+    width: 130,
+    backgroundColor: '#F7F8FA',
+    borderRadius: 16,
+    padding: 16,
     alignItems: 'center',
+    position: 'relative',
   },
   cardPressed: {
     opacity: 0.9,
     transform: [{ scale: 0.98 }],
   },
-  creatorAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: theme.colors.primary,
+  rankBadge: {
+    position: 'absolute',
+    top: -8,
+    left: -8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: theme.spacing.sm,
+    zIndex: 1,
   },
-  creatorAvatarText: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.white,
+  rankText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
-  creatorName: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.xs,
-    textAlign: 'center',
-  },
-  creatorPrice: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textPrimary,
-    marginBottom: 2,
-  },
-  creatorChange: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.medium,
-  },
-
-  // Category User Card
-  categoryUserCard: {
-    width: 80,
-    alignItems: 'center',
-  },
-  categoryUserAvatar: {
+  trendingAvatar: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: theme.colors.primaryBackground,
+    backgroundColor: '#E5E8EB',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: theme.spacing.sm,
+    marginBottom: 12,
   },
-  categoryUserAvatarText: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.primary,
+  trendingAvatarText: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#6B7684',
   },
-  categoryUserName: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.medium,
-    color: theme.colors.textPrimary,
+  trendingName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#191F28',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  trendingPrice: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#191F28',
+    marginBottom: 6,
+  },
+  trendingBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  trendingBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  // Popular Card
+  popularCard: {
+    width: 100,
+    alignItems: 'center',
+  },
+  popularAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#EBF4FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  popularAvatarText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#3182F6',
+  },
+  popularName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#191F28',
     marginBottom: 2,
     textAlign: 'center',
   },
-  categoryUserMeta: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.textTertiary,
-    textAlign: 'center',
+  popularPrice: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4E5968',
+    marginBottom: 2,
+  },
+  popularChange: {
+    fontSize: 13,
+    fontWeight: '500',
   },
 
-  // Bottom Spacing
+  // Newest Item
+  newestItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F4F6',
+  },
+  newestBadge: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginRight: 10,
+  },
+  newestBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  newestAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FEF3C7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  newestAvatarText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#F59E0B',
+  },
+  newestInfo: {
+    flex: 1,
+  },
+  newestName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#191F28',
+    marginBottom: 2,
+  },
+  newestMeta: {
+    fontSize: 12,
+    color: '#8B95A1',
+  },
+  newestRight: {
+    alignItems: 'flex-end',
+  },
+  newestPrice: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#191F28',
+    marginBottom: 2,
+  },
+  newestChange: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+
+  // Stock Item
+  stockItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F4F6',
+  },
+  stockRank: {
+    width: 24,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8B95A1',
+  },
+  stockAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F2F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  stockAvatarText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#6B7684',
+  },
+  stockInfo: {
+    flex: 1,
+  },
+  stockName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#191F28',
+    marginBottom: 2,
+  },
+  stockMeta: {
+    fontSize: 12,
+    color: '#8B95A1',
+  },
+  stockRight: {
+    alignItems: 'flex-end',
+  },
+  stockPrice: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#191F28',
+    marginBottom: 4,
+  },
+  stockBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  stockBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+
+  // Post Item
+  postItem: {
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2F4F6',
+  },
+  postContent: {},
+  postText: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#191F28',
+    marginBottom: 8,
+  },
+  postMeta: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  postAuthor: {
+    fontSize: 13,
+    color: '#3182F6',
+    fontWeight: '500',
+  },
+  postStats: {
+    fontSize: 12,
+    color: '#8B95A1',
+  },
+
+  // Bottom
   bottomSpacing: {
-    height: theme.spacing['3xl'],
+    height: 40,
   },
 });
