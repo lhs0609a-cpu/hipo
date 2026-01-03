@@ -22,6 +22,12 @@ router.put('/:notificationId/read', authenticateToken, notificationController.ma
 router.put('/read-all', authenticateToken, notificationController.markAllAsRead);
 
 /**
+ * GET /api/notifications/unread-count
+ * 읽지 않은 알림 개수 조회
+ */
+router.get('/unread-count', authenticateToken, notificationController.getUnreadCount);
+
+/**
  * DELETE /api/notifications/:notificationId
  * 알림 삭제
  */

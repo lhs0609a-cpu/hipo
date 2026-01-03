@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { COLORS } from '../constants/colors';
 import api from '../api/client';
+import { useStockTicker, useStock } from '../contexts/StockContext';
 
 export default function StockMarketScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
@@ -74,8 +75,8 @@ export default function StockMarketScreen({ navigation }) {
   };
 
   const getPriceChangeColor = (change) => {
-    if (change > 0) return COLORS.success;
-    if (change < 0) return COLORS.danger;
+    if (change > 0) return COLORS.stockUp;
+    if (change < 0) return COLORS.stockDown;
     return COLORS.textSecondary;
   };
 
@@ -104,7 +105,12 @@ export default function StockMarketScreen({ navigation }) {
     <View style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+          accessibilityLabel="뒤로 가기"
+          accessibilityRole="button"
+        >
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>실시간 크리에이터 시장</Text>
@@ -184,6 +190,9 @@ export default function StockMarketScreen({ navigation }) {
                 key={stock.id}
                 style={styles.stockItem}
                 onPress={() => navigation.navigate('StockDetail', { stockId: stock.id })}
+                accessibilityLabel={`${stock.user?.username || '알 수 없음'}, 현재가 ${stock.sharePrice?.toLocaleString() || 0} PO, ${stock.priceChange >= 0 ? '상승' : '하락'} ${Math.abs(stock.priceChange || 0).toFixed(2)}%`}
+                accessibilityRole="button"
+                accessibilityHint="상세 정보 보기"
               >
                 <View style={styles.stockRank}>
                   <Text style={styles.rankNumber}>{index + 1}</Text>
@@ -313,7 +322,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
     borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    borderBottomColor: COLORS.surface,
   },
   tabActive: {
     borderBottomColor: COLORS.primary,
@@ -363,7 +372,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: COLORS.white,
   },
   stockInfo: {
     flex: 1,

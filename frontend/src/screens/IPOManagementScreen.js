@@ -20,6 +20,7 @@ const IPOManagementScreen = ({ navigation }) => {
   const [ipoStatus, setIpoStatus] = useState(null);
   const [lockupStatus, setLockupStatus] = useState(null);
   const [tierCheck, setTierCheck] = useState(null);
+  const [eligibility, setEligibility] = useState(null);
 
   // Modals
   const [secondaryModalVisible, setSecondaryModalVisible] = useState(false);
@@ -42,14 +43,22 @@ const IPOManagementScreen = ({ navigation }) => {
 
   const fetchData = async () => {
     try {
-      const [statusRes, lockupRes, tierRes] = await Promise.all([
-        ipoAPI.getMyStatus(),
-        ipoAPI.getLockupStatus(),
-        ipoAPI.checkTierUpgrade(),
-      ]);
+      const statusRes = await ipoAPI.getMyStatus();
       setIpoStatus(statusRes.data);
-      setLockupStatus(lockupRes.data);
-      setTierCheck(tierRes.data);
+
+      // 상장된 경우에만 추가 정보 조회
+      if (statusRes.data.hasStock) {
+        const [lockupRes, tierRes] = await Promise.all([
+          ipoAPI.getLockupStatus(),
+          ipoAPI.checkTierUpgrade(),
+        ]);
+        setLockupStatus(lockupRes.data);
+        setTierCheck(tierRes.data);
+      } else {
+        // 상장되지 않은 경우 자격 확인
+        const eligibilityRes = await ipoAPI.checkEligibility();
+        setEligibility(eligibilityRes.data);
+      }
     } catch (error) {
       console.error('Error fetching IPO data:', error);
     } finally {
@@ -195,10 +204,120 @@ const IPOManagementScreen = ({ navigation }) => {
     );
   };
 
+  const getProgressColor = (progress) => {
+    if (progress >= 100) return '#00C471';
+    if (progress >= 60) return '#FFB800';
+    return '#F04452';
+  };
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3182F6" />
+      </View>
+    );
+  }
+
+  // 상장되지 않은 경우 자격 확인 화면으로 안내
+  if (!ipoStatus?.hasStock) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#000" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>IPO 관리</Text>
+          <View style={{ width: 24 }} />
+        </View>
+
+        <ScrollView
+          contentContainerStyle={styles.content}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
+          {/* 상장 안내 카드 */}
+          <View style={styles.notListedCard}>
+            <View style={styles.notListedIcon}>
+              <Ionicons name="rocket-outline" size={48} color="#3182F6" />
+            </View>
+            <Text style={styles.notListedTitle}>아직 상장하지 않았습니다</Text>
+            <Text style={styles.notListedDesc}>
+              나만의 주식을 발행하고 투자를 받아보세요!{'\n'}
+              팔로워와 함께 성장할 수 있습니다.
+            </Text>
+
+            {/* 자격 진행률 */}
+            {eligibility && (
+              <View style={styles.eligibilityPreview}>
+                <View style={styles.eligibilityHeader}>
+                  <Text style={styles.eligibilityLabel}>상장 자격</Text>
+                  <Text style={[styles.eligibilityPercent, { color: getProgressColor(eligibility.overallProgress || 0) }]}>
+                    {eligibility.overallProgress || 0}%
+                  </Text>
+                </View>
+                <View style={styles.progressBarContainer}>
+                  <View
+                    style={[
+                      styles.progressBarFill,
+                      {
+                        width: `${eligibility.overallProgress || 0}%`,
+                        backgroundColor: getProgressColor(eligibility.overallProgress || 0),
+                      },
+                    ]}
+                  />
+                </View>
+                {eligibility.isEligible ? (
+                  <Text style={styles.eligibleText}>상장 자격을 충족했습니다!</Text>
+                ) : (
+                  <Text style={styles.notEligibleText}>
+                    {5 - Math.floor((eligibility.overallProgress || 0) / 20)}개 요건을 더 충족해야 합니다
+                  </Text>
+                )}
+              </View>
+            )}
+
+            <TouchableOpacity
+              style={styles.checkEligibilityButton}
+              onPress={() => navigation.navigate('IPOEligibility')}
+            >
+              <Text style={styles.checkEligibilityButtonText}>상장 자격 확인하기</Text>
+              <Ionicons name="arrow-forward" size={20} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
+          {/* 상장 혜택 안내 */}
+          <View style={styles.benefitsSection}>
+            <Text style={styles.benefitsSectionTitle}>상장 혜택</Text>
+            <View style={styles.benefitItem}>
+              <View style={[styles.benefitIcon, { backgroundColor: '#E8F5E9' }]}>
+                <Ionicons name="cash-outline" size={24} color="#00C471" />
+              </View>
+              <View style={styles.benefitContent}>
+                <Text style={styles.benefitTitle}>투자 유치</Text>
+                <Text style={styles.benefitDesc}>팬들의 투자를 받아 자금을 조달할 수 있습니다</Text>
+              </View>
+            </View>
+            <View style={styles.benefitItem}>
+              <View style={[styles.benefitIcon, { backgroundColor: '#E3F2FD' }]}>
+                <Ionicons name="trending-up-outline" size={24} color="#3182F6" />
+              </View>
+              <View style={styles.benefitContent}>
+                <Text style={styles.benefitTitle}>가치 상승</Text>
+                <Text style={styles.benefitDesc}>활동에 따라 주가가 상승하고 모두가 이익을 얻습니다</Text>
+              </View>
+            </View>
+            <View style={styles.benefitItem}>
+              <View style={[styles.benefitIcon, { backgroundColor: '#FFF3E0' }]}>
+                <Ionicons name="people-outline" size={24} color="#FF9800" />
+              </View>
+              <View style={styles.benefitContent}>
+                <Text style={styles.benefitTitle}>커뮤니티</Text>
+                <Text style={styles.benefitDesc}>주주 전용 커뮤니티에서 팬들과 소통할 수 있습니다</Text>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
       </View>
     );
   }
@@ -835,6 +954,134 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#fff',
     fontWeight: '600',
+  },
+  // 미상장 화면 스타일
+  notListedCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 32,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  notListedIcon: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#E3F2FD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  notListedTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  notListedDesc: {
+    fontSize: 15,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  eligibilityPreview: {
+    width: '100%',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  eligibilityHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  eligibilityLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+  },
+  eligibilityPercent: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  progressBarContainer: {
+    height: 8,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  eligibleText: {
+    fontSize: 14,
+    color: '#00C471',
+    fontWeight: '500',
+    textAlign: 'center',
+  },
+  notEligibleText: {
+    fontSize: 13,
+    color: '#666',
+    textAlign: 'center',
+  },
+  checkEligibilityButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#3182F6',
+    paddingHorizontal: 28,
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+    width: '100%',
+  },
+  checkEligibilityButtonText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '600',
+  },
+  benefitsSection: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+  },
+  benefitsSectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 16,
+  },
+  benefitItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  benefitIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  benefitContent: {
+    flex: 1,
+  },
+  benefitTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  benefitDesc: {
+    fontSize: 13,
+    color: '#666',
+    lineHeight: 18,
   },
 });
 

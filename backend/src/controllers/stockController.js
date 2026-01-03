@@ -67,6 +67,56 @@ exports.getStocks = async (req, res) => {
 };
 
 /**
+ * 주식 검색
+ */
+exports.searchStocks = async (req, res) => {
+  try {
+    const { q, limit = 20 } = req.query;
+
+    if (!q || q.trim().length < 1) {
+      return res.json({ stocks: [] });
+    }
+
+    const searchTerm = q.trim();
+
+    const stocks = await Stock.findAll({
+      where: {
+        status: 'active'
+      },
+      include: [{
+        model: User,
+        as: 'issuer',
+        attributes: ['id', 'username', 'displayName', 'profileImage', 'bio'],
+        where: {
+          [Op.or]: [
+            { username: { [Op.like]: `%${searchTerm}%` } },
+            { displayName: { [Op.like]: `%${searchTerm}%` } }
+          ]
+        }
+      }],
+      order: [['marketCapTotal', 'DESC']],
+      limit: parseInt(limit)
+    });
+
+    res.json({
+      stocks: stocks.map(stock => ({
+        id: stock.id,
+        userId: stock.userId,
+        issuer: stock.issuer,
+        sharePrice: stock.sharePrice,
+        priceChangePercent: parseFloat(stock.priceChangePercent || 0),
+        marketCap: stock.marketCapTotal,
+        tier: stock.tier
+      })),
+      query: searchTerm
+    });
+  } catch (error) {
+    console.error('주식 검색 오류:', error);
+    res.status(500).json({ error: '주식 검색 중 오류가 발생했습니다' });
+  }
+};
+
+/**
  * 주식 상세 조회
  */
 exports.getStockDetail = async (req, res) => {

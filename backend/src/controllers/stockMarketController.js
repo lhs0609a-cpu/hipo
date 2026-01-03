@@ -1,9 +1,191 @@
-const { StockOrder, StockTrade, Wallet, CoinTransaction, User, StockTransaction, ShareholderCommunity, CommunityMember } = require('../models');
+const { StockOrder, StockTrade, Wallet, CoinTransaction, User, StockTransaction, ShareholderCommunity, CommunityMember, Stock } = require('../models');
 const { sequelize } = require('../config/database');
+const { Op } = require('sequelize');
 const { getShareholding } = require('../utils/shareholderHelper');
 const { processReferralCommission } = require('./referralController');
 const { autoAssignShareholderBadge } = require('./badgeController');
 const { selectRoomAdmin } = require('./communityAdminController');
+
+/**
+ * 시장 개요 조회
+ */
+exports.getMarketOverview = async (req, res) => {
+  try {
+    // 전체 통계
+    const totalStocks = await Stock.count({ where: { status: 'active' } });
+    const totalMarketCap = await Stock.sum('marketCapTotal', { where: { status: 'active' } }) || 0;
+
+    // 오늘 거래량
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todayVolume = await StockTransaction.sum('totalAmount', {
+      where: {
+        createdAt: { [Op.gte]: today },
+        status: 'completed'
+      }
+    }) || 0;
+
+    const todayTrades = await StockTransaction.count({
+      where: {
+        createdAt: { [Op.gte]: today },
+        status: 'completed'
+      }
+    });
+
+    // 상승/하락 종목 수
+    const gainers = await Stock.count({
+      where: {
+        status: 'active',
+        priceChangePercent: { [Op.gt]: 0 }
+      }
+    });
+
+    const losers = await Stock.count({
+      where: {
+        status: 'active',
+        priceChangePercent: { [Op.lt]: 0 }
+      }
+    });
+
+    const unchanged = totalStocks - gainers - losers;
+
+    res.json({
+      totalStocks,
+      totalMarketCap,
+      todayVolume,
+      todayTrades,
+      marketTrend: {
+        gainers,
+        losers,
+        unchanged
+      },
+      lastUpdated: new Date()
+    });
+  } catch (error) {
+    console.error('시장 개요 조회 오류:', error);
+    res.status(500).json({ error: '시장 개요를 불러오는데 실패했습니다.' });
+  }
+};
+
+/**
+ * 상승률 상위 종목
+ */
+exports.getTopGainers = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const stocks = await Stock.findAll({
+      where: {
+        status: 'active',
+        priceChangePercent: { [Op.gt]: 0 }
+      },
+      include: [{
+        model: User,
+        as: 'issuer',
+        attributes: ['id', 'username', 'displayName', 'profileImage']
+      }],
+      order: [['priceChangePercent', 'DESC']],
+      limit: parseInt(limit)
+    });
+
+    res.json({
+      stocks: stocks.map(stock => ({
+        id: stock.id,
+        userId: stock.userId,
+        issuer: stock.issuer,
+        sharePrice: stock.sharePrice,
+        priceChangePercent: parseFloat(stock.priceChangePercent || 0),
+        previousClose: stock.previousClose,
+        marketCap: stock.marketCapTotal,
+        dayVolume: stock.dayVolume,
+        tier: stock.tier
+      }))
+    });
+  } catch (error) {
+    console.error('상승 종목 조회 오류:', error);
+    res.status(500).json({ error: '상승 종목을 불러오는데 실패했습니다.' });
+  }
+};
+
+/**
+ * 하락률 상위 종목
+ */
+exports.getTopLosers = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const stocks = await Stock.findAll({
+      where: {
+        status: 'active',
+        priceChangePercent: { [Op.lt]: 0 }
+      },
+      include: [{
+        model: User,
+        as: 'issuer',
+        attributes: ['id', 'username', 'displayName', 'profileImage']
+      }],
+      order: [['priceChangePercent', 'ASC']],
+      limit: parseInt(limit)
+    });
+
+    res.json({
+      stocks: stocks.map(stock => ({
+        id: stock.id,
+        userId: stock.userId,
+        issuer: stock.issuer,
+        sharePrice: stock.sharePrice,
+        priceChangePercent: parseFloat(stock.priceChangePercent || 0),
+        previousClose: stock.previousClose,
+        marketCap: stock.marketCapTotal,
+        dayVolume: stock.dayVolume,
+        tier: stock.tier
+      }))
+    });
+  } catch (error) {
+    console.error('하락 종목 조회 오류:', error);
+    res.status(500).json({ error: '하락 종목을 불러오는데 실패했습니다.' });
+  }
+};
+
+/**
+ * 거래량 상위 종목
+ */
+exports.getMostActive = async (req, res) => {
+  try {
+    const { limit = 10 } = req.query;
+
+    const stocks = await Stock.findAll({
+      where: {
+        status: 'active',
+        dayVolume: { [Op.gt]: 0 }
+      },
+      include: [{
+        model: User,
+        as: 'issuer',
+        attributes: ['id', 'username', 'displayName', 'profileImage']
+      }],
+      order: [['dayVolume', 'DESC']],
+      limit: parseInt(limit)
+    });
+
+    res.json({
+      stocks: stocks.map(stock => ({
+        id: stock.id,
+        userId: stock.userId,
+        issuer: stock.issuer,
+        sharePrice: stock.sharePrice,
+        priceChangePercent: parseFloat(stock.priceChangePercent || 0),
+        dayVolume: stock.dayVolume,
+        marketCap: stock.marketCapTotal,
+        tier: stock.tier
+      }))
+    });
+  } catch (error) {
+    console.error('거래량 상위 조회 오류:', error);
+    res.status(500).json({ error: '거래량 상위 종목을 불러오는데 실패했습니다.' });
+  }
+};
 
 /**
  * 주식 매수 주문

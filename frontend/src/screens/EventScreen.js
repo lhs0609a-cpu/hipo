@@ -9,6 +9,9 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { eventAPI, newsAPI } from '../services/api';
+import { COLORS } from '../constants/colors';
 
 const EventScreen = ({ navigation }) => {
   const [events, setEvents] = useState([]);
@@ -16,84 +19,22 @@ const EventScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('events');
-
-  // 더미 데이터 (실제로는 API에서 가져옴)
-  const dummyEvents = [
-    {
-      id: 1,
-      title: '신규 가입 이벤트',
-      description: '신규 가입 시 10,000 HIPO 포인트 지급!',
-      image: null,
-      startDate: '2024-01-01',
-      endDate: '2024-12-31',
-      isActive: true,
-    },
-    {
-      id: 2,
-      title: '첫 거래 보너스',
-      description: '첫 주식 거래 시 거래 수수료 무료!',
-      image: null,
-      startDate: '2024-01-01',
-      endDate: '2024-12-31',
-      isActive: true,
-    },
-    {
-      id: 3,
-      title: '친구 초대 이벤트',
-      description: '친구 초대 시 양측 모두 5,000 포인트!',
-      image: null,
-      startDate: '2024-01-01',
-      endDate: '2024-12-31',
-      isActive: true,
-    },
-  ];
-
-  const dummyNews = [
-    {
-      id: 1,
-      title: 'HIPO 플랫폼 정식 출시',
-      summary: '크리에이터 주식 거래 플랫폼 HIPO가 정식으로 출시되었습니다.',
-      date: '2024-01-15',
-      category: '공지',
-    },
-    {
-      id: 2,
-      title: '새로운 크리에이터 상장 안내',
-      summary: '이번 주 5명의 새로운 크리에이터가 상장됩니다.',
-      date: '2024-01-14',
-      category: '상장',
-    },
-    {
-      id: 3,
-      title: '배당금 지급 일정 안내',
-      summary: '이번 달 배당금은 25일에 지급됩니다.',
-      date: '2024-01-13',
-      category: '배당',
-    },
-    {
-      id: 4,
-      title: '앱 업데이트 안내',
-      summary: '새로운 기능이 추가된 버전 1.1.0이 출시되었습니다.',
-      date: '2024-01-12',
-      category: '업데이트',
-    },
-  ];
+  const [error, setError] = useState(null);
 
   const fetchData = async () => {
     try {
-      // 실제로는 API 호출
-      // const eventsRes = await api.get('/events');
-      // const newsRes = await api.get('/news');
+      setError(null);
+      const [eventsRes, newsRes] = await Promise.all([
+        eventAPI.getAll().catch(() => ({ data: { events: [] } })),
+        newsAPI.getAll().catch(() => ({ data: { news: [] } }))
+      ]);
 
-      // 더미 데이터 사용
-      setTimeout(() => {
-        setEvents(dummyEvents);
-        setNews(dummyNews);
-        setLoading(false);
-        setRefreshing(false);
-      }, 500);
-    } catch (error) {
-      console.error('Error fetching data:', error);
+      setEvents(eventsRes.data?.events || eventsRes.data || []);
+      setNews(newsRes.data?.news || newsRes.data || []);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      setError('데이터를 불러오는데 실패했습니다');
+    } finally {
       setLoading(false);
       setRefreshing(false);
     }
@@ -165,7 +106,19 @@ const EventScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.errorContainer}>
+        <Ionicons name="alert-circle-outline" size={48} color={COLORS.error} />
+        <Text style={styles.errorText}>{error}</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
+          <Text style={styles.retryText}>다시 시도</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -236,15 +189,40 @@ const EventScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: COLORS.textSecondary,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+  },
+  retryText: {
+    color: COLORS.white,
+    fontWeight: '600',
   },
   header: {
-    backgroundColor: '#007AFF',
+    backgroundColor: COLORS.primary,
     paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 20,

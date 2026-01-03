@@ -3,6 +3,18 @@ const router = express.Router();
 const stockMarketController = require('../controllers/stockMarketController');
 const auth = require('../middleware/auth');
 
+// 시장 개요 (공개)
+router.get('/overview', stockMarketController.getMarketOverview);
+
+// 상승률 상위 종목 (공개)
+router.get('/top-gainers', stockMarketController.getTopGainers);
+
+// 하락률 상위 종목 (공개)
+router.get('/top-losers', stockMarketController.getTopLosers);
+
+// 거래량 상위 종목 (공개)
+router.get('/most-active', stockMarketController.getMostActive);
+
 // 매수 주문
 router.post('/orders/buy', auth, stockMarketController.createBuyOrder);
 

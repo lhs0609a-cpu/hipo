@@ -1,3 +1,5 @@
+const { Feedback, User } = require('../models');
+
 /**
  * Feedback Controller
  *
@@ -5,39 +7,39 @@
  */
 exports.submitFeedback = async (req, res) => {
   try {
-    const feedbackData = req.body;
+    const { type, subject, content, email } = req.body;
     const userId = req.user?.id || null;
 
-    // Add user ID if authenticated
-    const feedback = {
-      ...feedbackData,
+    if (!subject || !content) {
+      return res.status(400).json({
+        error: '제목과 내용을 입력해주세요'
+      });
+    }
+
+    const feedback = await Feedback.create({
       userId,
-      submittedAt: new Date().toISOString(),
-    };
+      type: type || 'general',
+      subject,
+      content,
+      email,
+      status: 'pending',
+      priority: 'medium'
+    });
 
     // Log feedback in development
     if (process.env.NODE_ENV === 'development') {
       console.log('📬 Feedback received:', {
+        id: feedback.id,
         type: feedback.type,
         subject: feedback.subject,
         userId,
       });
     }
 
-    // TODO: Save to database (create Feedback model)
-    // await Feedback.create(feedback);
-
-    // TODO: Send notification to admin/support team
-    // await notifyAdmins(feedback);
-
-    // TODO: If email provided, send confirmation
-    // if (feedback.email) {
-    //   await sendConfirmationEmail(feedback.email);
-    // }
-
     res.json({
       success: true,
       message: '피드백이 접수되었습니다. 감사합니다!',
+      feedbackId: feedback.id
     });
   } catch (error) {
     console.error('Error processing feedback:', error);
@@ -52,25 +54,34 @@ exports.submitFeedback = async (req, res) => {
  */
 exports.getAllFeedback = async (req, res) => {
   try {
-    const { type, page = 1, limit = 20 } = req.query;
+    const { type, status, page = 1, limit = 20 } = req.query;
+    const offset = (parseInt(page) - 1) * parseInt(limit);
 
-    // TODO: Implement feedback retrieval from database
-    // const feedback = await Feedback.findAll({
-    //   where: type ? { type } : {},
-    //   order: [['createdAt', 'DESC']],
-    //   limit: parseInt(limit),
-    //   offset: (page - 1) * limit,
-    // });
+    const where = {};
+    if (type) where.type = type;
+    if (status) where.status = status;
+
+    const { count, rows: feedbacks } = await Feedback.findAndCountAll({
+      where,
+      include: [{
+        model: User,
+        as: 'author',
+        attributes: ['id', 'username', 'email', 'profileImage']
+      }],
+      order: [['createdAt', 'DESC']],
+      limit: parseInt(limit),
+      offset
+    });
 
     res.json({
       success: true,
-      feedback: [],
+      feedbacks,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
-        total: 0,
-      },
-      message: 'Feedback list endpoint - to be implemented',
+        total: count,
+        pages: Math.ceil(count / parseInt(limit))
+      }
     });
   } catch (error) {
     console.error('Error fetching feedback:', error);
@@ -86,17 +97,32 @@ exports.getAllFeedback = async (req, res) => {
 exports.updateFeedbackStatus = async (req, res) => {
   try {
     const { feedbackId } = req.params;
-    const { status, response } = req.body;
+    const { status, response, priority } = req.body;
+    const adminId = req.user.id;
 
-    // TODO: Update feedback in database
-    // await Feedback.update(
-    //   { status, adminResponse: response },
-    //   { where: { id: feedbackId } }
-    // );
+    const feedback = await Feedback.findByPk(feedbackId);
+
+    if (!feedback) {
+      return res.status(404).json({
+        error: '피드백을 찾을 수 없습니다'
+      });
+    }
+
+    const updateData = {};
+    if (status) updateData.status = status;
+    if (priority) updateData.priority = priority;
+    if (response) {
+      updateData.adminResponse = response;
+      updateData.respondedAt = new Date();
+      updateData.respondedBy = adminId;
+    }
+
+    await feedback.update(updateData);
 
     res.json({
       success: true,
-      message: '피드백 상태가 업데이트되었습니다',
+      message: '피드백이 업데이트되었습니다',
+      feedback
     });
   } catch (error) {
     console.error('Error updating feedback:', error);

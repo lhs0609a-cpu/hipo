@@ -28,6 +28,12 @@ router.get('/', postController.getPosts);
 router.post('/', authenticateToken, postController.createPost);
 
 /**
+ * GET /api/posts/:postId
+ * 포스트 상세 조회
+ */
+router.get('/:postId', postController.getPostById);
+
+/**
  * POST /api/posts/:postId/like
  * 포스트 좋아요/취소 (인증 필요)
  */

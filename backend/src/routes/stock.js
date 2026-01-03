@@ -10,6 +10,12 @@ const { authenticateToken } = require('../middleware/auth');
 router.get('/', stockController.getStocks);
 
 /**
+ * GET /api/stocks/search
+ * 주식 검색
+ */
+router.get('/search', stockController.searchStocks);
+
+/**
  * GET /api/stocks/recommended
  * 추천 주식 목록 조회
  */

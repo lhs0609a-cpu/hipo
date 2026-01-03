@@ -81,6 +81,97 @@ module.exports = (sequelize) => {
       defaultValue: 0,
       field: 'report_count',
       comment: '미처리 신고 수'
+    },
+    // === 주주 등급별 설정 ===
+    stockId: {
+      type: DataTypes.UUID,
+      references: {
+        model: 'stocks',
+        key: 'id'
+      },
+      field: 'stock_id',
+      comment: '연결된 주식 ID'
+    },
+    vipMinShares: {
+      type: DataTypes.INTEGER,
+      defaultValue: 1000,
+      field: 'vip_min_shares',
+      comment: 'VIP 등급 최소 주식 수'
+    },
+    premiumMinShares: {
+      type: DataTypes.INTEGER,
+      defaultValue: 500,
+      field: 'premium_min_shares',
+      comment: '프리미엄 등급 최소 주식 수'
+    },
+    regularMinShares: {
+      type: DataTypes.INTEGER,
+      defaultValue: 100,
+      field: 'regular_min_shares',
+      comment: '일반 등급 최소 주식 수'
+    },
+    // === 채팅 설정 ===
+    chatEnabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      field: 'chat_enabled',
+      comment: '채팅 활성화 여부'
+    },
+    slowModeSeconds: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      field: 'slow_mode_seconds',
+      comment: '슬로우 모드 (초단위, 0=비활성)'
+    },
+    mediaAllowed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      field: 'media_allowed',
+      comment: '미디어 전송 허용'
+    },
+    linksAllowed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      field: 'links_allowed',
+      comment: '링크 전송 허용'
+    },
+    // === VIP 전용 채팅방 ===
+    vipRoomEnabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      field: 'vip_room_enabled',
+      comment: 'VIP 전용 채팅방 활성화'
+    },
+    vipRoomName: {
+      type: DataTypes.STRING,
+      defaultValue: 'VIP 라운지',
+      field: 'vip_room_name',
+      comment: 'VIP 채팅방 이름'
+    },
+    // === 주주 전용 콘텐츠 ===
+    exclusiveContentEnabled: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      field: 'exclusive_content_enabled',
+      comment: '주주 전용 콘텐츠 활성화'
+    },
+    // === 통계 ===
+    totalShareholders: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      field: 'total_shareholders',
+      comment: '총 주주 수'
+    },
+    vipCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      field: 'vip_count',
+      comment: 'VIP 등급 주주 수'
+    },
+    lastActivityAt: {
+      type: DataTypes.DATE,
+      field: 'last_activity_at',
+      comment: '마지막 활동 시간'
     }
   }, {
     tableName: 'shareholder_communities',
@@ -100,6 +191,11 @@ module.exports = (sequelize) => {
     ShareholderCommunity.belongsTo(models.User, {
       foreignKey: 'currentAdminId',
       as: 'currentAdmin'
+    });
+
+    ShareholderCommunity.belongsTo(models.Stock, {
+      foreignKey: 'stockId',
+      as: 'stock'
     });
 
     ShareholderCommunity.hasMany(models.CommunityMessage, {

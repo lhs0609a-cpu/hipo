@@ -195,7 +195,7 @@ export default function HomeScreen({ navigation }) {
               </View>
               <View style={styles.holdingRight}>
                 <Text style={styles.holdingValue}>{totalValue.toLocaleString()}P</Text>
-                <Text style={[styles.holdingChange, { color: isUp ? '#F04452' : '#3182F6' }]}>
+                <Text style={[styles.holdingChange, { color: isUp ? theme.colors.stockUp : theme.colors.stockDown }]}>
                   {formatChange(priceChange)}
                 </Text>
               </View>
@@ -228,9 +228,9 @@ export default function HomeScreen({ navigation }) {
             </Text>
             <View style={[
               styles.marketBadge,
-              { backgroundColor: isUp ? '#FFF0F1' : '#EBF4FF' }
+              { backgroundColor: isUp ? theme.colors.stockUpBackground : theme.colors.stockDownBackground }
             ]}>
-              <Text style={[styles.marketBadgeText, { color: isUp ? '#F04452' : '#3182F6' }]}>
+              <Text style={[styles.marketBadgeText, { color: isUp ? theme.colors.stockUp : theme.colors.stockDown }]}>
                 {isUp ? '▲' : '▼'} {Math.abs(priceChange).toFixed(2)}%
               </Text>
             </View>
@@ -254,10 +254,10 @@ export default function HomeScreen({ navigation }) {
                 withHorizontalLabels={false}
                 chartConfig={{
                   backgroundColor: 'transparent',
-                  backgroundGradientFrom: '#fff',
-                  backgroundGradientTo: '#fff',
+                  backgroundGradientFrom: theme.colors.white,
+                  backgroundGradientTo: theme.colors.white,
                   decimalPlaces: 0,
-                  color: () => isUp ? '#F04452' : '#3182F6',
+                  color: () => isUp ? theme.colors.stockUp : theme.colors.stockDown,
                   strokeWidth: 2.5,
                 }}
                 bezier
@@ -350,11 +350,11 @@ export default function HomeScreen({ navigation }) {
                 </Text>
                 <View style={[
                   styles.trendingBadge,
-                  { backgroundColor: isUp ? '#FFF0F1' : '#EBF4FF' }
+                  { backgroundColor: isUp ? theme.colors.stockUpBackground : theme.colors.stockDownBackground }
                 ]}>
                   <Text style={[
                     styles.trendingBadgeText,
-                    { color: isUp ? '#F04452' : '#3182F6' }
+                    { color: isUp ? theme.colors.stockUp : theme.colors.stockDown }
                   ]}>
                     {isUp ? '+' : ''}{change.toFixed(1)}%
                   </Text>
@@ -412,7 +412,7 @@ export default function HomeScreen({ navigation }) {
                 </Text>
                 <Text style={[
                   styles.popularChange,
-                  { color: isUp ? '#F04452' : '#3182F6' }
+                  { color: isUp ? theme.colors.stockUp : theme.colors.stockDown }
                 ]}>
                   {formatChange(change)}
                 </Text>
@@ -468,7 +468,7 @@ export default function HomeScreen({ navigation }) {
               </View>
               <View style={styles.newestRight}>
                 <Text style={styles.newestPrice}>{item.sharePrice?.toLocaleString()}P</Text>
-                <Text style={[styles.newestChange, { color: isUp ? '#F04452' : '#3182F6' }]}>
+                <Text style={[styles.newestChange, { color: isUp ? theme.colors.stockUp : theme.colors.stockDown }]}>
                   {formatChange(change)}
                 </Text>
               </View>
@@ -525,9 +525,9 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.stockPrice}>{item.sharePrice?.toLocaleString()}P</Text>
                 <View style={[
                   styles.stockBadge,
-                  { backgroundColor: isUp ? '#FFF0F1' : '#EBF4FF' }
+                  { backgroundColor: isUp ? theme.colors.stockUpBackground : theme.colors.stockDownBackground }
                 ]}>
-                  <Text style={[styles.stockBadgeText, { color: isUp ? '#F04452' : '#3182F6' }]}>
+                  <Text style={[styles.stockBadgeText, { color: isUp ? theme.colors.stockUp : theme.colors.stockDown }]}>
                     {formatChange(change)}
                   </Text>
                 </View>
@@ -581,7 +581,7 @@ export default function HomeScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>로딩 중...</Text>
       </View>
     );
@@ -594,8 +594,8 @@ export default function HomeScreen({ navigation }) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#3182F6']}
-            tintColor="#3182F6"
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
@@ -618,18 +618,18 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: theme.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F7F8FA',
+    backgroundColor: theme.colors.background,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#6B7684',
+    color: theme.colors.textSecondary,
   },
   scrollContent: {
     paddingBottom: 100,
@@ -637,7 +637,7 @@ const styles = StyleSheet.create({
 
   // Asset Section
   assetSection: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.white,
     paddingTop: Platform.OS === 'ios' ? 60 : 50,
     paddingBottom: 24,
   },
@@ -653,12 +653,12 @@ const styles = StyleSheet.create({
   },
   assetLabel: {
     fontSize: 14,
-    color: '#6B7684',
+    color: theme.colors.textSecondary,
     fontWeight: '500',
   },
   assetChevron: {
     fontSize: 22,
-    color: '#B0B8C1',
+    color: theme.colors.gray400,
   },
   assetAmountRow: {
     flexDirection: 'row',
@@ -667,12 +667,12 @@ const styles = StyleSheet.create({
   assetAmount: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     letterSpacing: -1,
   },
   assetCurrency: {
     fontSize: 24,
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     fontWeight: '600',
     marginLeft: 4,
   },
@@ -701,17 +701,17 @@ const styles = StyleSheet.create({
   },
   quickActionIconText: {
     fontSize: 24,
-    color: '#FFFFFF',
+    color: theme.colors.white,
   },
   quickActionLabel: {
     fontSize: 12,
-    color: '#4E5968',
+    color: theme.colors.gray700,
     fontWeight: '500',
   },
 
   // Section Card
   sectionCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.white,
     marginTop: 8,
     paddingVertical: 20,
   },
@@ -725,16 +725,16 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
   },
   sectionSubtitle: {
     fontSize: 13,
-    color: '#8B95A1',
+    color: theme.colors.textTertiary,
     marginTop: 4,
   },
   sectionMore: {
     fontSize: 14,
-    color: '#8B95A1',
+    color: theme.colors.textTertiary,
     fontWeight: '500',
   },
 
@@ -745,19 +745,19 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F6',
+    borderBottomColor: theme.colors.divider,
   },
   lastItem: {
     borderBottomWidth: 0,
   },
   itemPressed: {
-    backgroundColor: '#F7F8FA',
+    backgroundColor: theme.colors.background,
   },
   holdingAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#3182F6',
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -765,7 +765,7 @@ const styles = StyleSheet.create({
   holdingAvatarText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: theme.colors.white,
   },
   holdingInfo: {
     flex: 1,
@@ -773,12 +773,12 @@ const styles = StyleSheet.create({
   holdingName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     marginBottom: 2,
   },
   holdingShares: {
     fontSize: 13,
-    color: '#8B95A1',
+    color: theme.colors.textTertiary,
   },
   holdingRight: {
     alignItems: 'flex-end',
@@ -786,7 +786,7 @@ const styles = StyleSheet.create({
   holdingValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     marginBottom: 2,
   },
   holdingChange: {
@@ -803,13 +803,13 @@ const styles = StyleSheet.create({
   },
   marketLabel: {
     fontSize: 13,
-    color: '#8B95A1',
+    color: theme.colors.textTertiary,
     marginBottom: 6,
   },
   marketPrice: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     letterSpacing: -0.5,
   },
   marketBadge: {
@@ -834,24 +834,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#F2F4F6',
+    borderTopColor: theme.colors.divider,
   },
   marketStatItem: {
     flex: 1,
   },
   marketStatLabel: {
     fontSize: 12,
-    color: '#8B95A1',
+    color: theme.colors.textTertiary,
     marginBottom: 4,
   },
   marketStatValue: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
   },
   marketStatDivider: {
     width: 1,
-    backgroundColor: '#F2F4F6',
+    backgroundColor: theme.colors.divider,
     marginHorizontal: 16,
   },
 
@@ -864,7 +864,7 @@ const styles = StyleSheet.create({
   // Trending Card
   trendingCard: {
     width: 130,
-    backgroundColor: '#F7F8FA',
+    backgroundColor: theme.colors.background,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
@@ -888,13 +888,13 @@ const styles = StyleSheet.create({
   rankText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: theme.colors.white,
   },
   trendingAvatar: {
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#E5E8EB',
+    backgroundColor: theme.colors.gray200,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -902,19 +902,19 @@ const styles = StyleSheet.create({
   trendingAvatarText: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#6B7684',
+    color: theme.colors.textSecondary,
   },
   trendingName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     marginBottom: 4,
     textAlign: 'center',
   },
   trendingPrice: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     marginBottom: 6,
   },
   trendingBadge: {
@@ -936,7 +936,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#EBF4FF',
+    backgroundColor: theme.colors.primaryBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
@@ -944,19 +944,19 @@ const styles = StyleSheet.create({
   popularAvatarText: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#3182F6',
+    color: theme.colors.primary,
   },
   popularName: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     marginBottom: 2,
     textAlign: 'center',
   },
   popularPrice: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4E5968',
+    color: theme.colors.gray700,
     marginBottom: 2,
   },
   popularChange: {
@@ -971,10 +971,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F6',
+    borderBottomColor: theme.colors.divider,
   },
   newestBadge: {
-    backgroundColor: '#10B981',
+    backgroundColor: theme.colors.success,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -983,13 +983,13 @@ const styles = StyleSheet.create({
   newestBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: theme.colors.white,
   },
   newestAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: theme.colors.warningBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -997,7 +997,7 @@ const styles = StyleSheet.create({
   newestAvatarText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#F59E0B',
+    color: theme.colors.warning,
   },
   newestInfo: {
     flex: 1,
@@ -1005,12 +1005,12 @@ const styles = StyleSheet.create({
   newestName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     marginBottom: 2,
   },
   newestMeta: {
     fontSize: 12,
-    color: '#8B95A1',
+    color: theme.colors.textTertiary,
   },
   newestRight: {
     alignItems: 'flex-end',
@@ -1018,7 +1018,7 @@ const styles = StyleSheet.create({
   newestPrice: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     marginBottom: 2,
   },
   newestChange: {
@@ -1033,19 +1033,19 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F6',
+    borderBottomColor: theme.colors.divider,
   },
   stockRank: {
     width: 24,
     fontSize: 14,
     fontWeight: '600',
-    color: '#8B95A1',
+    color: theme.colors.textTertiary,
   },
   stockAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F2F4F6',
+    backgroundColor: theme.colors.gray100,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -1053,7 +1053,7 @@ const styles = StyleSheet.create({
   stockAvatarText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#6B7684',
+    color: theme.colors.textSecondary,
   },
   stockInfo: {
     flex: 1,
@@ -1061,12 +1061,12 @@ const styles = StyleSheet.create({
   stockName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     marginBottom: 2,
   },
   stockMeta: {
     fontSize: 12,
-    color: '#8B95A1',
+    color: theme.colors.textTertiary,
   },
   stockRight: {
     alignItems: 'flex-end',
@@ -1074,7 +1074,7 @@ const styles = StyleSheet.create({
   stockPrice: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     marginBottom: 4,
   },
   stockBadge: {
@@ -1092,13 +1092,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#F2F4F6',
+    borderBottomColor: theme.colors.divider,
   },
   postContent: {},
   postText: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#191F28',
+    color: theme.colors.textPrimary,
     marginBottom: 8,
   },
   postMeta: {
@@ -1108,12 +1108,12 @@ const styles = StyleSheet.create({
   },
   postAuthor: {
     fontSize: 13,
-    color: '#3182F6',
+    color: theme.colors.primary,
     fontWeight: '500',
   },
   postStats: {
     fontSize: 12,
-    color: '#8B95A1',
+    color: theme.colors.textTertiary,
   },
 
   // Bottom

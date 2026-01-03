@@ -10,9 +10,10 @@ import {
   TextInput,
   Modal,
   FlatList,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { tradingAPI, stockAPI } from '../services/api';
+import { stockOrderAPI } from '../services/api';
 
 const AdvancedOrderScreen = ({ navigation, route }) => {
   const { stockId, stockName, currentPrice } = route.params || {};
@@ -39,8 +40,8 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
   const fetchOrders = async () => {
     try {
       const [pendingRes, historyRes] = await Promise.all([
-        tradingAPI.getMyOrders('PENDING'),
-        tradingAPI.getMyOrders('FILLED'),
+        stockOrderAPI.getMyOrders({ status: 'PENDING' }),
+        stockOrderAPI.getMyOrders({ status: 'FILLED' }),
       ]);
       setOrders([
         ...(pendingRes.data.orders || []),
@@ -97,19 +98,28 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
     },
   ];
 
+  const showAlert = (title, message, onConfirm) => {
+    if (Platform.OS === 'web') {
+      alert(`${title}\n${message}`);
+      if (onConfirm) onConfirm();
+    } else {
+      Alert.alert(title, message, onConfirm ? [{ text: '확인', onPress: onConfirm }] : undefined);
+    }
+  };
+
   const handleSubmitOrder = async () => {
     if (!quantity || parseInt(quantity) <= 0) {
-      Alert.alert('오류', '주문 수량을 입력해주세요');
+      showAlert('오류', '주문 수량을 입력해주세요');
       return;
     }
 
     if (!limitPrice || parseInt(limitPrice) <= 0) {
-      Alert.alert('오류', '주문 가격을 입력해주세요');
+      showAlert('오류', '주문 가격을 입력해주세요');
       return;
     }
 
     if ((orderMode === 'stop_loss' || orderMode === 'take_profit' || orderMode === 'stop_limit') && !stopPrice) {
-      Alert.alert('오류', '트리거 가격을 입력해주세요');
+      showAlert('오류', '트리거 가격을 입력해주세요');
       return;
     }
 
@@ -119,61 +129,61 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
       const orderData = {
         stockId,
         orderType,
+        orderMode,
         quantity: parseInt(quantity),
         limitPrice: parseInt(limitPrice),
       };
 
-      if (orderMode === 'limit') {
-        await tradingAPI.createLimitOrder(orderData);
-      } else {
-        await tradingAPI.createStopOrder({
-          ...orderData,
-          orderMode,
-          stopPrice: parseInt(stopPrice),
-          triggerCondition,
-        });
+      // 스탑 주문인 경우 stopPrice 추가
+      if (orderMode !== 'limit') {
+        orderData.stopPrice = parseInt(stopPrice);
       }
 
-      Alert.alert('성공', '주문이 등록되었습니다', [
-        {
-          text: '확인',
-          onPress: () => {
-            setQuantity('');
-            setLimitPrice(currentPrice?.toString() || '');
-            setStopPrice('');
-            fetchOrders();
-            setActiveTab('pending');
-          },
-        },
-      ]);
+      await stockOrderAPI.create(orderData);
+
+      showAlert('성공', '주문이 등록되었습니다', () => {
+        setQuantity('');
+        setLimitPrice(currentPrice?.toString() || '');
+        setStopPrice('');
+        fetchOrders();
+        setActiveTab('pending');
+      });
     } catch (error) {
-      Alert.alert('오류', error.response?.data?.message || '주문 등록에 실패했습니다');
+      showAlert('오류', error.response?.data?.error || error.response?.data?.message || '주문 등록에 실패했습니다');
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancelOrder = async (orderId) => {
-    Alert.alert(
-      '주문 취소',
-      '이 주문을 취소하시겠습니까?',
-      [
-        { text: '아니오', style: 'cancel' },
-        {
-          text: '취소하기',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await tradingAPI.cancelOrder(orderId);
-              Alert.alert('성공', '주문이 취소되었습니다');
-              fetchOrders();
-            } catch (error) {
-              Alert.alert('오류', error.response?.data?.message || '주문 취소에 실패했습니다');
-            }
+    const confirmCancel = async () => {
+      try {
+        await stockOrderAPI.cancel(orderId);
+        showAlert('성공', '주문이 취소되었습니다');
+        fetchOrders();
+      } catch (error) {
+        showAlert('오류', error.response?.data?.error || error.response?.data?.message || '주문 취소에 실패했습니다');
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (confirm('이 주문을 취소하시겠습니까?')) {
+        confirmCancel();
+      }
+    } else {
+      Alert.alert(
+        '주문 취소',
+        '이 주문을 취소하시겠습니까?',
+        [
+          { text: '아니오', style: 'cancel' },
+          {
+            text: '취소하기',
+            style: 'destructive',
+            onPress: confirmCancel,
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   const showOrderModeInfo = (mode) => {

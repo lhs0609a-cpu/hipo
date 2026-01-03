@@ -4,6 +4,18 @@ const ipoController = require('../controllers/ipoController');
 const { authenticateToken } = require('../middleware/auth');
 
 /**
+ * GET /api/ipo/eligibility
+ * 상장 자격 확인 (상세)
+ */
+router.get('/eligibility', authenticateToken, ipoController.checkEligibility);
+
+/**
+ * GET /api/ipo/eligibility/quick
+ * 상장 자격 빠른 확인
+ */
+router.get('/eligibility/quick', authenticateToken, ipoController.quickEligibilityCheck);
+
+/**
  * POST /api/ipo/apply
  * IPO 신청
  */

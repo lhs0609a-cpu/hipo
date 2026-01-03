@@ -11,6 +11,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { getStockDetail, getStockStats, buyStock, sellStock } from '../api/stocks';
 import { getSavedUser } from '../api/auth';
 import { COLORS } from '../constants/colors';
@@ -343,22 +344,59 @@ export default function StockDetailScreen({ route, navigation }) {
         </View>
 
         {/* 매수/매도 버튼 */}
+        <View style={styles.tradeButtonRow}>
+          <TouchableOpacity
+            style={[
+              styles.tradeButton,
+              styles.tradeButtonMain,
+              { backgroundColor: tradeType === 'buy' ? COLORS.buttonBuy : COLORS.buttonSell },
+              isTrading && styles.tradeButtonDisabled,
+            ]}
+            onPress={handleTrade}
+            disabled={isTrading}
+          >
+            {isTrading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.tradeButtonText}>
+                {tradeType === 'buy' ? '매수하기' : '매도하기'}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {/* 지정가 주문 버튼 */}
+          <TouchableOpacity
+            style={styles.advancedOrderButton}
+            onPress={() =>
+              navigation.navigate('AdvancedOrder', {
+                stockId,
+                stockName: stock.issuer?.displayName || stock.issuer?.username,
+                currentPrice: stock.sharePrice,
+              })
+            }
+          >
+            <Ionicons name="options-outline" size={20} color={COLORS.primary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* 지정가 주문 안내 */}
         <TouchableOpacity
-          style={[
-            styles.tradeButton,
-            { backgroundColor: tradeType === 'buy' ? COLORS.buttonBuy : COLORS.buttonSell },
-            isTrading && styles.tradeButtonDisabled,
-          ]}
-          onPress={handleTrade}
-          disabled={isTrading}
+          style={styles.advancedOrderBanner}
+          onPress={() =>
+            navigation.navigate('AdvancedOrder', {
+              stockId,
+              stockName: stock.issuer?.displayName || stock.issuer?.username,
+              currentPrice: stock.sharePrice,
+            })
+          }
         >
-          {isTrading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.tradeButtonText}>
-              {tradeType === 'buy' ? '매수하기' : '매도하기'}
+          <View style={styles.advancedOrderBannerContent}>
+            <Ionicons name="pricetag-outline" size={18} color={COLORS.primary} />
+            <Text style={styles.advancedOrderBannerText}>
+              지정가/손절/익절 주문하기
             </Text>
-          )}
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textTertiary} />
         </TouchableOpacity>
 
         {/* 사용자 잔액 정보 */}
@@ -600,11 +638,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: COLORS.text,
   },
+  tradeButtonRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
   tradeButton: {
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 10,
+  },
+  tradeButtonMain: {
+    flex: 1,
   },
   tradeButtonDisabled: {
     opacity: 0.6,
@@ -613,6 +658,35 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 17,
     fontWeight: '700',
+  },
+  advancedOrderButton: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  advancedOrderBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.background,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
+  },
+  advancedOrderBannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  advancedOrderBannerText: {
+    fontSize: 14,
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   userBalance: {
     alignItems: 'center',

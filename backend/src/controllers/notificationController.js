@@ -120,6 +120,24 @@ exports.markAllAsRead = async (req, res) => {
 };
 
 /**
+ * 읽지 않은 알림 개수 조회
+ */
+exports.getUnreadCount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const unreadCount = await Notification.count({
+      where: { userId, isRead: false }
+    });
+
+    res.json({ unreadCount });
+  } catch (error) {
+    console.error('읽지 않은 알림 개수 조회 오류:', error);
+    res.status(500).json({ error: '알림 개수 조회 중 오류가 발생했습니다' });
+  }
+};
+
+/**
  * 알림 삭제
  */
 exports.deleteNotification = async (req, res) => {

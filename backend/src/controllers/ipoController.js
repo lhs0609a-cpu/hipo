@@ -1,6 +1,7 @@
-const { User, Stock, Holding, Transaction, StockOrder, sequelize } = require('../models');
+const { User, Stock, Holding, Transaction, StockOrder, IPOEligibility, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const { getIO } = require('../config/socket');
+const ipoEligibilityService = require('../services/ipoEligibilityService');
 
 // 티어별 발행 한도
 const TIER_LIMITS = {
@@ -9,6 +10,34 @@ const TIER_LIMITS = {
   GOLD: { maxShares: 200000, minShareholders: 50, minTransactions: 200 },
   PLATINUM: { maxShares: 500000, minShareholders: 100, minTransactions: 500 },
   DIAMOND: { maxShares: 1000000, minShareholders: 300, minTransactions: 1000 }
+};
+
+/**
+ * 상장 자격 확인
+ */
+exports.checkEligibility = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await ipoEligibilityService.checkEligibility(userId);
+    res.json(result);
+  } catch (error) {
+    console.error('자격 확인 오류:', error);
+    res.status(500).json({ error: '자격 확인 중 오류가 발생했습니다' });
+  }
+};
+
+/**
+ * 상장 자격 빠른 확인
+ */
+exports.quickEligibilityCheck = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const result = await ipoEligibilityService.quickCheck(userId);
+    res.json(result);
+  } catch (error) {
+    console.error('자격 확인 오류:', error);
+    res.status(500).json({ error: '자격 확인 중 오류가 발생했습니다' });
+  }
 };
 
 /**
@@ -27,13 +56,21 @@ exports.applyIPO = async (req, res) => {
       return res.status(400).json({ error: '이미 발행한 주식이 있습니다' });
     }
 
-    // 최소 요건 확인 (예: 가입 후 7일 경과)
-    const user = await User.findByPk(userId, { transaction: t });
-    const daysSinceJoin = (Date.now() - new Date(user.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-    if (daysSinceJoin < 7) {
+    // 상장 자격 확인
+    const eligibility = await ipoEligibilityService.checkEligibility(userId);
+    if (!eligibility.isEligible) {
       await t.rollback();
-      return res.status(400).json({ error: '가입 후 7일이 지나야 IPO를 신청할 수 있습니다' });
+      return res.status(400).json({
+        error: '상장 자격 요건을 충족하지 않습니다',
+        eligibility
+      });
     }
+
+    const user = await User.findByPk(userId, { transaction: t });
+
+    // 락업 종료일 설정 (30일 후)
+    const lockupEndDate = new Date();
+    lockupEndDate.setDate(lockupEndDate.getDate() + 30);
 
     // IPO 대기 상태로 주식 생성
     const stock = await Stock.create({
@@ -45,8 +82,12 @@ exports.applyIPO = async (req, res) => {
       status: 'ipo_pending',
       ipoApproved: false,
       category: category || 'other',
-      tier: 'BRONZE'
+      tier: 'BRONZE',
+      lockupEndDate
     }, { transaction: t });
+
+    // 사용자를 상장인으로 표시
+    await user.update({ isCreator: true }, { transaction: t });
 
     await t.commit();
 
@@ -56,7 +97,8 @@ exports.applyIPO = async (req, res) => {
         id: stock.id,
         status: stock.status,
         initialPrice,
-        initialShares
+        initialShares,
+        lockupEndDate
       }
     });
   } catch (error) {

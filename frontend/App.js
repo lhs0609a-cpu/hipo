@@ -6,6 +6,7 @@ import { AuthProvider } from './src/contexts/AuthContext';
 import { LanguageProvider } from './src/contexts/LanguageContext';
 import { NotificationProvider } from './src/contexts/NotificationContext';
 import { SocketProvider } from './src/contexts/SocketContext';
+import { StockProvider } from './src/contexts/StockContext';
 
 export default function App() {
   return (
@@ -14,8 +15,10 @@ export default function App() {
         <LanguageProvider>
           <NotificationProvider>
             <SocketProvider>
-              <StatusBar style="auto" />
-              <AppNavigator />
+              <StockProvider>
+                <StatusBar style="auto" />
+                <AppNavigator />
+              </StockProvider>
             </SocketProvider>
           </NotificationProvider>
         </LanguageProvider>

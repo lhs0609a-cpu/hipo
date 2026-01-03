@@ -7,6 +7,64 @@ const { checkCommentLimit, incrementCommentCount, getShareholding } = require('.
 const { canAccessContentTier, getUserMaxTier, getRequiredShares, getTierName } = require('../utils/contentTierHelper');
 
 /**
+ * 포스트 상세 조회 (단일)
+ */
+exports.getPostById = async (req, res) => {
+  try {
+    const { postId } = req.params;
+
+    const post = await Post.findByPk(postId, {
+      include: [
+        {
+          model: User,
+          as: 'author',
+          attributes: ['id', 'username', 'displayName', 'profileImage', 'bio']
+        },
+        {
+          model: Comment,
+          as: 'comments',
+          order: [['created_at', 'DESC']],
+          include: [{
+            model: User,
+            as: 'author',
+            attributes: ['id', 'username', 'profileImage']
+          }]
+        }
+      ]
+    });
+
+    if (!post) {
+      return res.status(404).json({ error: '포스트를 찾을 수 없습니다' });
+    }
+
+    // 좋아요/북마크 여부 확인 (로그인한 경우)
+    let isLiked = false;
+    let isBookmarked = false;
+
+    if (req.user) {
+      const liked = await Like.findOne({
+        where: { postId: post.id, userId: req.user.id }
+      });
+      isLiked = !!liked;
+
+      const bookmarked = await Bookmark.findOne({
+        where: { postId: post.id, userId: req.user.id }
+      });
+      isBookmarked = !!bookmarked;
+    }
+
+    res.json({
+      ...post.toJSON(),
+      isLiked,
+      isBookmarked
+    });
+  } catch (error) {
+    console.error('포스트 상세 조회 오류:', error);
+    res.status(500).json({ error: '포스트를 불러오는데 실패했습니다' });
+  }
+};
+
+/**
  * 포스트 목록 조회 (피드)
  */
 exports.getPosts = async (req, res) => {

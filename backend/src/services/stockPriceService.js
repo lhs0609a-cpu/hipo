@@ -59,10 +59,11 @@ class StockPriceService {
       );
 
       // 주가 업데이트
-      const oldPrice = stock.currentPrice;
+      const oldPrice = stock.sharePrice || 100;
       await stock.update({
-        currentPrice: newPrice,
-        previousPrice: oldPrice
+        sharePrice: newPrice,
+        previousClose: oldPrice,
+        priceChangePercent: oldPrice > 0 ? ((newPrice - oldPrice) / oldPrice * 100) : 0
       });
 
       console.log(`📊 주가 업데이트: ${user.username} - ${oldPrice} → ${newPrice} PO`);
@@ -215,7 +216,7 @@ class StockPriceService {
 
       // 시가총액
       const stock = await Stock.findOne({ where: { userId } });
-      const marketCap = stock.currentPrice * stock.totalShares;
+      const marketCap = (stock.sharePrice || 100) * stock.totalShares;
 
       if (marketCap === 0) return 0;
 

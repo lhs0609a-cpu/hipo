@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { COLORS } from '../../constants/colors';
 
-export default function PriceDisplay({ stats, stockName }) {
+export default function PriceDisplay({ stats, stockName, isLive = false }) {
   if (!stats) return null;
 
   const {
@@ -22,8 +22,16 @@ export default function PriceDisplay({ stats, stockName }) {
 
   return (
     <View style={styles.container}>
-      {/* 주식 이름 */}
-      <Text style={styles.stockName}>{stockName}</Text>
+      {/* 주식 이름 + 실시간 표시 */}
+      <View style={styles.nameRow}>
+        <Text style={styles.stockName}>{stockName}</Text>
+        {isLive && (
+          <View style={styles.liveIndicator}>
+            <View style={styles.liveDot} />
+            <Text style={styles.liveText}>LIVE</Text>
+          </View>
+        )}
+      </View>
 
       {/* 현재가 */}
       <View style={styles.priceContainer}>

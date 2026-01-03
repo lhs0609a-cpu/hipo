@@ -5,17 +5,18 @@ import {
   FlatList,
   StyleSheet,
   RefreshControl,
-  ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
 import { getMyHoldings } from '../api/stocks';
 import { COLORS } from '../constants/colors';
+import { LoadingState, ErrorState, EmptyState } from '../components/StateDisplay';
 
 export default function PortfolioScreen({ navigation }) {
   const [holdings, setHoldings] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadHoldings();
@@ -23,11 +24,13 @@ export default function PortfolioScreen({ navigation }) {
 
   const loadHoldings = async () => {
     try {
+      setError(null);
       const data = await getMyHoldings();
-      setHoldings(data.holdings);
+      setHoldings(data.holdings || []);
       setSummary(data.summary);
     } catch (error) {
       console.error('보유 크리에이터 조회 오류:', error);
+      setError('포트폴리오를 불러오는데 실패했습니다');
     } finally {
       setLoading(false);
     }
@@ -51,6 +54,9 @@ export default function PortfolioScreen({ navigation }) {
         style={styles.holdingCard}
         onPress={() => navigation.navigate('StockDetail', { stockId: item.stock.id })}
         activeOpacity={0.7}
+        accessibilityLabel={`${item.stock.issuer.username}, ${item.shares}주 보유, 현재가 ${item.stock.sharePrice.toLocaleString()} PO, 수익률 ${isProfit ? '플러스' : '마이너스'} ${Math.abs(profitRate)}%`}
+        accessibilityRole="button"
+        accessibilityHint="상세 정보 보기"
       >
         <View style={styles.holdingHeader}>
           <Text style={styles.holdingName}>{item.stock.issuer.username}</Text>
@@ -85,7 +91,19 @@ export default function PortfolioScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <LoadingState message="포트폴리오 불러오는 중..." />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centerContainer}>
+        <ErrorState
+          title="포트폴리오 로드 실패"
+          description={error}
+          onRetry={loadHoldings}
+        />
       </View>
     );
   }
@@ -143,11 +161,13 @@ export default function PortfolioScreen({ navigation }) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📊</Text>
-            <Text style={styles.emptyText}>보유 중인 크리에이터가 없습니다</Text>
-            <Text style={styles.emptySubtext}>홈에서 관심있는 크리에이터를 매수해보세요</Text>
-          </View>
+          <EmptyState
+            emoji="📊"
+            title="보유 중인 크리에이터가 없습니다"
+            description="홈에서 관심있는 크리에이터를 매수해보세요"
+            actionLabel="크리에이터 둘러보기"
+            onAction={() => navigation.navigate('StockMarket')}
+          />
         }
       />
     </View>

@@ -54,10 +54,12 @@ export const stockAPI = {
   search: (query) => api.get(`/stocks/search?q=${query}`),
   buy: (stockId, quantity) => api.post('/stocks/buy', { stockId, quantity }),
   sell: (stockId, quantity) => api.post('/stocks/sell', { stockId, quantity }),
-  getHoldings: () => api.get('/stocks/holdings'),
-  getTransactions: () => api.get('/stocks/transactions'),
-  getChart: (id, period) => api.get(`/stocks/${id}/chart?period=${period}`),
+  getHoldings: () => api.get('/stocks/me/holdings'),
+  getTransactions: () => api.get('/stocks/me/transactions'),
+  getHistory: (id, period) => api.get(`/stocks/${id}/history?period=${period}`),
+  getChart: (id, period) => api.get(`/stocks/${id}/history?period=${period}`), // alias for getHistory
   issue: (data) => api.post('/stocks/issue', data),
+  getUserStock: (userId) => api.get(`/stocks/user/${userId}`),
 };
 
 // Stock Market APIs
@@ -71,9 +73,10 @@ export const stockMarketAPI = {
 // User APIs
 export const userAPI = {
   getProfile: (userId) => api.get(`/users/${userId}`),
-  updateProfile: (data) => api.put('/users/profile', data),
+  updateProfile: (userId, data) => api.put(`/users/${userId}`, data),
+  updateMyProfile: (data) => api.put('/users/me', data),
   follow: (userId) => api.post(`/users/${userId}/follow`),
-  unfollow: (userId) => api.delete(`/users/${userId}/follow`),
+  unfollow: (userId) => api.post(`/users/${userId}/follow`), // toggle (same endpoint)
   getFollowers: (userId) => api.get(`/users/${userId}/followers`),
   getFollowing: (userId) => api.get(`/users/${userId}/following`),
 };
@@ -86,7 +89,8 @@ export const postAPI = {
   update: (id, data) => api.put(`/posts/${id}`, data),
   delete: (id) => api.delete(`/posts/${id}`),
   like: (id) => api.post(`/posts/${id}/like`),
-  unlike: (id) => api.delete(`/posts/${id}/like`),
+  unlike: (id) => api.post(`/posts/${id}/like`), // toggle (same endpoint)
+  toggleLike: (id) => api.post(`/posts/${id}/like`),
   comment: (id, content) => api.post(`/posts/${id}/comments`, { content }),
   getComments: (id) => api.get(`/posts/${id}/comments`),
 };
@@ -311,16 +315,34 @@ export const securityAPI = {
   getLoginHistory: () => api.get('/security/login-history'),
 };
 
-// Advanced Trading APIs (고급 거래)
+// Advanced Trading APIs (고급 거래) - Legacy
 export const tradingAPI = {
-  createLimitOrder: (data) => api.post('/trading/limit-order', data),
-  createStopOrder: (data) => api.post('/trading/stop-order', data),
-  cancelOrder: (orderId) => api.delete(`/trading/orders/${orderId}`),
-  getMyOrders: (status = 'PENDING') => api.get(`/trading/orders?status=${status}`),
+  createLimitOrder: (data) => api.post('/stock-orders', { ...data, orderMode: 'limit' }),
+  createStopOrder: (data) => api.post('/stock-orders', data),
+  cancelOrder: (orderId) => api.delete(`/stock-orders/${orderId}`),
+  getMyOrders: (status = 'PENDING') => api.get(`/stock-orders?status=${status}`),
+};
+
+// Stock Order APIs (지정가/손절/익절 주문)
+export const stockOrderAPI = {
+  // 주문 생성
+  create: (data) => api.post('/stock-orders', data),
+  // 내 주문 목록 조회
+  getMyOrders: (params) => api.get('/stock-orders', { params }),
+  // 주문 상세 조회
+  getOrderDetail: (orderId) => api.get(`/stock-orders/${orderId}`),
+  // 주문 취소
+  cancel: (orderId) => api.delete(`/stock-orders/${orderId}`),
+  // 특정 주식의 호가창 (실제 주문 기반)
+  getOrderBook: (stockId) => api.get(`/stock-orders/stock/${stockId}/orderbook`),
 };
 
 // IPO APIs
 export const ipoAPI = {
+  // 상장 자격 확인
+  checkEligibility: () => api.get('/ipo/eligibility'),
+  quickEligibilityCheck: () => api.get('/ipo/eligibility/quick'),
+  // IPO 신청 및 관리
   apply: (data) => api.post('/ipo/apply', data),
   secondaryOffering: (shares, price) => api.post('/ipo/secondary-offering', { shares, price }),
   buyback: (shares, maxPrice) => api.post('/ipo/buyback', { shares, maxPrice }),
@@ -330,6 +352,52 @@ export const ipoAPI = {
   requestDelisting: (reason, buybackPrice) => api.post('/ipo/request-delisting', { reason, buybackPrice }),
   getLockupStatus: () => api.get('/ipo/lockup-status'),
   getMyStatus: () => api.get('/ipo/my-status'),
+};
+
+// IPO 공모/청약 APIs
+export const ipoOfferingAPI = {
+  // 공모 목록 조회
+  getOfferings: (params) => api.get('/ipo-offerings', { params }),
+  // 공모 상세 조회
+  getOfferingDetail: (offeringId) => api.get(`/ipo-offerings/${offeringId}`),
+  // 공모 신청
+  createOffering: (data) => api.post('/ipo-offerings', data),
+  // 청약 신청
+  subscribe: (offeringId, shares) => api.post(`/ipo-offerings/${offeringId}/subscribe`, { shares }),
+  // 청약 취소
+  cancelSubscription: (subscriptionId) => api.delete(`/ipo-offerings/subscriptions/${subscriptionId}`),
+  // 내 청약 목록
+  getMySubscriptions: (params) => api.get('/ipo-offerings/my-subscriptions', { params }),
+  // 내 공모 현황
+  getMyOffering: () => api.get('/ipo-offerings/my'),
+};
+
+// Pre-IPO APIs (상장 전 투자)
+export const preIPOAPI = {
+  // 활성 라운드 목록 조회
+  getRounds: (params) => api.get('/pre-ipo/rounds', { params }),
+  // 라운드 상세 조회
+  getRoundDetail: (roundId) => api.get(`/pre-ipo/rounds/${roundId}`),
+  // 라운드 통계
+  getRoundStats: (roundId) => api.get(`/pre-ipo/rounds/${roundId}/stats`),
+  // 내 Pre-IPO 라운드 조회 (발행자)
+  getMyRound: () => api.get('/pre-ipo/my-round'),
+  // 내 Pre-IPO 투자 목록
+  getMyInvestments: (params) => api.get('/pre-ipo/my-investments', { params }),
+  // Pre-IPO 라운드 생성
+  createRound: (data) => api.post('/pre-ipo/rounds', data),
+  // 라운드 수정
+  updateRound: (roundId, data) => api.put(`/pre-ipo/rounds/${roundId}`, data),
+  // 라운드 취소
+  cancelRound: (roundId) => api.delete(`/pre-ipo/rounds/${roundId}`),
+  // 투자 자격 확인
+  checkEligibility: (roundId) => api.get(`/pre-ipo/rounds/${roundId}/eligibility`),
+  // Pre-IPO 투자
+  invest: (roundId, shares, inviteCode) => api.post(`/pre-ipo/rounds/${roundId}/invest`, { shares, inviteCode }),
+  // 투자 취소
+  cancelInvestment: (investmentId) => api.delete(`/pre-ipo/investments/${investmentId}`),
+  // 라운드 투자자 목록 (발행자/관리자)
+  getRoundInvestors: (roundId, params) => api.get(`/pre-ipo/rounds/${roundId}/investors`, { params }),
 };
 
 // Portfolio APIs (포트폴리오)
@@ -418,6 +486,56 @@ export const shareAPI = {
 // 얼리버드 뱃지
 export const earlyBirdAPI = {
   getMyBadges: () => api.get('/viral/badges/early-bird'),
+};
+
+// === 티어 시스템 APIs ===
+export const tierAPI = {
+  // 모든 티어 정보 조회
+  getAllTiers: () => api.get('/tiers/all'),
+  // 티어별 통계 조회
+  getStatistics: () => api.get('/tiers/statistics'),
+  // 티어별 주식 목록 조회
+  getStocksByTier: (tier, params) => api.get(`/tiers/stocks${tier ? '/' + tier : ''}`, { params }),
+  // 티어 랭킹 조회
+  getRanking: (params) => api.get('/tiers/ranking', { params }),
+  // 특정 티어 혜택 정보
+  getTierBenefits: (tier) => api.get(`/tiers/benefits/${tier}`),
+  // 주식의 티어 상세 정보
+  getStockTierDetail: (stockId) => api.get(`/tiers/stock/${stockId}`),
+  // 다음 티어까지 진행률
+  getNextTierProgress: (stockId) => api.get(`/tiers/stock/${stockId}/progress`),
+  // 내 티어 정보
+  getMyTierInfo: () => api.get('/tiers/my'),
+  // 티어 업데이트 요청
+  requestTierUpdate: () => api.post('/tiers/my/update'),
+};
+
+// === 주주 전용 커뮤니티 APIs ===
+export const shareholderCommunityAPI = {
+  // 커뮤니티 관리
+  create: (data) => api.post('/shareholder-community', data),
+  getMyCommunities: () => api.get('/shareholder-community/my'),
+  getByStock: (stockId) => api.get(`/shareholder-community/stock/${stockId}`),
+  getDetail: (communityId) => api.get(`/shareholder-community/${communityId}`),
+  updateSettings: (communityId, settings) => api.put(`/shareholder-community/${communityId}/settings`, settings),
+  getStats: (communityId) => api.get(`/shareholder-community/${communityId}/stats`),
+
+  // 멤버 관리
+  join: (communityId) => api.post(`/shareholder-community/${communityId}/join`),
+  leave: (communityId) => api.post(`/shareholder-community/${communityId}/leave`),
+  getMembers: (communityId, params) => api.get(`/shareholder-community/${communityId}/members`, { params }),
+  warnMember: (communityId, userId, reason) => api.post(`/shareholder-community/${communityId}/members/${userId}/warn`, { reason }),
+  banMember: (communityId, userId, reason, hours) => api.post(`/shareholder-community/${communityId}/members/${userId}/ban`, { reason, hours }),
+
+  // 채팅
+  sendMessage: (communityId, content, isVipRoom = false) => api.post(`/shareholder-community/${communityId}/messages`, { content, isVipRoom }),
+  getMessages: (communityId, params) => api.get(`/shareholder-community/${communityId}/messages`, { params }),
+  getPinnedMessages: (communityId) => api.get(`/shareholder-community/${communityId}/messages/pinned`),
+  pinMessage: (messageId) => api.post(`/shareholder-community/messages/${messageId}/pin`),
+
+  // 공지사항
+  createNotice: (communityId, data) => api.post(`/shareholder-community/${communityId}/notices`, data),
+  getNotices: (communityId, params) => api.get(`/shareholder-community/${communityId}/notices`, { params }),
 };
 
 export default api;

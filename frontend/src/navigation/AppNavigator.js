@@ -67,10 +67,28 @@ import LanguageSelectionScreen from '../screens/LanguageSelectionScreen';
 import SecuritySettingsScreen from '../screens/SecuritySettingsScreen';
 import PortfolioAnalysisScreen from '../screens/PortfolioAnalysisScreen';
 import IPOManagementScreen from '../screens/IPOManagementScreen';
+import IPOEligibilityScreen from '../screens/IPOEligibilityScreen';
+import IPOListScreen from '../screens/IPOListScreen';
+import IPODetailScreen from '../screens/IPODetailScreen';
 import WatchlistScreen from '../screens/WatchlistScreen';
 import POChargeScreen from '../screens/POChargeScreen';
 import AdvancedOrderScreen from '../screens/AdvancedOrderScreen';
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
+
+// Pre-IPO Screens
+import PreIPOListScreen from '../screens/PreIPOListScreen';
+import PreIPODetailScreen from '../screens/PreIPODetailScreen';
+import MyPreIPOInvestmentsScreen from '../screens/MyPreIPOInvestmentsScreen';
+
+// Tier Screens
+import TierInfoScreen from '../screens/TierInfoScreen';
+
+// Shareholder Community Screens
+import ShareholderCommunityScreen from '../screens/ShareholderCommunityScreen';
+
+// Detail Screens
+import PostDetailScreen from '../screens/PostDetailScreen';
+import UserProfileScreen from '../screens/UserProfileScreen';
 
 // Viral/Marketing Screens
 import InviteScreen from '../screens/InviteScreen';
@@ -199,6 +217,11 @@ function MainStack() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="PostDetail"
+        component={PostDetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="Feed"
         component={FeedScreen}
         options={{ title: '피드' }}
@@ -275,6 +298,11 @@ function MainStack() {
         name="Profile"
         component={ProfileScreen}
         options={{ title: '프로필' }}
+      />
+      <Stack.Screen
+        name="UserProfile"
+        component={UserProfileScreen}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Notification"
@@ -379,6 +407,21 @@ function MainStack() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
+        name="IPOEligibility"
+        component={IPOEligibilityScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="IPOList"
+        component={IPOListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="IPODetail"
+        component={IPODetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="Watchlist"
         component={WatchlistScreen}
         options={{ headerShown: false }}
@@ -396,6 +439,37 @@ function MainStack() {
       <Stack.Screen
         name="AdminDashboard"
         component={AdminDashboardScreen}
+        options={{ headerShown: false }}
+      />
+
+      {/* Pre-IPO Screens */}
+      <Stack.Screen
+        name="PreIPOList"
+        component={PreIPOListScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PreIPODetail"
+        component={PreIPODetailScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MyPreIPOInvestments"
+        component={MyPreIPOInvestmentsScreen}
+        options={{ headerShown: false }}
+      />
+
+      {/* Tier Screens */}
+      <Stack.Screen
+        name="TierInfo"
+        component={TierInfoScreen}
+        options={{ headerShown: false }}
+      />
+
+      {/* Shareholder Community Screens */}
+      <Stack.Screen
+        name="ShareholderCommunity"
+        component={ShareholderCommunityScreen}
         options={{ headerShown: false }}
       />
 

@@ -18,7 +18,7 @@ const koreanLastNames = ['김', '이', '박', '최', '정', '강', '조', '윤',
 const creators = [
   { username: '아이유', displayName: '아이유 (IU)', category: 'entertainment', occupation: '가수', bio: '음악으로 세상을 물들이는 가수 아이유입니다', trustLevel: 'legend', marketCap: 50000000 },
   { username: '손흥민', displayName: '손흥민', category: 'sports', occupation: '축구선수', bio: '토트넘 홋스퍼 FC 소속 축구선수', trustLevel: 'diamond', marketCap: 45000000 },
-  { username: '뷔', displayName: 'V (뷔)', category: 'entertainment', occupation: '가수', bio: 'BTS 멤버 뷔입니다', trustLevel: 'legend', marketCap: 48000000 },
+  { username: 'V_뷔', displayName: 'V (뷔)', category: 'entertainment', occupation: '가수', bio: 'BTS 멤버 뷔입니다', trustLevel: 'legend', marketCap: 48000000 },
   { username: '제니', displayName: 'JENNIE', category: 'entertainment', occupation: '가수', bio: 'BLACKPINK JENNIE', trustLevel: 'diamond', marketCap: 42000000 },
   { username: '임영웅', displayName: '임영웅', category: 'entertainment', occupation: '가수', bio: '영웅시대와 함께하는 가수 임영웅입니다', trustLevel: 'master', marketCap: 35000000 },
   { username: '이강인', displayName: '이강인', category: 'sports', occupation: '축구선수', bio: 'PSG 소속 축구선수 이강인', trustLevel: 'platinum', marketCap: 28000000 },
@@ -75,6 +75,29 @@ const commentContents = [
   '주가 올라라!!',
   '팬미팅 때 봬요!',
 ];
+
+// POST /api/seed/reset - 데이터베이스 리셋 (테이블 재생성)
+router.post('/reset', async (req, res) => {
+  try {
+    console.log('데이터베이스 리셋 시작...');
+    const { sequelize } = require('../config/database');
+
+    // 모든 테이블 드롭 후 재생성
+    await sequelize.sync({ force: true });
+
+    res.json({
+      success: true,
+      message: '데이터베이스가 리셋되었습니다. 모든 테이블이 새로 생성되었습니다.'
+    });
+  } catch (error) {
+    console.error('데이터베이스 리셋 오류:', error);
+    res.status(500).json({
+      success: false,
+      message: '데이터베이스 리셋 실패',
+      error: error.message
+    });
+  }
+});
 
 // POST /api/seed/generate - 시드 데이터 생성
 router.post('/generate', async (req, res) => {

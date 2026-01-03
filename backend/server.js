@@ -81,6 +81,8 @@ function loadRoutes() {
     app.use('/api/trading', require('./src/routes/advancedTrading'));
     app.use('/api/security', require('./src/routes/security'));
     app.use('/api/ipo', require('./src/routes/ipo'));
+    app.use('/api/ipo-offerings', require('./src/routes/ipoOffering'));
+    app.use('/api/pre-ipo', require('./src/routes/preIPO'));
     app.use('/api/portfolio', require('./src/routes/portfolio'));
     app.use('/api/watchlist', require('./src/routes/watchlist'));
 
@@ -89,6 +91,15 @@ function loadRoutes() {
 
     // === 시드 데이터 라우트 (개발용) ===
     app.use('/api/seed', require('./src/routes/seed'));
+
+    // === 지정가/손절/익절 주문 라우트 ===
+    app.use('/api/stock-orders', require('./src/routes/stockOrder'));
+
+    // === 티어 시스템 라우트 ===
+    app.use('/api/tiers', require('./src/routes/tier'));
+
+    // === 주주 전용 커뮤니티 라우트 ===
+    app.use('/api/shareholder-community', require('./src/routes/shareholderCommunity'));
 
     console.log('✅ All routes loaded successfully');
     return true;
@@ -125,7 +136,8 @@ async function startServer() {
 
     // 2. 테이블 동기화 (먼저!)
     if (dbConnected) {
-      await sequelize.sync({ alter: false });
+      // alter: true로 새 컬럼 동기화
+      await sequelize.sync({ alter: true });
       console.log('📊 Database synchronized');
     }
 
@@ -140,8 +152,10 @@ async function startServer() {
       try {
         const { initSocket } = require('./src/config/socket');
         const { startAdminScheduler } = require('./src/jobs/adminScheduler');
+        const { startTierScheduler } = require('./src/jobs/tierScheduler');
         const stockAlertMonitorService = require('./src/services/stockAlertMonitorService');
         const stockTickerService = require('./src/services/stockTickerService');
+        const orderMatchingService = require('./src/services/orderMatchingService');
 
         // Socket.IO 초기화
         initSocket(server);
@@ -149,11 +163,17 @@ async function startServer() {
         // 방장 자동 교체 스케줄러 시작
         startAdminScheduler();
 
+        // 티어 자동 업데이트 스케줄러 시작
+        startTierScheduler();
+
         // 주식 알림 모니터링 서비스 시작
         stockAlertMonitorService.start();
 
         // 실시간 주가 티커 서비스 시작
         stockTickerService.start();
+
+        // 주문 매칭 엔진 시작 (5초 간격)
+        orderMatchingService.start(5000);
 
         console.log('✅ Background services started');
       } catch (serviceError) {

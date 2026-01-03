@@ -53,6 +53,18 @@ module.exports = (sequelize) => {
       defaultValue: 0,
       field: 'view_count',
       comment: '조회 수'
+    },
+    minTierToView: {
+      type: DataTypes.ENUM('REGULAR', 'PREMIUM', 'VIP'),
+      defaultValue: 'REGULAR',
+      field: 'min_tier_to_view',
+      comment: '공지 조회 최소 등급'
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      field: 'is_active',
+      comment: '활성화 여부'
     }
   }, {
     tableName: 'community_notices',

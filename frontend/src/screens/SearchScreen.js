@@ -6,34 +6,40 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
-  ActivityIndicator,
 } from 'react-native';
 import { searchAPI } from '../services/api';
+import { COLORS } from '../constants/colors';
+import { LoadingState, NoResultsState, ErrorState } from '../components/StateDisplay';
 
 const SearchScreen = ({ navigation }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState({ users: [], stocks: [], posts: [] });
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [hasSearched, setHasSearched] = useState(false);
+  const [error, setError] = useState(null);
   const [recentSearches, setRecentSearches] = useState([
     '비트코인', '테슬라', '애플', '삼성전자',
   ]);
 
-  const handleSearch = async () => {
-    if (!query.trim()) return;
+  const handleSearch = async (searchQuery = query) => {
+    if (!searchQuery.trim()) return;
 
     setLoading(true);
+    setHasSearched(true);
+    setError(null);
     try {
-      const response = await searchAPI.search(query);
+      const response = await searchAPI.search(searchQuery);
       setResults(response.data || { users: [], stocks: [], posts: [] });
 
       // 최근 검색어에 추가
       setRecentSearches(prev => {
-        const filtered = prev.filter(s => s !== query);
-        return [query, ...filtered].slice(0, 10);
+        const filtered = prev.filter(s => s !== searchQuery);
+        return [searchQuery, ...filtered].slice(0, 10);
       });
-    } catch (error) {
-      console.error('Search error:', error);
+    } catch (err) {
+      console.error('Search error:', err);
+      setError('검색 중 오류가 발생했습니다');
     } finally {
       setLoading(false);
     }
@@ -128,13 +134,20 @@ const SearchScreen = ({ navigation }) => {
         <TextInput
           style={styles.searchInput}
           placeholder="사용자, 주식, 게시물 검색..."
-          placeholderTextColor="#999"
+          placeholderTextColor={COLORS.gray400}
           value={query}
           onChangeText={setQuery}
-          onSubmitEditing={handleSearch}
+          onSubmitEditing={() => handleSearch()}
           returnKeyType="search"
+          accessibilityLabel="검색어 입력"
+          accessibilityHint="사용자, 주식, 게시물을 검색할 수 있습니다"
         />
-        <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={() => handleSearch()}
+          accessibilityLabel="검색"
+          accessibilityRole="button"
+        >
           <Text style={styles.searchButtonText}>🔍</Text>
         </TouchableOpacity>
       </View>
@@ -157,8 +170,22 @@ const SearchScreen = ({ navigation }) => {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <LoadingState message="검색 중..." />
         </View>
+      ) : error ? (
+        <ErrorState
+          title="검색 오류"
+          description={error}
+          onRetry={() => handleSearch()}
+        />
+      ) : hasSearched && !hasResults ? (
+        <NoResultsState
+          searchTerm={query}
+          onClear={() => {
+            setQuery('');
+            setHasSearched(false);
+          }}
+        />
       ) : hasResults ? (
         <FlatList
           data={getFilteredResults()}
@@ -201,10 +228,10 @@ const SearchScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: COLORS.background,
   },
   header: {
-    backgroundColor: '#007AFF',
+    backgroundColor: COLORS.primary,
     paddingTop: 50,
     paddingBottom: 20,
     paddingHorizontal: 20,
@@ -212,23 +239,24 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
+    color: COLORS.white,
   },
   searchContainer: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
   },
   searchInput: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.gray100,
     borderRadius: 12,
     padding: 14,
     fontSize: 16,
     marginRight: 10,
+    color: COLORS.textPrimary,
   },
   searchButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
     width: 50,
     justifyContent: 'center',
@@ -239,7 +267,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     paddingHorizontal: 16,
     paddingBottom: 12,
     gap: 8,
@@ -248,17 +276,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: COLORS.gray100,
   },
   activeTab: {
-    backgroundColor: '#007AFF',
+    backgroundColor: COLORS.primary,
   },
   tabText: {
     fontSize: 14,
-    color: '#666',
+    color: COLORS.textSecondary,
   },
   activeTabText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: '600',
   },
   loadingContainer: {
@@ -272,7 +300,7 @@ const styles = StyleSheet.create({
   resultItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     padding: 14,
     borderRadius: 12,
     marginBottom: 10,
@@ -281,7 +309,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#007AFF',
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -289,7 +317,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#fff',
+    color: COLORS.white,
   },
   resultInfo: {
     flex: 1,
@@ -297,17 +325,17 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.textPrimary,
   },
   resultSubtitle: {
     fontSize: 13,
-    color: '#666',
+    color: COLORS.textSecondary,
     marginTop: 2,
   },
   resultType: {
     fontSize: 12,
-    color: '#999',
-    backgroundColor: '#f5f5f5',
+    color: COLORS.textTertiary,
+    backgroundColor: COLORS.gray100,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 10,
@@ -318,7 +346,7 @@ const styles = StyleSheet.create({
   recentTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.textPrimary,
     marginBottom: 12,
   },
   recentTags: {
@@ -328,34 +356,34 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   recentTag: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: COLORS.primaryBackground,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
   },
   recentTagText: {
     fontSize: 14,
-    color: '#007AFF',
+    color: COLORS.primary,
   },
   trendingTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: COLORS.textPrimary,
     marginBottom: 12,
   },
   trendingList: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.surface,
     borderRadius: 12,
     overflow: 'hidden',
   },
   trendingItem: {
     padding: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: COLORS.divider,
   },
   trendingText: {
     fontSize: 15,
-    color: '#333',
+    color: COLORS.textPrimary,
   },
 });
 

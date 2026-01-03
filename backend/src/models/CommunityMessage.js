@@ -42,6 +42,10 @@ module.exports = (sequelize) => {
       defaultValue: false,
       field: 'is_pinned',
       comment: '고정 메시지 여부 (커뮤니티 소유자)'
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      field: 'created_at'
     }
   }, {
     tableName: 'community_messages',

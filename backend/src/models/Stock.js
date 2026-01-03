@@ -58,21 +58,66 @@ module.exports = (sequelize) => {
       field: 'yesterday_dividend'
     },
     tier: {
-      type: DataTypes.ENUM('BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND'),
+      type: DataTypes.ENUM('BRONZE', 'SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'MASTER', 'LEGEND'),
       defaultValue: 'BRONZE',
-      comment: '주식 등급 (발행량 한도 결정)'
+      comment: '주식 등급'
+    },
+    tierScore: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      field: 'tier_score',
+      comment: '티어 점수 (종합 평가)'
+    },
+    tierUpdatedAt: {
+      type: DataTypes.DATE,
+      field: 'tier_updated_at',
+      comment: '마지막 티어 업데이트 시간'
+    },
+    tierProtectedUntil: {
+      type: DataTypes.DATE,
+      field: 'tier_protected_until',
+      comment: '강등 보호 기간 (이 시간까지 강등 불가)'
     },
     shareholderCount: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
       field: 'shareholder_count',
-      comment: '고유 주주 수 (티어 업그레이드 조건)'
+      comment: '고유 주주 수'
     },
     transactionCount: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
       field: 'transaction_count',
-      comment: '총 거래 횟수 (티어 업그레이드 조건)'
+      comment: '총 거래 횟수'
+    },
+    weeklyVolume: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      field: 'weekly_volume',
+      comment: '주간 거래량 (금액)'
+    },
+    monthlyVolume: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      field: 'monthly_volume',
+      comment: '월간 거래량 (금액)'
+    },
+    averageDailyVolume: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      field: 'average_daily_volume',
+      comment: '평균 일일 거래량'
+    },
+    peakMarketCap: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      field: 'peak_market_cap',
+      comment: '최고 시가총액 (역대)'
+    },
+    listingDate: {
+      type: DataTypes.DATE,
+      field: 'listing_date',
+      comment: '상장일'
     },
     // === 새로운 필드들 ===
     status: {

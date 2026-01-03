@@ -129,6 +129,140 @@ function initSocket(server) {
         count: roomSize
       });
     });
+
+    // === 주주 전용 커뮤니티 이벤트 ===
+
+    // 주주 커뮤니티 입장
+    socket.on('shareholder:join', async (data) => {
+      const { communityId, isVipRoom } = data;
+      const roomName = isVipRoom ? `shareholder-vip:${communityId}` : `shareholder:${communityId}`;
+
+      socket.join(roomName);
+      console.log(`사용자 ${socket.userId}가 주주 커뮤니티 ${communityId}${isVipRoom ? ' VIP룸' : ''}에 참여`);
+
+      // 현재 접속자 수 전송
+      const roomSize = io.sockets.adapter.rooms.get(roomName)?.size || 0;
+
+      // 입장 알림
+      socket.to(roomName).emit('shareholder:user_joined', {
+        communityId,
+        userId: socket.userId,
+        isVipRoom,
+        onlineCount: roomSize,
+        timestamp: new Date()
+      });
+
+      // 본인에게 접속자 수 전송
+      socket.emit('shareholder:online_count', {
+        communityId,
+        isVipRoom,
+        count: roomSize
+      });
+    });
+
+    // 주주 커뮤니티 퇴장
+    socket.on('shareholder:leave', (data) => {
+      const { communityId, isVipRoom } = data;
+      const roomName = isVipRoom ? `shareholder-vip:${communityId}` : `shareholder:${communityId}`;
+
+      socket.leave(roomName);
+
+      const roomSize = io.sockets.adapter.rooms.get(roomName)?.size || 0;
+
+      socket.to(roomName).emit('shareholder:user_left', {
+        communityId,
+        userId: socket.userId,
+        isVipRoom,
+        onlineCount: roomSize,
+        timestamp: new Date()
+      });
+    });
+
+    // 주주 커뮤니티 메시지 전송
+    socket.on('shareholder:message', async (data) => {
+      const { communityId, content, isVipRoom, author, tier, tierBadge, tierColor, shareholding } = data;
+      const roomName = isVipRoom ? `shareholder-vip:${communityId}` : `shareholder:${communityId}`;
+
+      const messageData = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        communityId,
+        content,
+        isVipRoom,
+        author: {
+          id: socket.userId,
+          ...author
+        },
+        tier,
+        tierBadge,
+        tierColor,
+        shareholding,
+        createdAt: new Date(),
+        isPinned: false
+      };
+
+      // 해당 방의 모든 사용자에게 브로드캐스트
+      io.to(roomName).emit('shareholder:new_message', messageData);
+    });
+
+    // 주주 커뮤니티 타이핑 표시
+    socket.on('shareholder:typing:start', (data) => {
+      const { communityId, isVipRoom, username, tier } = data;
+      const roomName = isVipRoom ? `shareholder-vip:${communityId}` : `shareholder:${communityId}`;
+
+      socket.to(roomName).emit('shareholder:typing', {
+        communityId,
+        userId: socket.userId,
+        username,
+        tier,
+        isTyping: true
+      });
+    });
+
+    socket.on('shareholder:typing:stop', (data) => {
+      const { communityId, isVipRoom } = data;
+      const roomName = isVipRoom ? `shareholder-vip:${communityId}` : `shareholder:${communityId}`;
+
+      socket.to(roomName).emit('shareholder:typing', {
+        communityId,
+        userId: socket.userId,
+        isTyping: false
+      });
+    });
+
+    // 메시지 고정 알림
+    socket.on('shareholder:pin_message', (data) => {
+      const { communityId, messageId, isVipRoom } = data;
+      const roomName = isVipRoom ? `shareholder-vip:${communityId}` : `shareholder:${communityId}`;
+
+      io.to(roomName).emit('shareholder:message_pinned', {
+        communityId,
+        messageId,
+        pinnedBy: socket.userId,
+        timestamp: new Date()
+      });
+    });
+
+    // 공지사항 알림
+    socket.on('shareholder:notice', (data) => {
+      const { communityId, notice } = data;
+
+      // 일반 채팅방과 VIP룸 모두에 알림
+      io.to(`shareholder:${communityId}`).emit('shareholder:new_notice', notice);
+      io.to(`shareholder-vip:${communityId}`).emit('shareholder:new_notice', notice);
+    });
+
+    // 접속자 수 요청
+    socket.on('shareholder:request_online', (data) => {
+      const { communityId, isVipRoom } = data;
+      const roomName = isVipRoom ? `shareholder-vip:${communityId}` : `shareholder:${communityId}`;
+      const roomSize = io.sockets.adapter.rooms.get(roomName)?.size || 0;
+
+      socket.emit('shareholder:online_count', {
+        communityId,
+        isVipRoom,
+        count: roomSize
+      });
+    });
   });
 
   console.log('✅ Socket.IO initialized');
@@ -228,6 +362,43 @@ function sendStockAlert(userId, alertData) {
   }
 }
 
+// 주주 커뮤니티 메시지 브로드캐스트
+function sendShareholderMessage(communityId, message, isVipRoom = false) {
+  if (io) {
+    const roomName = isVipRoom ? `shareholder-vip:${communityId}` : `shareholder:${communityId}`;
+    io.to(roomName).emit('shareholder:new_message', message);
+  }
+}
+
+// 주주 커뮤니티 공지 브로드캐스트
+function sendShareholderNotice(communityId, notice) {
+  if (io) {
+    io.to(`shareholder:${communityId}`).emit('shareholder:new_notice', notice);
+    io.to(`shareholder-vip:${communityId}`).emit('shareholder:new_notice', notice);
+  }
+}
+
+// 주주 커뮤니티 시스템 메시지 (입장, 퇴장, 경고 등)
+function sendShareholderSystemMessage(communityId, type, data, isVipRoom = false) {
+  if (io) {
+    const roomName = isVipRoom ? `shareholder-vip:${communityId}` : `shareholder:${communityId}`;
+    io.to(roomName).emit('shareholder:system', {
+      type,
+      ...data,
+      timestamp: new Date()
+    });
+  }
+}
+
+// 주주 커뮤니티 접속자 수 조회
+function getShareholderOnlineCount(communityId, isVipRoom = false) {
+  if (io) {
+    const roomName = isVipRoom ? `shareholder-vip:${communityId}` : `shareholder:${communityId}`;
+    return io.sockets.adapter.rooms.get(roomName)?.size || 0;
+  }
+  return 0;
+}
+
 module.exports = {
   initSocket,
   getIO,
@@ -236,5 +407,9 @@ module.exports = {
   sendStockPriceUpdate,
   sendDividendNotification,
   sendLevelUpNotification,
-  sendStockAlert
+  sendStockAlert,
+  sendShareholderMessage,
+  sendShareholderNotice,
+  sendShareholderSystemMessage,
+  getShareholderOnlineCount
 };
