@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -15,6 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { watchlistAPI } from '../services/api';
 
 const WatchlistScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [watchlist, setWatchlist] = useState([]);
@@ -165,7 +169,7 @@ const WatchlistScreen = ({ navigation }) => {
             <Ionicons
               name={item.priceAlert ? 'notifications' : 'notifications-outline'}
               size={20}
-              color={item.priceAlert ? '#3182F6' : '#999'}
+              color={item.priceAlert ? '#2B5FE3' : '#999'}
             />
           </TouchableOpacity>
           <TouchableOpacity
@@ -182,20 +186,20 @@ const WatchlistScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>관심종목</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Search')}>
-          <Ionicons name="add" size={24} color="#3182F6" />
+          <Ionicons name="add" size={24} color="#2B5FE3" />
         </TouchableOpacity>
       </View>
 
@@ -304,10 +308,10 @@ const WatchlistScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -319,7 +323,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -341,14 +345,14 @@ const styles = StyleSheet.create({
   categoryChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
     marginRight: 8,
   },
   activeCategoryChip: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
   },
   categoryIcon: {
     fontSize: 14,
@@ -404,10 +408,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   priceUp: {
-    color: '#F04452',
+    color: t.colors.error,
   },
   priceDown: {
-    color: '#1261C4',
+    color: t.colors.primaryDark,
   },
   itemRight: {
     alignItems: 'flex-end',
@@ -479,13 +483,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     padding: 14,
     borderRadius: 8,
     gap: 8,
   },
   activeConditionButton: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
   },
   conditionText: {
     fontSize: 16,
@@ -510,7 +514,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -521,7 +525,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',

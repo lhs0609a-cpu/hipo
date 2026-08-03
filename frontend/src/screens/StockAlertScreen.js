@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -15,6 +18,9 @@ import { COLORS } from '../constants/colors';
 import api from '../api/client';
 
 export default function StockAlertScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [alerts, setAlerts] = useState([]);
   const [watchlist, setWatchlist] = useState([]);
@@ -161,14 +167,14 @@ export default function StockAlertScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>로딩 중...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }, { paddingTop: insets.top }]}>
       {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -362,31 +368,31 @@ export default function StockAlertScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   backButton: {
     width: 40,
@@ -396,12 +402,12 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
-    color: COLORS.text,
+    color: t.colors.text,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   addButton: {
     width: 40,
@@ -411,14 +417,14 @@ const styles = StyleSheet.create({
   },
   addIcon: {
     fontSize: 28,
-    color: COLORS.primary,
+    color: t.colors.primary,
     fontWeight: '600',
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   tab: {
     flex: 1,
@@ -428,26 +434,26 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: COLORS.primary,
+    borderBottomColor: t.colors.primary,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   tabTextActive: {
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   content: {
     flex: 1,
   },
   alertItem: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 16,
     marginTop: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   alertInfo: {
     flex: 1,
@@ -455,31 +461,31 @@ const styles = StyleSheet.create({
   alertStock: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 4,
   },
   alertType: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 4,
   },
   alertTarget: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: t.colors.primary,
     marginBottom: 4,
   },
   alertStatus: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   watchlistItem: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 16,
     marginTop: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   watchlistInfo: {
     flex: 1,
@@ -487,18 +493,18 @@ const styles = StyleSheet.create({
   watchlistStock: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 4,
   },
   watchlistPrice: {
     fontSize: 14,
-    color: COLORS.primary,
+    color: t.colors.primary,
     fontWeight: '600',
     marginBottom: 4,
   },
   watchlistNote: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   deleteButton: {
     justifyContent: 'center',
@@ -518,11 +524,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 24,
   },
   emptyButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -530,7 +536,7 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   modalOverlay: {
     flex: 1,
@@ -538,7 +544,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '80%',
@@ -549,16 +555,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   modalClose: {
     fontSize: 24,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   modalBody: {
     padding: 20,
@@ -566,23 +572,23 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
     marginTop: 16,
   },
   input: {
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: COLORS.text,
+    color: t.colors.text,
   },
   searchResults: {
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     borderRadius: 8,
     marginTop: 8,
     maxHeight: 150,
@@ -590,11 +596,11 @@ const styles = StyleSheet.create({
   searchResultItem: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   searchResultText: {
     fontSize: 14,
-    color: COLORS.text,
+    color: t.colors.text,
   },
   typeButtons: {
     flexDirection: 'row',
@@ -605,23 +611,23 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     alignItems: 'center',
   },
   typeButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
+    borderColor: t.colors.primary,
   },
   typeButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   typeButtonTextActive: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   createButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -630,6 +636,6 @@ const styles = StyleSheet.create({
   createButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
 });

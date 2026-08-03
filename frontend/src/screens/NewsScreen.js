@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -16,6 +18,8 @@ import { COLORS, TRUST_LEVEL_COLORS } from '../constants/colors';
 import api from '../api/client';
 
 export default function NewsScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const [combinedNews, setCombinedNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -176,7 +180,7 @@ export default function NewsScreen({ navigation }) {
           </Text>
           {item.creatorTrustLevel && (
             <View style={[styles.trustBadge, {
-              backgroundColor: TRUST_LEVEL_COLORS[item.creatorTrustLevel] || COLORS.textSecondary
+              backgroundColor: TRUST_LEVEL_COLORS[item.creatorTrustLevel] || theme.colors.textSecondary
             }]}>
               <Text style={styles.trustText}>신뢰도 {item.creatorTrustLevel}</Text>
             </View>
@@ -222,7 +226,7 @@ export default function NewsScreen({ navigation }) {
   // 사용자 게시물 렌더링
   const renderUserPost = (item) => {
     const author = item.author;
-    const trustLevelColor = TRUST_LEVEL_COLORS[author.trustLevel] || COLORS.textSecondary;
+    const trustLevelColor = TRUST_LEVEL_COLORS[author.trustLevel] || theme.colors.textSecondary;
     const isLocked = item.contentLocked;
 
     return (
@@ -312,7 +316,7 @@ export default function NewsScreen({ navigation }) {
   if (loading && !refreshing) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -391,39 +395,39 @@ export default function NewsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   header: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 4,
   },
   headerSubtitle: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   tabScrollView: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   tabContainer: {
     paddingHorizontal: 12,
@@ -434,18 +438,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 20,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   tabActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   tabTextActive: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   listContent: {
     paddingVertical: 8,
@@ -454,13 +458,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   newsCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     marginHorizontal: 16,
     marginVertical: 6,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   // 실제 뉴스 스타일
   newsLabel: {
@@ -470,16 +474,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   newsLabelText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   newsSource: {
     fontSize: 11,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   creatorTag: {
     flexDirection: 'row',
@@ -490,20 +494,20 @@ const styles = StyleSheet.create({
   creatorTagText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   searchKeywordContainer: {
-    backgroundColor: COLORS.warning + '20',
+    backgroundColor: t.colors.warning + '20',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.warning + '40',
+    borderColor: t.colors.warning + '40',
   },
   searchKeywordText: {
     fontSize: 11,
-    color: COLORS.warning,
+    color: t.colors.warning,
     fontWeight: '600',
   },
   newsImage: {
@@ -511,18 +515,18 @@ const styles = StyleSheet.create({
     height: 180,
     borderRadius: 12,
     marginBottom: 12,
-    backgroundColor: COLORS.border,
+    backgroundColor: t.colors.border,
   },
   newsTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     lineHeight: 24,
     marginBottom: 8,
   },
   newsDescription: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -533,21 +537,21 @@ const styles = StyleSheet.create({
   },
   newsAuthor: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   newsTime: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   newsFooter: {
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: t.colors.border,
   },
   newsLink: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: t.colors.primary,
     textAlign: 'center',
   },
   // 게시물 스타일
@@ -555,12 +559,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   postLabelText: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.success,
+    color: t.colors.success,
   },
   newsHeader: {
     flexDirection: 'row',
@@ -571,13 +575,13 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   avatarText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 20,
     fontWeight: '700',
   },
@@ -594,27 +598,27 @@ const styles = StyleSheet.create({
   authorName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   shareholdingBadge: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
   },
   shareholdingText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 11,
     fontWeight: '600',
   },
   followingBadge: {
-    backgroundColor: COLORS.success,
+    backgroundColor: t.colors.success,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
   },
   followingText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -629,17 +633,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   trustText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 10,
     fontWeight: '600',
   },
   timestamp: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   category: {
     fontSize: 13,
-    color: COLORS.primary,
+    color: t.colors.primary,
     fontWeight: '600',
   },
   contentContainer: {
@@ -648,25 +652,25 @@ const styles = StyleSheet.create({
   content: {
     fontSize: 15,
     lineHeight: 22,
-    color: COLORS.text,
+    color: t.colors.text,
   },
   lockedContent: {
     fontStyle: 'italic',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   postImage: {
     width: '100%',
     height: 200,
     borderRadius: 12,
     marginTop: 12,
-    backgroundColor: COLORS.border,
+    backgroundColor: t.colors.border,
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: t.colors.border,
     gap: 16,
   },
   actionButton: {
@@ -679,7 +683,7 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     fontWeight: '600',
   },
   emptyContainer: {
@@ -695,12 +699,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 40,
   },

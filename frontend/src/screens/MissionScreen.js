@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -13,6 +15,8 @@ import { missionAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const MissionScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuth();
   const [missions, setMissions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -123,7 +127,7 @@ const MissionScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
@@ -131,7 +135,7 @@ const MissionScreen = ({ navigation }) => {
   if (!isAuthenticated) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
           <Text style={styles.headerTitle}>데일리 미션</Text>
         </View>
         <View style={styles.loginRequiredContainer}>
@@ -155,7 +159,7 @@ const MissionScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Text style={styles.headerTitle}>데일리 미션</Text>
         <Text style={styles.headerSubtitle}>
           오늘의 미션 {completedCount}/{missions.length} 완료
@@ -191,10 +195,10 @@ const MissionScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -202,8 +206,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#FF9800',
-    paddingTop: 50,
+    backgroundColor: t.colors.warning,
+    paddingTop: 10,
     paddingBottom: 24,
     paddingHorizontal: 20,
   },
@@ -248,13 +252,13 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   completedCard: {
-    backgroundColor: '#fff8e1',
+    backgroundColor: t.colors.warningBackground,
   },
   missionIcon: {
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#FFF3E0',
+    backgroundColor: t.colors.warningBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -291,7 +295,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#FF9800',
+    backgroundColor: t.colors.warning,
     borderRadius: 3,
   },
   progressText: {
@@ -304,21 +308,21 @@ const styles = StyleSheet.create({
   },
   rewardText: {
     fontSize: 13,
-    color: '#FF9800',
+    color: t.colors.warning,
     fontWeight: '600',
   },
   claimButton: {
-    backgroundColor: '#FF9800',
+    backgroundColor: t.colors.warning,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 20,
     marginLeft: 12,
   },
   claimButtonDisabled: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: t.colors.border,
   },
   claimedButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
   },
   claimButtonText: {
     color: '#fff',
@@ -364,7 +368,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   loginButton: {
-    backgroundColor: '#FF9800',
+    backgroundColor: t.colors.warning,
     paddingVertical: 14,
     paddingHorizontal: 60,
     borderRadius: 10,

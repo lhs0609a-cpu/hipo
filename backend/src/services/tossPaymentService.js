@@ -2,13 +2,43 @@ const axios = require('axios');
 
 class TossPaymentService {
   constructor() {
-    // 토스페이먼츠 API 키 (테스트용)
-    this.secretKey = process.env.TOSS_SECRET_KEY || 'test_sk_zXLkKEypNArWmo50nX3lmeaxYG5R';
-    this.clientKey = process.env.TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+    // 토스페이먼츠 API 키 (환경변수 필수)
+    this.secretKey = process.env.TOSS_SECRET_KEY;
+    this.clientKey = process.env.TOSS_CLIENT_KEY;
     this.apiUrl = 'https://api.tosspayments.com/v1';
 
+    // 환경변수 검증 (프로덕션에서 필수)
+    if (process.env.NODE_ENV === 'production') {
+      if (!this.secretKey || !this.clientKey) {
+        throw new Error(
+          '[CRITICAL] 토스페이먼츠 API 키가 설정되지 않았습니다. ' +
+          'TOSS_SECRET_KEY와 TOSS_CLIENT_KEY 환경변수를 설정하세요.'
+        );
+      }
+    } else {
+      // 개발 환경에서만 경고 로그
+      if (!this.secretKey || !this.clientKey) {
+        console.warn(
+          '[WARNING] 토스페이먼츠 API 키가 설정되지 않았습니다. ' +
+          '결제 기능이 정상 작동하지 않을 수 있습니다.'
+        );
+      }
+    }
+
     // Base64 인코딩된 시크릿 키
-    this.encodedKey = Buffer.from(this.secretKey + ':').toString('base64');
+    this.encodedKey = this.secretKey
+      ? Buffer.from(this.secretKey + ':').toString('base64')
+      : null;
+  }
+
+  /**
+   * API 키 유효성 검사
+   * @throws {Error} API 키가 설정되지 않은 경우
+   */
+  validateApiKeys() {
+    if (!this.secretKey || !this.encodedKey) {
+      throw new Error('토스페이먼츠 API 키가 설정되지 않았습니다. 결제를 진행할 수 없습니다.');
+    }
   }
 
   /**
@@ -20,6 +50,8 @@ class TossPaymentService {
    */
   async confirmPayment(paymentKey, orderId, amount) {
     try {
+      this.validateApiKeys();
+
       const response = await axios.post(
         `${this.apiUrl}/payments/confirm`,
         {
@@ -57,6 +89,8 @@ class TossPaymentService {
    */
   async cancelPayment(paymentKey, cancelReason, cancelAmount = null) {
     try {
+      this.validateApiKeys();
+
       const requestBody = {
         cancelReason
       };
@@ -96,6 +130,8 @@ class TossPaymentService {
    */
   async getPayment(paymentKey) {
     try {
+      this.validateApiKeys();
+
       const response = await axios.get(
         `${this.apiUrl}/payments/${paymentKey}`,
         {
@@ -125,6 +161,8 @@ class TossPaymentService {
    */
   async getPaymentByOrderId(orderId) {
     try {
+      this.validateApiKeys();
+
       const response = await axios.get(
         `${this.apiUrl}/payments/orders/${orderId}`,
         {
@@ -227,9 +265,13 @@ class TossPaymentService {
   /**
    * 클라이언트 키 가져오기 (프론트엔드에서 사용)
    * @returns {string} 클라이언트 키
+   * @throws {Error} 클라이언트 키가 설정되지 않은 경우 (프로덕션)
    */
   getClientKey() {
-    return this.clientKey;
+    if (!this.clientKey && process.env.NODE_ENV === 'production') {
+      throw new Error('토스페이먼츠 클라이언트 키가 설정되지 않았습니다.');
+    }
+    return this.clientKey || '';
   }
 }
 

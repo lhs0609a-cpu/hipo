@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   ScrollView,
   StyleSheet,
   RefreshControl,
-  SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import StoryBanner from '../components/StoryBanner';
 import PortfolioSummaryWidget from '../components/PortfolioSummaryWidget';
 import TrendingStocksWidget from '../components/TrendingStocksWidget';
@@ -14,7 +16,6 @@ import QuickActionsWidget from '../components/QuickActionsWidget';
 import { PostCard } from '../components/Card';
 import { Stagger } from '../components/Animated';
 import EmptyState from '../components/EmptyState';
-import theme from '../styles/theme';
 
 /**
  * HomeScreenRedesigned
@@ -27,6 +28,8 @@ import theme from '../styles/theme';
  * - Recent posts feed
  */
 const HomeScreenRedesigned = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState({
@@ -266,35 +269,35 @@ const HomeScreenRedesigned = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.backgroundSecondary,
+    backgroundColor: t.colors.backgroundSecondary,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: theme.spacing['2xl'],
+    paddingBottom: t.spacing['2xl'],
   },
   section: {
-    marginTop: theme.spacing.lg,
+    marginTop: t.spacing.lg,
   },
   sectionHeader: {
-    paddingHorizontal: theme.spacing.base,
-    marginBottom: theme.spacing.md,
+    paddingHorizontal: t.spacing.base,
+    marginBottom: t.spacing.md,
   },
   sectionTitle: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textPrimary,
+    fontSize: t.typography.fontSize.lg,
+    fontWeight: t.typography.fontWeight.bold,
+    color: t.colors.textPrimary,
   },
   postCard: {
-    marginHorizontal: theme.spacing.base,
-    marginBottom: theme.spacing.sm,
+    marginHorizontal: t.spacing.base,
+    marginBottom: t.spacing.sm,
   },
   emptyState: {
-    paddingVertical: theme.spacing['3xl'],
+    paddingVertical: t.spacing['3xl'],
   },
 });
 

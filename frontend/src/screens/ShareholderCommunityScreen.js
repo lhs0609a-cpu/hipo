@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -21,13 +22,14 @@ import { useAuth } from '../contexts/AuthContext';
 
 // 티어 정보
 const TIER_INFO = {
-  VIP: { badge: '👑', color: '#FFD700', name: 'VIP', gradient: ['#FFD700', '#FFA500'] },
-  PREMIUM: { badge: '⭐', color: '#C0C0C0', name: '프리미엄', gradient: ['#C0C0C0', '#A9A9A9'] },
-  REGULAR: { badge: '🔹', color: '#CD7F32', name: '일반', gradient: ['#CD7F32', '#8B4513'] },
-  NONE: { badge: '', color: '#666666', name: '비주주', gradient: ['#666666', '#444444'] },
+  VIP: { badge: '👑', color: '#D9A521', name: 'VIP', gradient: ['#D9A521', '#F59B00'] },
+  PREMIUM: { badge: '⭐', color: '#9BA3AF', name: '프리미엄', gradient: ['#9BA3AF', '#A3ABBA'] },
+  REGULAR: { badge: '🔹', color: '#B87333', name: '일반', gradient: ['#B87333', '#8A5626'] },
+  NONE: { badge: '', color: '#5D6779', name: '비주주', gradient: ['#5D6779', '#454E5E'] },
 };
 
 export default function ShareholderCommunityScreen({ route, navigation }) {
+  const styles = useThemedStyles(makeStyles);
   const { stockId, communityId: initialCommunityId } = route.params || {};
   const { user } = useAuth();
 
@@ -435,7 +437,7 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="large" color="#00B368" />
           <Text style={styles.loadingText}>커뮤니티 로딩 중...</Text>
         </View>
       </SafeAreaView>
@@ -460,7 +462,7 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
   if (!userInfo?.canAccess) {
     return (
       <SafeAreaView style={styles.container}>
-        <LinearGradient colors={['#1a1a2e', '#16213e']} style={styles.accessDenied}>
+        <LinearGradient colors={['#0E1219', '#182F68']} style={styles.accessDenied}>
           <Text style={styles.accessDeniedIcon}>🔒</Text>
           <Text style={styles.accessDeniedTitle}>주주 전용 커뮤니티</Text>
           <Text style={styles.accessDeniedText}>
@@ -576,7 +578,7 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
               renderItem={renderMessage}
               contentContainerStyle={styles.messageList}
               refreshControl={
-                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4CAF50" />
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00B368" />
               }
               ListEmptyComponent={
                 <View style={styles.emptyMessages}>
@@ -628,7 +630,7 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
             renderItem={renderNotice}
             contentContainerStyle={styles.noticeList}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4CAF50" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00B368" />
             }
             ListEmptyComponent={
               <View style={styles.emptyNotices}>
@@ -647,7 +649,7 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
             renderItem={renderMember}
             contentContainerStyle={styles.memberList}
             refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#4CAF50" />
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#00B368" />
             }
           />
         )}
@@ -656,10 +658,10 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: t.colors.backgroundPure,
   },
   loadingContainer: {
     flex: 1,
@@ -736,7 +738,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   userSharesValue: {
-    color: '#4CAF50',
+    color: t.colors.success,
     fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
@@ -772,7 +774,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   buyStockButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
@@ -786,7 +788,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: t.colors.textPrimary,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
@@ -836,15 +838,15 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     marginRight: 4,
   },
   onlineCount: {
-    color: '#4CAF50',
+    color: t.colors.success,
     fontSize: 12,
   },
   joinBtn: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
@@ -863,7 +865,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   connectionWarning: {
-    backgroundColor: '#FFA500',
+    backgroundColor: t.colors.warning,
     padding: 8,
     alignItems: 'center',
   },
@@ -874,7 +876,7 @@ const styles = StyleSheet.create({
   },
   tabs: {
     flexDirection: 'row',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: t.colors.textPrimary,
     borderBottomWidth: 1,
     borderBottomColor: '#333',
   },
@@ -885,14 +887,14 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#4CAF50',
+    borderBottomColor: t.colors.success,
   },
   tabText: {
     color: '#888',
     fontSize: 14,
   },
   activeTabText: {
-    color: '#4CAF50',
+    color: t.colors.success,
     fontWeight: '600',
   },
   content: {
@@ -905,12 +907,12 @@ const styles = StyleSheet.create({
   messageContainer: {
     flexDirection: 'row',
     marginBottom: 16,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 12,
     padding: 12,
   },
   ownMessageContainer: {
-    backgroundColor: '#1a3a1a',
+    backgroundColor: '#0B2E22',
   },
   messageAvatar: {
     width: 40,
@@ -971,7 +973,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: t.colors.textPrimary,
   },
   typingText: {
     color: '#888',
@@ -985,7 +987,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     marginHorizontal: 2,
   },
   dot1: {
@@ -1000,13 +1002,13 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     padding: 12,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: t.colors.textPrimary,
     borderTopWidth: 1,
     borderTopColor: '#333',
   },
   messageInput: {
     flex: 1,
-    backgroundColor: '#2a2a2a',
+    backgroundColor: t.colors.surfaceOverlay,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -1015,7 +1017,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   sendButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     paddingHorizontal: 20,
     justifyContent: 'center',
     borderRadius: 20,
@@ -1031,7 +1033,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   noticeCard: {
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -1085,7 +1087,7 @@ const styles = StyleSheet.create({
   memberCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,

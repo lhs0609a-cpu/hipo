@@ -1,6 +1,8 @@
 const { User, Stock, StockOrder, Holding, Transaction, PriceHistory, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const { getIO } = require('../config/socket');
+const { applyTradePrice } = require('../utils/priceEngine');
+const { checkTradable } = require('../utils/tradeGuard');
 
 /**
  * 지정가 주문 생성
@@ -21,6 +23,13 @@ exports.createLimitOrder = async (req, res) => {
     if (!stock) {
       await t.rollback();
       return res.status(404).json({ error: '주식을 찾을 수 없습니다' });
+    }
+
+    // 본인 미인증(가상 사전상장) 종목 거래 차단 (초상권 보호)
+    const limitTradable = checkTradable(stock);
+    if (!limitTradable.ok) {
+      await t.rollback();
+      return res.status(403).json({ error: limitTradable.message });
     }
 
     // 주식 상태 확인
@@ -121,6 +130,13 @@ exports.createStopOrder = async (req, res) => {
     if (!stock) {
       await t.rollback();
       return res.status(404).json({ error: '주식을 찾을 수 없습니다' });
+    }
+
+    // 본인 미인증(가상 사전상장) 종목 거래 차단 (초상권 보호)
+    const stopTradable = checkTradable(stock);
+    if (!stopTradable.ok) {
+      await t.rollback();
+      return res.status(403).json({ error: stopTradable.message });
     }
 
     // 매도 주문시 보유량 확인
@@ -373,6 +389,9 @@ exports.executeOrder = async (order, price, transaction) => {
       status: 'FILLED',
       filledAt: new Date()
     }, { transaction: t });
+
+    // 체결가 = 현재가 반영 (dayVolume은 위에서 이미 증가시켰으므로 volume 0)
+    await applyTradePrice(stock, price, { volume: 0, transaction: t });
 
     if (!transaction) await t.commit();
 

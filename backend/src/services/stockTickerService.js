@@ -1,5 +1,5 @@
 const { Stock, User } = require('../models');
-const { getIO } = require('../config/socket');
+const { getIO, sendStockPriceUpdate } = require('../config/socket');
 
 class StockTickerService {
   constructor() {
@@ -108,24 +108,17 @@ class StockTickerService {
         return;
       }
 
-      const stockData = {
+      // stock:price_update 의 페이로드는 config/socket.js 의 sendStockPriceUpdate 와
+      // 동일한 평평한 구조로 맞춘다. 예전에는 { stock: {...} } 로 감싸 보내서
+      // data.newPrice 를 읽는 수신 측이 이 이벤트를 통째로 무시했다.
+      sendStockPriceUpdate({
         stockId: stock.id,
         userId: stock.userId,
         username: stock.issuer?.username || 'Unknown',
-        displayName: stock.issuer?.displayName || stock.issuer?.username,
-        profileImage: stock.issuer?.profileImage,
-        trustLevel: stock.issuer?.trustLevel || 'bronze',
-        sharePrice: parseFloat(stock.sharePrice),
-        priceChange: parseFloat(stock.priceChange || 0),
-        priceChangePercent: parseFloat(stock.priceChangePercent || 0),
-        marketCap: parseFloat(stock.marketCapTotal || 0),
-        lastUpdated: stock.updatedAt
-      };
-
-      const io = getIO();
-      io.emit('stock:price_update', {
-        stock: stockData,
-        timestamp: new Date()
+        oldPrice: parseFloat(stock.sharePrice) - parseFloat(stock.priceChange || 0),
+        newPrice: parseFloat(stock.sharePrice),
+        changePercent: parseFloat(stock.priceChangePercent || 0),
+        volume: parseFloat(stock.dayVolume || 0)
       });
 
     } catch (error) {

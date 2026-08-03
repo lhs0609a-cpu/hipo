@@ -1,55 +1,98 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  RefreshControl,
-  FlatList,
-} from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { getOrderBook } from '../../api/stocks';
+import socketService from '../../services/socketService';
 import { COLORS } from '../../constants/colors';
+import { tabularNums, hitSlop } from '../../styles/tokens';
+import haptics from '../../utils/haptics';
 
-const OrderBookRow = ({ item, type, maxPercentage }) => {
+/**
+ * 호가창.
+ *
+ * 서버가 `orderbook:update` 로 밀어 주며, 소켓이 끊긴 동안에만 폴링으로 대체한다.
+ * (예전에는 항상 5초 폴링이었다)
+ *
+ * 행을 누르면 onSelectPrice 로 해당 호가를 올려보낸다 — 주문 화면의 가격 입력에 꽂힌다.
+ */
+
+const OrderBookRow = React.memo(function OrderBookRow({
+  item,
+  type,
+  isBest,
+  onSelectPrice,
+}) {
   const isAsk = type === 'ask';
-  const barWidth = `${(item.percentage / maxPercentage) * 100}%`;
+  const barWidth = `${Math.min(item.percentage || 0, 100)}%`;
+  const hasQuantity = item.quantity > 0;
+
+  const handlePress = () => {
+    if (!onSelectPrice) return;
+    haptics.selection();
+    onSelectPrice(item.price, isAsk ? 'ask' : 'bid');
+  };
 
   return (
-    <View style={styles.row}>
-      {/* 바 차트 배경 */}
+    <Pressable
+      onPress={handlePress}
+      hitSlop={hitSlop.sm}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.price.toLocaleString()}원 ${isAsk ? '매도' : '매수'} 잔량 ${item.quantity}주`}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+    >
+      {/* 잔량 바 — 매도는 오른쪽에서, 매수는 왼쪽에서 자란다 */}
       <View
         style={[
           styles.volumeBar,
           isAsk ? styles.askBar : styles.bidBar,
           { width: barWidth },
-          isAsk ? { right: 0 } : { left: 0 },
+          isAsk ? { right: '50%' } : { left: '50%' },
         ]}
       />
 
-      {/* 잔량 (왼쪽) */}
-      <View style={styles.quantityCell}>
-        <Text style={[styles.quantityText, isAsk && styles.askQuantity]}>
-          {item.quantity.toLocaleString()}
-        </Text>
+      {/* 왼쪽: 매도 잔량 */}
+      <View style={styles.sideCell}>
+        {isAsk && hasQuantity ? (
+          <Text style={[styles.quantityText, styles.askQuantity]}>
+            {item.quantity.toLocaleString()}
+          </Text>
+        ) : null}
       </View>
 
-      {/* 호가 (중앙) */}
+      {/* 가운데: 호가 */}
       <View style={styles.priceCell}>
-        <Text style={[styles.priceText, isAsk ? styles.askPrice : styles.bidPrice]}>
+        <Text
+          style={[
+            styles.priceText,
+            isAsk ? styles.askPrice : styles.bidPrice,
+            isBest && styles.bestPrice,
+          ]}
+        >
           {item.price.toLocaleString()}
         </Text>
       </View>
 
-      {/* 빈 공간 (오른쪽) */}
-      <View style={styles.quantityCell} />
-    </View>
+      {/* 오른쪽: 매수 잔량 */}
+      <View style={styles.sideCell}>
+        {!isAsk && hasQuantity ? (
+          <Text style={[styles.quantityText, styles.bidQuantity]}>
+            {item.quantity.toLocaleString()}
+          </Text>
+        ) : null}
+      </View>
+    </Pressable>
   );
-};
+});
 
-export default function OrderBook({ stockId, currentPrice, priceChangePercent }) {
+export default function OrderBook({
+  stockId,
+  currentPrice,
+  priceChangePercent,
+  onSelectPrice,
+}) {
   const [orderBook, setOrderBook] = useState({ asks: [], bids: [] });
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [live, setLive] = useState(false);
+  const pollRef = useRef(null);
 
   const loadOrderBook = useCallback(async () => {
     try {
@@ -59,21 +102,55 @@ export default function OrderBook({ stockId, currentPrice, priceChangePercent })
       console.error('호가창 조회 오류:', error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, [stockId]);
 
   useEffect(() => {
-    loadOrderBook();
-    // 5초마다 새로고침
-    const interval = setInterval(loadOrderBook, 5000);
-    return () => clearInterval(interval);
-  }, [loadOrderBook]);
+    if (!stockId) return undefined;
 
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
     loadOrderBook();
-  }, [loadOrderBook]);
+    socketService.subscribeStock(stockId);
+
+    const stopPolling = () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+
+    // 소켓이 살아 있는 동안은 폴링하지 않는다
+    const startPolling = () => {
+      if (pollRef.current) return;
+      pollRef.current = setInterval(loadOrderBook, 5000);
+    };
+
+    const offBook = socketService.on('orderBookUpdate', (data) => {
+      if (data?.stockId && data.stockId !== stockId) return;
+      setLive(true);
+      stopPolling();
+      setOrderBook(data);
+    });
+
+    const offConn = socketService.on('connectionChange', (connected) => {
+      if (connected) {
+        loadOrderBook();
+      } else {
+        setLive(false);
+        startPolling();
+      }
+    });
+
+    // 3초 안에 소켓 업데이트가 없으면 폴백 폴링을 켠다
+    const fallbackTimer = setTimeout(startPolling, 3000);
+
+    return () => {
+      offBook();
+      offConn();
+      clearTimeout(fallbackTimer);
+      stopPolling();
+      socketService.unsubscribeStock(stockId);
+    };
+  }, [stockId, loadOrderBook]);
 
   if (loading) {
     return (
@@ -83,77 +160,90 @@ export default function OrderBook({ stockId, currentPrice, priceChangePercent })
     );
   }
 
-  const maxPercentage = Math.max(
-    ...orderBook.asks.map((a) => a.percentage || 0),
-    ...orderBook.bids.map((b) => b.percentage || 0),
-    1
-  );
-
-  const priceChange = priceChangePercent || orderBook.priceChangePercent || 0;
+  const priceChange = priceChangePercent ?? orderBook.priceChangePercent ?? 0;
   const isUp = priceChange >= 0;
+  const strength = orderBook.tradeStrength ?? 100;
+  const bidRatio = orderBook.bidRatio ?? 50;
 
   return (
     <View style={styles.container}>
-      {/* 헤더 */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>잔량</Text>
+        <Text style={styles.headerText}>매도잔량</Text>
         <Text style={styles.headerText}>호가</Text>
-        <Text style={styles.headerText}>잔량</Text>
+        <Text style={styles.headerText}>매수잔량</Text>
       </View>
 
-      {/* 매도호가 (빨간색) */}
-      <View style={styles.asksContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionHeaderText}>매도호가</Text>
-          <Text style={styles.totalText}>
-            총 {orderBook.totalAskQuantity?.toLocaleString() || 0}주
-          </Text>
-        </View>
-        {orderBook.asks.map((item, index) => (
-          <OrderBookRow
-            key={`ask-${index}`}
-            item={item}
-            type="ask"
-            maxPercentage={maxPercentage}
-          />
-        ))}
-      </View>
+      {/* 매도호가 — 높은 가격이 위 */}
+      {orderBook.asks?.map((item, index) => (
+        <OrderBookRow
+          key={`ask-${item.price}`}
+          item={item}
+          type="ask"
+          isBest={index === orderBook.asks.length - 1}
+          onSelectPrice={onSelectPrice}
+        />
+      ))}
 
-      {/* 현재가 표시 */}
+      {/* 현재가 */}
       <View style={styles.currentPriceContainer}>
-        <View style={styles.currentPriceBox}>
-          <Text style={styles.currentPriceLabel}>현재가</Text>
-          <Text style={[styles.currentPriceValue, isUp ? styles.upColor : styles.downColor]}>
-            {(currentPrice || orderBook.currentPrice || 0).toLocaleString()} PO
+        <Text style={styles.currentPriceLabel}>현재가</Text>
+        <Text style={[styles.currentPriceValue, isUp ? styles.upColor : styles.downColor]}>
+          {(currentPrice ?? orderBook.currentPrice ?? 0).toLocaleString()}
+        </Text>
+        <Text style={[styles.changeText, isUp ? styles.upColor : styles.downColor]}>
+          {isUp ? '▲' : '▼'} {Math.abs(priceChange).toFixed(2)}%
+        </Text>
+        {live ? <View style={styles.liveDot} /> : null}
+      </View>
+
+      {/* 매수호가 */}
+      {orderBook.bids?.map((item, index) => (
+        <OrderBookRow
+          key={`bid-${item.price}`}
+          item={item}
+          type="bid"
+          isBest={index === 0}
+          onSelectPrice={onSelectPrice}
+        />
+      ))}
+
+      {/* 잔량 비중 바 */}
+      <View style={styles.ratioBar}>
+        <View style={[styles.ratioFillBid, { flex: Math.max(bidRatio, 1) }]} />
+        <View style={[styles.ratioFillAsk, { flex: Math.max(100 - bidRatio, 1) }]} />
+      </View>
+
+      {/* 요약 */}
+      <View style={styles.summary}>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>총 매도잔량</Text>
+          <Text style={[styles.summaryValue, styles.upColor]}>
+            {(orderBook.totalAskQuantity || 0).toLocaleString()}
           </Text>
-          <Text style={[styles.changeText, isUp ? styles.upColor : styles.downColor]}>
-            {isUp ? '▲' : '▼'} {Math.abs(priceChange).toFixed(2)}%
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>체결강도</Text>
+          <Text
+            style={[
+              styles.summaryValue,
+              strength >= 100 ? styles.upColor : styles.downColor,
+            ]}
+          >
+            {strength.toFixed(0)}%
+          </Text>
+        </View>
+        <View style={styles.summaryItem}>
+          <Text style={styles.summaryLabel}>총 매수잔량</Text>
+          <Text style={[styles.summaryValue, styles.downColor]}>
+            {(orderBook.totalBidQuantity || 0).toLocaleString()}
           </Text>
         </View>
       </View>
 
-      {/* 매수호가 (파란색) */}
-      <View style={styles.bidsContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionHeaderText}>매수호가</Text>
-          <Text style={styles.totalText}>
-            총 {orderBook.totalBidQuantity?.toLocaleString() || 0}주
-          </Text>
-        </View>
-        {orderBook.bids.map((item, index) => (
-          <OrderBookRow
-            key={`bid-${index}`}
-            item={item}
-            type="bid"
-            maxPercentage={maxPercentage}
-          />
-        ))}
-      </View>
-
-      {/* 스프레드 정보 */}
       <View style={styles.spreadInfo}>
         <Text style={styles.spreadText}>
-          스프레드: {orderBook.spread?.toLocaleString() || 0} PO ({orderBook.spreadPercent || 0}%)
+          스프레드 {(orderBook.spread || 0).toLocaleString()} ({orderBook.spreadPercent || 0}%)
+          {'  ·  '}호가단위 {(orderBook.tickSize || 1).toLocaleString()}
         </Text>
       </View>
     </View>
@@ -173,125 +263,150 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: COLORS.borderLight,
   },
   headerText: {
     flex: 1,
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    fontWeight: '600',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    backgroundColor: COLORS.background,
-  },
-  sectionHeaderText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: COLORS.textSecondary,
-  },
-  totalText: {
     fontSize: 11,
     color: COLORS.textTertiary,
-  },
-  asksContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  bidsContainer: {
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    textAlign: 'center',
+    fontWeight: '600',
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 40,
+    height: 34,
     position: 'relative',
+  },
+  rowPressed: {
+    backgroundColor: COLORS.surfaceHover,
   },
   volumeBar: {
     position: 'absolute',
-    top: 0,
-    bottom: 0,
+    top: 2,
+    bottom: 2,
+    maxWidth: '50%',
   },
   askBar: {
-    backgroundColor: 'rgba(240, 68, 82, 0.15)',
+    backgroundColor: 'rgba(240, 52, 75, 0.13)',
   },
   bidBar: {
-    backgroundColor: 'rgba(18, 97, 196, 0.15)',
+    backgroundColor: 'rgba(47, 127, 238, 0.13)',
   },
-  quantityCell: {
+  sideCell: {
     flex: 1,
     paddingHorizontal: 12,
+    justifyContent: 'center',
   },
   priceCell: {
     flex: 1,
     alignItems: 'center',
   },
   quantityText: {
-    fontSize: 13,
-    color: COLORS.text,
+    fontSize: 12,
     textAlign: 'center',
+    ...tabularNums,
   },
   askQuantity: {
-    color: COLORS.up,
+    color: COLORS.stockUpText,
+    textAlign: 'right',
+  },
+  bidQuantity: {
+    color: COLORS.stockDownText,
+    textAlign: 'left',
   },
   priceText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
+    ...tabularNums,
   },
   askPrice: {
-    color: COLORS.up,
+    color: COLORS.stockUpText,
   },
   bidPrice: {
-    color: COLORS.down,
+    color: COLORS.stockDownText,
+  },
+  bestPrice: {
+    fontWeight: '800',
   },
   currentPriceContainer: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    backgroundColor: COLORS.background,
-    borderTopWidth: 2,
-    borderBottomWidth: 2,
-    borderColor: COLORS.border,
-  },
-  currentPriceBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    gap: 10,
+    paddingVertical: 12,
+    backgroundColor: COLORS.surfaceSunken,
+    borderTopWidth: 1.5,
+    borderBottomWidth: 1.5,
+    borderColor: COLORS.border,
   },
   currentPriceLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: COLORS.textSecondary,
   },
   currentPriceValue: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '700',
+    ...tabularNums,
   },
   changeText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
+    ...tabularNums,
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.success,
+  },
+  ratioBar: {
+    flexDirection: 'row',
+    height: 4,
+    marginTop: 10,
+    marginHorizontal: 16,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  ratioFillBid: {
+    backgroundColor: COLORS.stockDown,
+  },
+  ratioFillAsk: {
+    backgroundColor: COLORS.stockUp,
+  },
+  summary: {
+    flexDirection: 'row',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  summaryItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  summaryLabel: {
+    fontSize: 11,
+    color: COLORS.textTertiary,
+    marginBottom: 3,
+  },
+  summaryValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    ...tabularNums,
   },
   upColor: {
-    color: COLORS.up,
+    color: COLORS.stockUpText,
   },
   downColor: {
-    color: COLORS.down,
+    color: COLORS.stockDownText,
   },
   spreadInfo: {
-    paddingVertical: 12,
+    paddingBottom: 14,
     alignItems: 'center',
-    backgroundColor: COLORS.background,
   },
   spreadText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
+    fontSize: 11,
+    color: COLORS.textTertiary,
   },
 });

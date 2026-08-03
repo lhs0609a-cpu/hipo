@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: '#DFE3EB',
   },
   headerTitle: {
     fontSize: 20,
@@ -271,12 +271,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#DFE3EB',
     backgroundColor: '#fff',
   },
   typeButtonActive: {
-    borderColor: '#4caf50',
-    backgroundColor: '#e8f5e9',
+    borderColor: '#00B368',
+    backgroundColor: '#E7F8F0',
   },
   typeButtonText: {
     fontSize: 13,
@@ -284,12 +284,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   typeButtonTextActive: {
-    color: '#4caf50',
+    color: '#00B368',
     fontWeight: '600',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#DFE3EB',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
@@ -309,14 +309,14 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: '#e0e0e0',
+    borderColor: '#DFE3EB',
     marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxBoxChecked: {
-    borderColor: '#4caf50',
-    backgroundColor: '#4caf50',
+    borderColor: '#00B368',
+    backgroundColor: '#00B368',
   },
   checkmark: {
     color: '#fff',
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   submitButton: {
-    backgroundColor: '#4caf50',
+    backgroundColor: '#00B368',
     paddingVertical: 16,
     borderRadius: 8,
     marginTop: 24,

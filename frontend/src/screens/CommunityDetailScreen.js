@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -15,6 +16,7 @@ import { communityAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const CommunityDetailScreen = ({ route, navigation }) => {
+  const styles = useThemedStyles(makeStyles);
   const { communityId } = route.params;
   const { isAuthenticated, user } = useAuth();
   const [community, setCommunity] = useState(null);
@@ -168,7 +170,7 @@ const CommunityDetailScreen = ({ route, navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
@@ -256,10 +258,10 @@ const CommunityDetailScreen = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -267,7 +269,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
     paddingTop: 10,
     paddingBottom: 16,
     paddingHorizontal: 20,
@@ -300,7 +302,7 @@ const styles = StyleSheet.create({
     borderColor: '#fff',
   },
   joinButtonText: {
-    color: '#007AFF',
+    color: t.colors.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -334,7 +336,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
@@ -357,13 +359,13 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   myMessageBubble: {
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
     borderBottomLeftRadius: 16,
     borderBottomRightRadius: 4,
   },
   messageAuthor: {
     fontSize: 12,
-    color: '#007AFF',
+    color: t.colors.primary,
     fontWeight: '600',
     marginBottom: 4,
   },
@@ -393,7 +395,7 @@ const styles = StyleSheet.create({
   },
   messageInput: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -402,7 +404,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   sendButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
     borderRadius: 20,
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -454,7 +456,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 8,

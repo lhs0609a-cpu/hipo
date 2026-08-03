@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { getAppWidth, getAppHeight } from '../utils/appWidth';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -8,14 +11,16 @@ import {
   ActivityIndicator,
   Image,
   Modal,
-  Dimensions,
 } from 'react-native';
 import { storyAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
-const { width, height } = Dimensions.get('window');
+const width = getAppWidth();
+const height = getAppHeight();
 
 const StoryScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuth();
   const [stories, setStories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -79,14 +84,14 @@ const StoryScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Text style={styles.headerTitle}>스토리</Text>
       </View>
 
@@ -123,7 +128,7 @@ const StoryScreen = ({ navigation }) => {
           activeOpacity={1}
           onPress={handleNextStory}
         >
-          <View style={styles.storyHeader}>
+          <View style={[styles.storyHeader, { paddingTop: insets.top + 10 }]}>
             <View style={styles.storyUserInfo}>
               <View style={styles.storyUserAvatar}>
                 <Text style={styles.storyUserAvatarText}>
@@ -166,10 +171,10 @@ const StoryScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -177,8 +182,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#007AFF',
-    paddingTop: 50,
+    backgroundColor: t.colors.primary,
+    paddingTop: 10,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
@@ -195,14 +200,14 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#e3f2fd',
+    backgroundColor: t.colors.primaryBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
   },
   plusIcon: {
     fontSize: 32,
-    color: '#007AFF',
+    color: t.colors.primary,
   },
   addStoryText: {
     fontSize: 12,
@@ -224,7 +229,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   unviewedRing: {
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
   },
   viewedRing: {
     backgroundColor: '#ccc',
@@ -245,7 +250,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: t.colors.primary,
   },
   storyUsername: {
     fontSize: 12,
@@ -270,7 +275,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 50,
+    paddingTop: 10,
     paddingHorizontal: 16,
     paddingBottom: 16,
   },
@@ -290,7 +295,7 @@ const styles = StyleSheet.create({
   storyUserAvatarText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#007AFF',
+    color: t.colors.primary,
   },
   storyUserName: {
     fontSize: 15,

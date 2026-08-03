@@ -121,9 +121,20 @@ module.exports = (sequelize) => {
     },
     // === 새로운 필드들 ===
     status: {
-      type: DataTypes.ENUM('active', 'suspended', 'delisted', 'ipo_pending'),
+      type: DataTypes.ENUM('active', 'suspended', 'delisted', 'ipo_pending', 'virtual'),
       defaultValue: 'active',
-      comment: '주식 상태: 활성, 거래정지, 상장폐지, IPO대기'
+      comment: '주식 상태: 활성, 거래정지, 상장폐지, IPO대기, 가상(사전상장)'
+    },
+    isVirtualListing: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'is_virtual_listing',
+      comment: '가상 사전상장 주식 여부'
+    },
+    virtualListingNote: {
+      type: DataTypes.TEXT,
+      field: 'virtual_listing_note',
+      comment: '가상 상장 안내 메시지'
     },
     ipoApproved: {
       type: DataTypes.BOOLEAN,
@@ -195,6 +206,35 @@ module.exports = (sequelize) => {
       defaultValue: 0,
       field: 'treasury_shares',
       comment: '자사주 (발행자가 재매입한 주식)'
+    },
+    /**
+     * 환매 준비 포인트 (게임 내 PO 포인트 풀. 실제 자금 예치가 아니다).
+     *
+     * 발행시장 매수 대금의 일부를 여기에 적립해 두고, 주주가 되팔 때 여기서 지급한다.
+     * 이 풀이 없으면 매도 시 PO 가 무에서 생겨 총량이 계속 늘어난다.
+     *
+     * 주의: 이 값은 사용자 잔고가 아니라 종목에 귀속된 포인트다.
+     * 현금 인출 대상이 아니며, CASH_OUT_ENABLED 정책과 무관하다.
+     */
+    buybackReserve: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      field: 'buyback_reserve',
+      comment: '환매 준비 포인트 (PO). 주주 매도 시 여기서 지급. 실제 자금 아님'
+    },
+    /** 지금까지 이 풀에 적립된 누적 포인트 (통계용) */
+    buybackReserveFunded: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      field: 'buyback_reserve_funded',
+      comment: '누적 적립 포인트'
+    },
+    /** 지금까지 이 풀에서 환매로 나간 누적 포인트 (통계용) */
+    buybackReserveUsed: {
+      type: DataTypes.BIGINT,
+      defaultValue: 0,
+      field: 'buyback_reserve_used',
+      comment: '누적 환매 지급 포인트'
     }
   }, {
     tableName: 'stocks',

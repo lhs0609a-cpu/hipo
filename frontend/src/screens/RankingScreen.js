@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -11,6 +13,8 @@ import {
 import { rankingAPI } from '../services/api';
 
 const RankingScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [rankings, setRankings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -40,9 +44,9 @@ const RankingScreen = ({ navigation }) => {
   };
 
   const getRankBadge = (rank) => {
-    if (rank === 1) return { emoji: '🥇', color: '#FFD700' };
-    if (rank === 2) return { emoji: '🥈', color: '#C0C0C0' };
-    if (rank === 3) return { emoji: '🥉', color: '#CD7F32' };
+    if (rank === 1) return { emoji: '🥇', color: '#D9A521' };
+    if (rank === 2) return { emoji: '🥈', color: '#9BA3AF' };
+    if (rank === 3) return { emoji: '🥉', color: '#B87333' };
     return { emoji: rank.toString(), color: '#666' };
   };
 
@@ -57,7 +61,7 @@ const RankingScreen = ({ navigation }) => {
         style={[styles.rankingItem, isTopThree && styles.topThreeItem]}
         onPress={() => navigation.navigate('UserProfile', { userId: item.userId || item.id })}
       >
-        <View style={[styles.rankBadge, { backgroundColor: isTopThree ? badge.color : '#f5f5f5' }]}>
+        <View style={[styles.rankBadge, { backgroundColor: isTopThree ? badge.color : '#F8F9FB' }]}>
           {isTopThree ? (
             <Text style={styles.rankEmoji}>{badge.emoji}</Text>
           ) : (
@@ -95,14 +99,14 @@ const RankingScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Text style={styles.headerTitle}>랭킹</Text>
         <Text style={styles.headerSubtitle}>실시간 순위</Text>
       </View>
@@ -153,10 +157,10 @@ const RankingScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -164,8 +168,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#673AB7',
-    paddingTop: 50,
+    backgroundColor: '#7C4DEF',
+    paddingTop: 10,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
@@ -193,7 +197,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   activeTab: {
-    backgroundColor: '#673AB7',
+    backgroundColor: '#7C4DEF',
   },
   tabText: {
     fontSize: 14,
@@ -216,7 +220,7 @@ const styles = StyleSheet.create({
   },
   topThreeItem: {
     borderWidth: 2,
-    borderColor: '#FFD700',
+    borderColor: '#D9A521',
   },
   rankBadge: {
     width: 32,
@@ -238,7 +242,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#673AB7',
+    backgroundColor: '#7C4DEF',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -274,10 +278,10 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   positive: {
-    color: '#e74c3c',
+    color: t.colors.error,
   },
   negative: {
-    color: '#3498db',
+    color: t.colors.primary,
   },
   emptyContainer: {
     alignItems: 'center',

@@ -4,6 +4,13 @@ const multer = require('multer');
 const upload = require('../config/multer');
 const { authenticateToken } = require('../middleware/auth');
 
+// 안전한 URL 생성 (프로덕션에서는 항상 HTTPS)
+const getSecureBaseUrl = (req) => {
+  const protocol = process.env.NODE_ENV === 'production' ? 'https' : req.protocol;
+  const host = process.env.BASE_URL || req.get('host');
+  return `${protocol}://${host}`;
+};
+
 /**
  * POST /api/upload/profile
  * 프로필 이미지 업로드 (인증 필요)
@@ -14,8 +21,8 @@ router.post('/profile', authenticateToken, upload.single('image'), (req, res) =>
       return res.status(400).json({ error: '파일이 업로드되지 않았습니다' });
     }
 
-    // 업로드된 파일의 URL 생성
-    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/profiles/${req.file.filename}`;
+    // 업로드된 파일의 URL 생성 (프로덕션에서는 HTTPS 강제)
+    const imageUrl = `${getSecureBaseUrl(req)}/uploads/profiles/${req.file.filename}`;
 
     res.json({
       message: '이미지가 업로드되었습니다',
@@ -38,8 +45,8 @@ router.post('/post', authenticateToken, upload.single('image'), (req, res) => {
       return res.status(400).json({ error: '파일이 업로드되지 않았습니다' });
     }
 
-    // 업로드된 파일의 URL 생성
-    const imageUrl = `${req.protocol}://${req.get('host')}/uploads/posts/${req.file.filename}`;
+    // 업로드된 파일의 URL 생성 (프로덕션에서는 HTTPS 강제)
+    const imageUrl = `${getSecureBaseUrl(req)}/uploads/posts/${req.file.filename}`;
 
     res.json({
       message: '이미지가 업로드되었습니다',

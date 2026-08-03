@@ -5,6 +5,8 @@ const { getShareholding } = require('../utils/shareholderHelper');
 const { processReferralCommission } = require('./referralController');
 const { autoAssignShareholderBadge } = require('./badgeController');
 const { selectRoomAdmin } = require('./communityAdminController');
+const { applyTradePrice } = require('../utils/priceEngine');
+const { checkTradable } = require('../utils/tradeGuard');
 
 /**
  * 시장 개요 조회
@@ -209,6 +211,14 @@ exports.createBuyOrder = async (req, res) => {
       return res.status(400).json({ error: '수량과 가격은 0보다 커야 합니다.' });
     }
 
+    // 본인 미인증(가상 사전상장) 종목 거래 차단 (초상권 보호)
+    const buyTargetStock = await Stock.findOne({ where: { userId: targetUserId }, transaction });
+    const buyTradable = checkTradable(buyTargetStock);
+    if (!buyTradable.ok) {
+      await transaction.rollback();
+      return res.status(403).json({ error: buyTradable.message });
+    }
+
     const totalAmount = parseFloat(pricePerShare) * quantity;
 
     // 지갑 확인 및 잔액 체크
@@ -297,6 +307,14 @@ exports.createSellOrder = async (req, res) => {
       });
     }
 
+    // 본인 미인증(가상 사전상장) 종목 거래 차단 (초상권 보호)
+    const sellTargetStock = await Stock.findOne({ where: { userId: targetUserId }, transaction });
+    const sellTradable = checkTradable(sellTargetStock);
+    if (!sellTradable.ok) {
+      await transaction.rollback();
+      return res.status(403).json({ error: sellTradable.message });
+    }
+
     // 보유 주식 확인
     const shareholding = await getShareholding(userId, targetUserId);
 
@@ -381,6 +399,9 @@ async function matchOrders(newOrderId) {
       transaction
     });
 
+    let lastTradePrice = null;
+    let totalMatchedVolume = 0;
+
     for (const matchOrder of matchingOrders) {
       if (newOrder.filledQuantity >= newOrder.quantity) break;
 
@@ -396,6 +417,10 @@ async function matchOrders(newOrderId) {
       // 체결 가격 (먼저 주문한 가격으로 체결)
       const tradePrice = matchOrder.pricePerShare;
       const tradeAmount = parseFloat(tradePrice) * tradeQuantity;
+
+      // 마지막 체결가 = 현재가 반영용
+      lastTradePrice = parseFloat(tradePrice);
+      totalMatchedVolume += tradeQuantity;
 
       // 체결 기록 생성
       const trade = await StockTrade.create({
@@ -493,6 +518,20 @@ async function matchOrders(newOrderId) {
 
         // 방장 재선출
         await selectRoomAdmin(community.id);
+      }
+    }
+
+    // 체결가 = 현재가 반영 (마지막 체결가, 누적 체결 수량)
+    if (lastTradePrice !== null) {
+      const stock = await Stock.findOne({
+        where: { userId: newOrder.targetUserId },
+        transaction
+      });
+      if (stock) {
+        await applyTradePrice(stock, lastTradePrice, {
+          volume: totalMatchedVolume,
+          transaction
+        });
       }
     }
 

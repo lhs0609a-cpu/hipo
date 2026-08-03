@@ -1,9 +1,10 @@
 import React from 'react';
+import { getAppWidth, getAppHeight } from '../utils/appWidth';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { FadeIn } from './Animated';
 import theme from '../styles/theme';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const SCREEN_WIDTH = getAppWidth();
 const STORY_SIZE = 70;
 
 /**

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -11,6 +12,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../i18n';
 
 export default function LanguageSelectionScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
   const { language: currentLanguage, languages, changeLanguage } = useLanguage();
   const [isChanging, setIsChanging] = useState(false);
 
@@ -93,16 +95,16 @@ export default function LanguageSelectionScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
   },
   header: {
     padding: 20,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: t.colors.border,
   },
   headerTitle: {
     fontSize: 24,
@@ -123,14 +125,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 16,
     marginBottom: 12,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: 'transparent',
   },
   languageItemActive: {
-    backgroundColor: '#e8f5e9',
-    borderColor: '#4caf50',
+    backgroundColor: t.colors.successBackground,
+    borderColor: t.colors.success,
   },
   languageInfo: {
     flexDirection: 'row',
@@ -146,14 +148,14 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   languageNameActive: {
-    color: '#2e7d32',
+    color: t.colors.successText,
     fontWeight: 'bold',
   },
   checkmark: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#4caf50',
+    backgroundColor: t.colors.success,
     alignItems: 'center',
     justifyContent: 'center',
   },

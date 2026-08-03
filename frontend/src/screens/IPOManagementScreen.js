@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -15,6 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { ipoAPI } from '../services/api';
 
 const IPOManagementScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [ipoStatus, setIpoStatus] = useState(null);
@@ -74,11 +78,11 @@ const IPOManagementScreen = ({ navigation }) => {
 
   const getTierColor = (tier) => {
     const colors = {
-      BRONZE: '#CD7F32',
-      SILVER: '#C0C0C0',
-      GOLD: '#FFD700',
-      PLATINUM: '#E5E4E2',
-      DIAMOND: '#B9F2FF',
+      BRONZE: '#B87333',
+      SILVER: '#9BA3AF',
+      GOLD: '#D9A521',
+      PLATINUM: '#6E8CA0',
+      DIAMOND: '#3FB6C9',
     };
     return colors[tier] || '#999';
   };
@@ -205,15 +209,15 @@ const IPOManagementScreen = ({ navigation }) => {
   };
 
   const getProgressColor = (progress) => {
-    if (progress >= 100) return '#00C471';
-    if (progress >= 60) return '#FFB800';
-    return '#F04452';
+    if (progress >= 100) return '#00B368';
+    if (progress >= 60) return '#F59B00';
+    return '#F0344B';
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
@@ -222,7 +226,7 @@ const IPOManagementScreen = ({ navigation }) => {
   if (!ipoStatus?.hasStock) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
@@ -239,7 +243,7 @@ const IPOManagementScreen = ({ navigation }) => {
           {/* 상장 안내 카드 */}
           <View style={styles.notListedCard}>
             <View style={styles.notListedIcon}>
-              <Ionicons name="rocket-outline" size={48} color="#3182F6" />
+              <Ionicons name="rocket-outline" size={48} color="#2B5FE3" />
             </View>
             <Text style={styles.notListedTitle}>아직 상장하지 않았습니다</Text>
             <Text style={styles.notListedDesc}>
@@ -290,8 +294,8 @@ const IPOManagementScreen = ({ navigation }) => {
           <View style={styles.benefitsSection}>
             <Text style={styles.benefitsSectionTitle}>상장 혜택</Text>
             <View style={styles.benefitItem}>
-              <View style={[styles.benefitIcon, { backgroundColor: '#E8F5E9' }]}>
-                <Ionicons name="cash-outline" size={24} color="#00C471" />
+              <View style={[styles.benefitIcon, { backgroundColor: '#E7F8F0' }]}>
+                <Ionicons name="cash-outline" size={24} color="#00B368" />
               </View>
               <View style={styles.benefitContent}>
                 <Text style={styles.benefitTitle}>투자 유치</Text>
@@ -299,8 +303,8 @@ const IPOManagementScreen = ({ navigation }) => {
               </View>
             </View>
             <View style={styles.benefitItem}>
-              <View style={[styles.benefitIcon, { backgroundColor: '#E3F2FD' }]}>
-                <Ionicons name="trending-up-outline" size={24} color="#3182F6" />
+              <View style={[styles.benefitIcon, { backgroundColor: '#EEF4FF' }]}>
+                <Ionicons name="trending-up-outline" size={24} color="#2B5FE3" />
               </View>
               <View style={styles.benefitContent}>
                 <Text style={styles.benefitTitle}>가치 상승</Text>
@@ -308,8 +312,8 @@ const IPOManagementScreen = ({ navigation }) => {
               </View>
             </View>
             <View style={styles.benefitItem}>
-              <View style={[styles.benefitIcon, { backgroundColor: '#FFF3E0' }]}>
-                <Ionicons name="people-outline" size={24} color="#FF9800" />
+              <View style={[styles.benefitIcon, { backgroundColor: '#FFF6E6' }]}>
+                <Ionicons name="people-outline" size={24} color="#F59B00" />
               </View>
               <View style={styles.benefitContent}>
                 <Text style={styles.benefitTitle}>커뮤니티</Text>
@@ -324,7 +328,7 @@ const IPOManagementScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -388,7 +392,7 @@ const IPOManagementScreen = ({ navigation }) => {
         {/* 락업 상태 */}
         {lockupStatus?.hasLockup && (
           <View style={styles.lockupCard}>
-            <Ionicons name="lock-closed" size={24} color="#F04452" />
+            <Ionicons name="lock-closed" size={24} color="#F0344B" />
             <View style={styles.lockupInfo}>
               <Text style={styles.lockupTitle}>락업 기간 중</Text>
               <Text style={styles.lockupDesc}>
@@ -443,7 +447,7 @@ const IPOManagementScreen = ({ navigation }) => {
             onPress={() => setSecondaryModalVisible(true)}
           >
             <View style={[styles.menuIcon, { backgroundColor: '#3182F620' }]}>
-              <Ionicons name="add-circle" size={24} color="#3182F6" />
+              <Ionicons name="add-circle" size={24} color="#2B5FE3" />
             </View>
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>유상증자</Text>
@@ -457,7 +461,7 @@ const IPOManagementScreen = ({ navigation }) => {
             onPress={() => setBuybackModalVisible(true)}
           >
             <View style={[styles.menuIcon, { backgroundColor: '#00C47120' }]}>
-              <Ionicons name="arrow-down-circle" size={24} color="#00C471" />
+              <Ionicons name="arrow-down-circle" size={24} color="#00B368" />
             </View>
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>자사주 매입</Text>
@@ -471,7 +475,7 @@ const IPOManagementScreen = ({ navigation }) => {
             onPress={() => setBurnModalVisible(true)}
           >
             <View style={[styles.menuIcon, { backgroundColor: '#F0445220' }]}>
-              <Ionicons name="flame" size={24} color="#F04452" />
+              <Ionicons name="flame" size={24} color="#F0344B" />
             </View>
             <View style={styles.menuContent}>
               <Text style={styles.menuTitle}>자사주 소각</Text>
@@ -485,10 +489,10 @@ const IPOManagementScreen = ({ navigation }) => {
             onPress={() => setDelistingModalVisible(true)}
           >
             <View style={[styles.menuIcon, { backgroundColor: '#FF000020' }]}>
-              <Ionicons name="close-circle" size={24} color="#FF0000" />
+              <Ionicons name="close-circle" size={24} color="#F0344B" />
             </View>
             <View style={styles.menuContent}>
-              <Text style={[styles.menuTitle, { color: '#FF0000' }]}>상장폐지 요청</Text>
+              <Text style={[styles.menuTitle, { color: '#F0344B' }]}>상장폐지 요청</Text>
               <Text style={styles.menuDesc}>주식 상장을 취소합니다</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color="#999" />
@@ -635,7 +639,7 @@ const IPOManagementScreen = ({ navigation }) => {
                 <Text style={styles.cancelButtonText}>취소</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.confirmButton, { backgroundColor: '#F04452' }]}
+                style={[styles.confirmButton, { backgroundColor: '#F0344B' }]}
                 onPress={handleBurnTreasury}
               >
                 <Text style={styles.confirmButtonText}>소각</Text>
@@ -649,7 +653,7 @@ const IPOManagementScreen = ({ navigation }) => {
       <Modal visible={delistingModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={[styles.modalTitle, { color: '#FF0000' }]}>상장폐지 요청</Text>
+            <Text style={[styles.modalTitle, { color: '#F0344B' }]}>상장폐지 요청</Text>
             <Text style={styles.modalDesc}>
               상장폐지 시 모든 주주에게 매입가를 지불해야 합니다.{'\n'}
               이 작업은 되돌릴 수 없습니다.
@@ -685,7 +689,7 @@ const IPOManagementScreen = ({ navigation }) => {
                 <Text style={styles.cancelButtonText}>취소</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.confirmButton, { backgroundColor: '#FF0000' }]}
+                style={[styles.confirmButton, { backgroundColor: '#F0344B' }]}
                 onPress={handleRequestDelisting}
               >
                 <Text style={styles.confirmButtonText}>요청</Text>
@@ -698,10 +702,10 @@ const IPOManagementScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -713,7 +717,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -758,7 +762,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 14,
     borderRadius: 8,
     marginTop: 16,
@@ -770,7 +774,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   requirementsBox: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     borderRadius: 8,
     padding: 16,
     marginTop: 16,
@@ -795,7 +799,7 @@ const styles = StyleSheet.create({
   },
   lockupCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFF5F5',
+    backgroundColor: t.colors.errorBackground,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -808,7 +812,7 @@ const styles = StyleSheet.create({
   lockupTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#F04452',
+    color: t.colors.error,
     marginBottom: 4,
   },
   lockupDesc: {
@@ -838,7 +842,7 @@ const styles = StyleSheet.create({
   },
   statItem: {
     width: '47%',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     padding: 16,
     borderRadius: 12,
   },
@@ -856,7 +860,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   dangerMenu: {
     borderBottomWidth: 0,
@@ -923,7 +927,7 @@ const styles = StyleSheet.create({
   estimatedAmount: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#3182F6',
+    color: t.colors.primary,
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -934,7 +938,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -945,7 +949,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -967,7 +971,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: t.colors.primaryBackground,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 20,
@@ -987,7 +991,7 @@ const styles = StyleSheet.create({
   },
   eligibilityPreview: {
     width: '100%',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -1009,7 +1013,7 @@ const styles = StyleSheet.create({
   },
   progressBarContainer: {
     height: 8,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: t.colors.border,
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 10,
@@ -1020,7 +1024,7 @@ const styles = StyleSheet.create({
   },
   eligibleText: {
     fontSize: 14,
-    color: '#00C471',
+    color: t.colors.success,
     fontWeight: '500',
     textAlign: 'center',
   },
@@ -1033,7 +1037,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 28,
     paddingVertical: 16,
     borderRadius: 12,
@@ -1060,7 +1064,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   benefitIcon: {
     width: 48,

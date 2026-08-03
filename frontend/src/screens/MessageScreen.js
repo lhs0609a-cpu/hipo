@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -15,6 +17,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSocket } from '../contexts/SocketContext';
 
 export default function MessageScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -126,7 +130,7 @@ export default function MessageScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -164,10 +168,10 @@ export default function MessageScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
@@ -179,14 +183,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   headerRight: {
     flexDirection: 'row',
@@ -196,26 +200,26 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: COLORS.success,
+    backgroundColor: t.colors.success,
     marginRight: 6,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   listContent: {
     padding: 16,
   },
   conversationCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   conversationCardUnread: {
-    borderColor: COLORS.primary,
+    borderColor: t.colors.primary,
     borderWidth: 2,
   },
   conversationHeader: {
@@ -225,7 +229,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -246,14 +250,14 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   usernameUnread: {
     fontWeight: 'bold',
   },
   time: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   conversationBottom: {
     flexDirection: 'row',
@@ -262,15 +266,15 @@ const styles = StyleSheet.create({
   },
   lastMessage: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     flex: 1,
   },
   lastMessageUnread: {
-    color: COLORS.text,
+    color: t.colors.text,
     fontWeight: '600',
   },
   unreadBadge: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -292,11 +296,11 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
 });

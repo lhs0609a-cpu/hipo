@@ -6,13 +6,24 @@ const User = require('../models/User');
 
 // NewsAPI.org 사용 (무료 API 키: https://newsapi.org/)
 // 또는 네이버 검색 API 사용 가능
-const NEWS_API_KEY = process.env.NEWS_API_KEY || 'demo'; // .env에 추가 필요
+const NEWS_API_KEY = process.env.NEWS_API_KEY;
+
+// 프로덕션에서 API 키가 없으면 경고
+if (!NEWS_API_KEY) {
+  if (process.env.NODE_ENV === 'production') {
+    console.error('[WARN] NEWS_API_KEY not configured - news features disabled');
+  } else {
+    console.warn('[DEV] NEWS_API_KEY not set - using demo mode (limited functionality)');
+  }
+}
 
 // 뉴스 검색 키워드 생성 함수 (동명이인 문제 해결)
 const buildSearchKeyword = (user) => {
-  // 1순위: 커스텀 뉴스 키워드가 있으면 사용
-  if (user.newsKeywords) {
-    return user.newsKeywords.split(',')[0].trim();
+  // 1순위: 커스텀 뉴스 키워드가 있으면 사용 (검증 추가)
+  if (user.newsKeywords && typeof user.newsKeywords === 'string') {
+    const keyword = user.newsKeywords.split(',')[0].trim();
+    // 최대 길이 100자로 제한
+    return keyword.substring(0, 100);
   }
 
   // 2순위: 실명 + 직업으로 구체화
@@ -207,19 +218,19 @@ router.get('/my-creators', authenticateToken, async (req, res) => {
       users = follows;
     } else if (type === 'invested') {
       // 주식 보유한 크리에이터
-      const Stock = require('../models/Stock');
-      const StockHolding = require('../models/StockHolding');
+      const { Stock, Holding } = require('../models');
 
-      const holdings = await StockHolding.findAll({
-        where: { userId },
+      const holdings = await Holding.findAll({
+        where: { holderId: userId },
         include: [{
           model: Stock,
-          include: [{ model: User, attributes: ['id', 'username', 'trustLevel', 'realName', 'occupation', 'category', 'newsKeywords', 'isVerified'] }],
+          as: 'stock',
+          include: [{ model: User, as: 'issuer', attributes: ['id', 'username', 'trustLevel', 'realName', 'occupation', 'category', 'newsKeywords', 'isVerified'] }],
         }],
         limit: 20,
       });
 
-      users = holdings.map(h => h.Stock.User).filter(u => u);
+      users = holdings.map(h => h.stock?.issuer).filter(u => u);
     } else if (type === 'popular') {
       // 신뢰도 높은 인기 크리에이터
       users = await User.findAll({

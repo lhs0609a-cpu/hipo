@@ -5,6 +5,8 @@ import { COLORS } from '../../constants/colors';
 const TABS = [
   { key: 'chart', label: '차트' },
   { key: 'orderbook', label: '호가' },
+  { key: 'trades', label: '체결' },
+  { key: 'depth', label: '깊이' },
   { key: 'info', label: '정보' },
 ];
 

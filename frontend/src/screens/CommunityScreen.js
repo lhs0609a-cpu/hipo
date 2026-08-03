@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -8,15 +10,22 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { getPosts, likePost, getMyInvestmentNews } from '../api/posts';
-import { COLORS } from '../constants/colors';
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function CommunityScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
+  const { theme, isDark } = useTheme();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [feedType, setFeedType] = useState('investment'); // 'investment', 'all' or 'following'
+  const [feedType, setFeedType] = useState('investment');
+
+  // Animation for like button
+  const createLikeAnimation = () => new Animated.Value(1);
 
   useEffect(() => {
     loadPosts();
@@ -26,7 +35,6 @@ export default function CommunityScreen({ navigation }) {
     try {
       let data;
       if (feedType === 'investment') {
-        // 내가 주식을 산 사람의 피드
         data = await getMyInvestmentNews();
         setPosts(data.news || []);
       } else {
@@ -50,7 +58,6 @@ export default function CommunityScreen({ navigation }) {
   const handleLike = async (postId) => {
     try {
       await likePost(postId);
-      // 좋아요 상태 업데이트
       setPosts(posts.map(post => {
         if (post.id === postId) {
           return {
@@ -66,114 +73,11 @@ export default function CommunityScreen({ navigation }) {
     }
   };
 
-  const renderPost = ({ item }) => {
-    // 잠긴 포스트 처리
-    if (item.contentLocked) {
-      return (
-        <View style={styles.postCard}>
-          <View style={styles.postHeader}>
-            <TouchableOpacity
-              style={styles.authorInfo}
-              onPress={() => item.author?.id && navigation.navigate('Profile', { userId: item.author.id })}
-            >
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>
-                  {item.author?.username?.charAt(0)?.toUpperCase() || '?'}
-                </Text>
-              </View>
-              <View>
-                <Text style={styles.authorName}>{item.author?.username || '알 수 없음'}</Text>
-                <Text style={styles.postDate}>{formatDate(item.createdAt)}</Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.lockedContent}>
-            <Text style={styles.lockIcon}>🔒</Text>
-            <Text style={styles.lockText}>{item.content}</Text>
-          </View>
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.postCard}>
-        {/* 포스트 헤더 */}
-        <View style={styles.postHeader}>
-          <TouchableOpacity
-            style={styles.authorInfo}
-            onPress={() => item.author?.id && navigation.navigate('Profile', { userId: item.author.id })}
-          >
-            <View style={styles.avatar}>
-              {item.author?.profileImage ? (
-                <Image source={{ uri: item.author.profileImage }} style={styles.avatarImage} />
-              ) : (
-                <Text style={styles.avatarText}>
-                  {item.author?.username?.charAt(0)?.toUpperCase() || '?'}
-                </Text>
-              )}
-            </View>
-            <View>
-              <Text style={styles.authorName}>{item.author?.username || '알 수 없음'}</Text>
-              <Text style={styles.postDate}>{formatDate(item.createdAt)}</Text>
-            </View>
-          </TouchableOpacity>
-
-          {/* 공개 범위 뱃지 */}
-          {item.visibilityType !== 'PUBLIC' && (
-            <View style={styles.visibilityBadge}>
-              <Text style={styles.visibilityText}>
-                {item.visibilityType === 'SHAREHOLDERS_ONLY' ? '주주 전용' : `${item.minimumShares}주+`}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* 포스트 이미지 */}
-        {item.imageUrl && (
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={styles.postImage}
-            resizeMode="cover"
-          />
-        )}
-
-        {/* 포스트 내용 */}
-        {item.content && (
-          <View style={styles.contentContainer}>
-            <Text style={styles.content}>{item.content}</Text>
-          </View>
-        )}
-
-        {/* 포스트 액션 */}
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleLike(item.id)}
-          >
-            <Text style={[styles.actionIcon, item.isLiked && { color: COLORS.up }]}>
-              {item.isLiked ? '❤️' : '🤍'}
-            </Text>
-            <Text style={styles.actionText}>{item.likesCount || 0}</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => navigation.navigate('PostDetail', { postId: item.id })}
-          >
-            <Text style={styles.actionIcon}>💬</Text>
-            <Text style={styles.actionText}>{item.commentsCount || 0}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
-
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     const now = new Date();
-    const diff = Math.floor((now - date) / 1000); // 초 단위
+    const diff = Math.floor((now - date) / 1000);
 
     if (diff < 60) return '방금 전';
     if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
@@ -183,21 +87,146 @@ export default function CommunityScreen({ navigation }) {
     return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
   };
 
+  const renderPost = ({ item, index }) => {
+    if (item.contentLocked) {
+      return (
+        <Animated.View
+          style={[
+            styles.postCard,
+            { backgroundColor: theme.colors.surface }
+          ]}
+        >
+          <View style={styles.postHeader}>
+            <TouchableOpacity
+              style={styles.authorInfo}
+              onPress={() => item.author?.id && navigation.navigate('Profile', { userId: item.author.id })}
+            >
+              <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
+                <Text style={styles.avatarText}>
+                  {item.author?.username?.charAt(0)?.toUpperCase() || '?'}
+                </Text>
+              </View>
+              <View>
+                <Text style={[styles.authorName, { color: theme.colors.textPrimary }]}>
+                  {item.author?.username || '알 수 없음'}
+                </Text>
+                <Text style={[styles.postDate, { color: theme.colors.textSecondary }]}>
+                  {formatDate(item.createdAt)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.lockedContent}>
+            <Text style={styles.lockIcon}>🔒</Text>
+            <Text style={[styles.lockText, { color: theme.colors.textSecondary }]}>
+              {item.content}
+            </Text>
+          </View>
+        </Animated.View>
+      );
+    }
+
+    return (
+      <Animated.View
+        style={[
+          styles.postCard,
+          { backgroundColor: theme.colors.surface }
+        ]}
+      >
+        <View style={styles.postHeader}>
+          <TouchableOpacity
+            style={styles.authorInfo}
+            onPress={() => item.author?.id && navigation.navigate('Profile', { userId: item.author.id })}
+          >
+            <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
+              {item.author?.profileImage ? (
+                <Image source={{ uri: item.author.profileImage }} style={styles.avatarImage} />
+              ) : (
+                <Text style={styles.avatarText}>
+                  {item.author?.username?.charAt(0)?.toUpperCase() || '?'}
+                </Text>
+              )}
+            </View>
+            <View>
+              <Text style={[styles.authorName, { color: theme.colors.textPrimary }]}>
+                {item.author?.username || '알 수 없음'}
+              </Text>
+              <Text style={[styles.postDate, { color: theme.colors.textSecondary }]}>
+                {formatDate(item.createdAt)}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {item.visibilityType !== 'PUBLIC' && (
+            <View style={[styles.visibilityBadge, { backgroundColor: theme.colors.primary }]}>
+              <Text style={styles.visibilityText}>
+                {item.visibilityType === 'SHAREHOLDERS_ONLY' ? '주주 전용' : `${item.minimumShares}주+`}
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {item.imageUrl && (
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={[styles.postImage, { backgroundColor: theme.colors.backgroundSecondary }]}
+            resizeMode="cover"
+          />
+        )}
+
+        {item.content && (
+          <View style={styles.contentContainer}>
+            <Text style={[styles.content, { color: theme.colors.textPrimary }]}>
+              {item.content}
+            </Text>
+          </View>
+        )}
+
+        <View style={[styles.actionsContainer, { borderTopColor: theme.colors.divider }]}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => handleLike(item.id)}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.actionIcon, item.isLiked && { color: theme.colors.stockUp }]}>
+              {item.isLiked ? '❤️' : '🤍'}
+            </Text>
+            <Text style={[styles.actionText, { color: theme.colors.textPrimary }]}>
+              {item.likesCount || 0}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate('PostDetail', { postId: item.id })}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.actionIcon}>💬</Text>
+            <Text style={[styles.actionText, { color: theme.colors.textPrimary }]}>
+              {item.commentsCount || 0}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Animated.View>
+    );
+  };
+
   if (loading) {
     return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+      <View style={[styles.centerContainer, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }, { backgroundColor: theme.colors.background }]}>
       {/* 헤더 */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>피드</Text>
+      <View style={[styles.header, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
+        <Text style={[styles.headerTitle, { color: theme.colors.textPrimary }]}>피드</Text>
         <TouchableOpacity
-          style={styles.createButton}
+          style={[styles.createButton, { backgroundColor: theme.colors.primary }]}
           onPress={() => navigation.navigate('CreatePost')}
         >
           <Text style={styles.createButtonText}>+ 글쓰기</Text>
@@ -205,28 +234,52 @@ export default function CommunityScreen({ navigation }) {
       </View>
 
       {/* 피드 타입 토글 */}
-      <View style={styles.feedToggle}>
+      <View style={[styles.feedToggle, { backgroundColor: theme.colors.surface, borderBottomColor: theme.colors.border }]}>
         <TouchableOpacity
-          style={[styles.toggleButton, feedType === 'investment' && styles.toggleButtonActive]}
+          style={[
+            styles.toggleButton,
+            { backgroundColor: theme.colors.backgroundSecondary },
+            feedType === 'investment' && { backgroundColor: theme.colors.primary }
+          ]}
           onPress={() => setFeedType('investment')}
         >
-          <Text style={[styles.toggleText, feedType === 'investment' && styles.toggleTextActive]}>
+          <Text style={[
+            styles.toggleText,
+            { color: theme.colors.textSecondary },
+            feedType === 'investment' && styles.toggleTextActive
+          ]}>
             투자 피드
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.toggleButton, feedType === 'all' && styles.toggleButtonActive]}
+          style={[
+            styles.toggleButton,
+            { backgroundColor: theme.colors.backgroundSecondary },
+            feedType === 'all' && { backgroundColor: theme.colors.primary }
+          ]}
           onPress={() => setFeedType('all')}
         >
-          <Text style={[styles.toggleText, feedType === 'all' && styles.toggleTextActive]}>
+          <Text style={[
+            styles.toggleText,
+            { color: theme.colors.textSecondary },
+            feedType === 'all' && styles.toggleTextActive
+          ]}>
             전체
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.toggleButton, feedType === 'following' && styles.toggleButtonActive]}
+          style={[
+            styles.toggleButton,
+            { backgroundColor: theme.colors.backgroundSecondary },
+            feedType === 'following' && { backgroundColor: theme.colors.primary }
+          ]}
           onPress={() => setFeedType('following')}
         >
-          <Text style={[styles.toggleText, feedType === 'following' && styles.toggleTextActive]}>
+          <Text style={[
+            styles.toggleText,
+            { color: theme.colors.textSecondary },
+            feedType === 'following' && styles.toggleTextActive
+          ]}>
             팔로잉
           </Text>
         </TouchableOpacity>
@@ -235,33 +288,41 @@ export default function CommunityScreen({ navigation }) {
       <FlatList
         data={posts}
         renderItem={renderPost}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id?.toString()}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>📝</Text>
-            <Text style={styles.emptyText}>아직 게시글이 없습니다</Text>
-            <Text style={styles.emptySubtext}>첫 번째 글을 작성해보세요!</Text>
+            <Text style={[styles.emptyText, { color: theme.colors.textPrimary }]}>
+              아직 게시글이 없습니다
+            </Text>
+            <Text style={[styles.emptySubtext, { color: theme.colors.textSecondary }]}>
+              첫 번째 글을 작성해보세요!
+            </Text>
           </View>
         }
         contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
   },
   header: {
     flexDirection: 'row',
@@ -269,59 +330,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: COLORS.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.text,
   },
   createButton: {
-    backgroundColor: COLORS.primary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
   },
   createButtonText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 14,
     fontWeight: '600',
   },
   feedToggle: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
     paddingHorizontal: 20,
     paddingVertical: 12,
     gap: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
   },
   toggleButton: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 8,
-    backgroundColor: COLORS.background,
+    borderRadius: 10,
     alignItems: 'center',
-  },
-  toggleButtonActive: {
-    backgroundColor: COLORS.primary,
   },
   toggleText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textSecondary,
   },
   toggleTextActive: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   listContent: {
-    padding: 0,
+    paddingBottom: 100,
   },
   postCard: {
-    backgroundColor: COLORS.surface,
     marginBottom: 8,
     paddingVertical: 16,
   },
@@ -337,77 +386,73 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.primary,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   avatarImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
   avatarText: {
-    color: '#FFFFFF',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 18,
     fontWeight: '700',
   },
   authorName: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
-    color: COLORS.text,
     marginBottom: 2,
   },
   postDate: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
+    fontSize: 13,
   },
   visibilityBadge: {
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 14,
   },
   visibilityText: {
-    color: '#FFFFFF',
-    fontSize: 11,
+    color: t.colors.surface,
+    fontSize: 12,
     fontWeight: '600',
   },
   postImage: {
     width: '100%',
     height: 300,
-    backgroundColor: COLORS.background,
   },
   contentContainer: {
     paddingHorizontal: 20,
     paddingTop: 12,
   },
   content: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: COLORS.text,
+    fontSize: 16,
+    lineHeight: 24,
   },
   actionsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingTop: 12,
-    gap: 16,
+    paddingTop: 14,
+    marginTop: 12,
+    gap: 20,
+    borderTopWidth: 1,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    paddingVertical: 4,
   },
   actionIcon: {
-    fontSize: 20,
+    fontSize: 22,
   },
   actionText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: COLORS.text,
   },
   lockedContent: {
     paddingHorizontal: 20,
@@ -420,7 +465,6 @@ const styles = StyleSheet.create({
   },
   lockText: {
     fontSize: 14,
-    color: COLORS.textSecondary,
     textAlign: 'center',
   },
   emptyContainer: {
@@ -434,11 +478,9 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: COLORS.textSecondary,
   },
 });

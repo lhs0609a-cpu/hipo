@@ -2,13 +2,30 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { COLORS } from '../../constants/colors';
 
-const PERIODS = [
-  { key: '1D', label: '1일', timeframe: '1h', limit: 24 },
-  { key: '1W', label: '1주', timeframe: '1d', limit: 7 },
+/**
+ * 기간별로 어떤 봉을 몇 개 볼지.
+ *
+ * timeframe 값은 백엔드 getPriceHistory 의 화이트리스트
+ * ['1m','5m','15m','1h','4h','1d','1w','1M'] 와 일치해야 한다.
+ * 어긋나면 서버가 조용히 '1d' 로 폴백해 엉뚱한 봉이 나온다.
+ */
+export const PERIODS = [
+  { key: '1D', label: '1일', timeframe: '5m', limit: 288 },
+  { key: '1W', label: '1주', timeframe: '1h', limit: 168 },
   { key: '1M', label: '1개월', timeframe: '1d', limit: 30 },
   { key: '3M', label: '3개월', timeframe: '1d', limit: 90 },
   { key: '1Y', label: '1년', timeframe: '1d', limit: 365 },
 ];
+
+/** 분·시간봉 여부. x축 라벨을 시:분으로 쓸지 판단할 때 사용. */
+export const isIntraday = (timeframe) => /m$|h$/.test(timeframe || '');
+
+/**
+ * 기간 키 → 조회 설정.
+ * StockChart 가 따로 같은 표를 갖고 있다가 값이 어긋난 적이 있어 여기로 모았다.
+ */
+export const getPeriodConfig = (key) =>
+  PERIODS.find((p) => p.key === key) || { key: '3M', timeframe: '1d', limit: 90 };
 
 export default function TimePeriodSelector({ selected, onChange }) {
   return (
@@ -42,12 +59,6 @@ export default function TimePeriodSelector({ selected, onChange }) {
     </View>
   );
 }
-
-// 기간별 설정 반환 함수 export
-export const getPeriodConfig = (periodKey) => {
-  const period = PERIODS.find((p) => p.key === periodKey);
-  return period || PERIODS[2]; // 기본값: 1개월
-};
 
 const styles = StyleSheet.create({
   container: {

@@ -38,7 +38,7 @@ router.post('/charge/request', authenticateToken, async (req, res) => {
     const bonus = tossPaymentService.calculateBonus(amount);
 
     // 주문 ID 생성 (중복 방지: timestamp + userId + random)
-    const orderId = `ORDER_${Date.now()}_${userId}_${Math.random().toString(36).substr(2, 9)}`;
+    const orderId = `ORDER_${Date.now()}_${userId}_${Math.random().toString(36).substring(2, 11)}`;
 
     // Payment 레코드 생성 (PENDING 상태)
     const payment = await Payment.create({
@@ -63,6 +63,40 @@ router.post('/charge/request', authenticateToken, async (req, res) => {
     });
   } catch (error) {
     console.error('충전 요청 오류:', error);
+    res.status(500).json({ success: false, error: '서버 오류' });
+  }
+});
+
+// 결제 상태 확인 (모바일에서 결제 후 상태 확인용)
+router.get('/charge/status/:orderId', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { orderId } = req.params;
+
+    const payment = await Payment.findOne({
+      where: { orderId, userId }
+    });
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        error: '주문을 찾을 수 없습니다'
+      });
+    }
+
+    res.json({
+      success: true,
+      orderId: payment.orderId,
+      status: payment.status,
+      amount: payment.amount,
+      bonusAmount: payment.bonusAmount,
+      totalAmount: payment.totalAmount,
+      paymentMethod: payment.paymentMethod,
+      completedAt: payment.completedAt,
+      failureReason: payment.failureReason
+    });
+  } catch (error) {
+    console.error('결제 상태 조회 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류' });
   }
 });
@@ -403,6 +437,145 @@ router.get('/admin/stats', authenticateToken, async (req, res) => {
     console.error('결제 통계 조회 오류:', error);
     res.status(500).json({ success: false, error: '서버 오류' });
   }
+});
+
+// 토스페이먼츠 결제 위젯 페이지 (모바일 인앱 브라우저에서 사용)
+router.get('/checkout', (req, res) => {
+  const { orderId, amount, orderName, customerName, method } = req.query;
+  const clientKey = tossPaymentService.getClientKey();
+
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HIPO 결제</title>
+  <script src="https://js.tosspayments.com/v1/payment"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }
+    .loading { text-align: center; color: #333; }
+    .loading p { margin-top: 16px; font-size: 16px; }
+    .spinner { width: 40px; height: 40px; border: 4px solid #e0e0e0; border-top: 4px solid #3182F6; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="loading">
+    <div class="spinner"></div>
+    <p>결제 페이지를 불러오는 중...</p>
+  </div>
+  <script>
+    var tossPayments = TossPayments('${clientKey}');
+    var baseUrl = window.location.origin;
+    tossPayments.requestPayment('${method === 'CARD' ? '카드' : method === 'TRANSFER' ? '계좌이체' : '카드'}', {
+      amount: ${parseInt(amount) || 0},
+      orderId: '${orderId}',
+      orderName: decodeURIComponent('${encodeURIComponent(orderName || 'PO 충전')}'),
+      customerName: decodeURIComponent('${encodeURIComponent(customerName || '사용자')}'),
+      successUrl: baseUrl + '/api/payment/mobile-success',
+      failUrl: baseUrl + '/api/payment/mobile-fail',
+    }).catch(function(error) {
+      if (error.code === 'USER_CANCEL') {
+        window.close();
+      } else {
+        alert(error.message);
+        window.close();
+      }
+    });
+  </script>
+</body>
+</html>`);
+});
+
+// 모바일 결제 성공 콜백 (토스페이먼츠에서 리다이렉트)
+router.get('/mobile-success', async (req, res) => {
+  const { paymentKey, orderId, amount } = req.query;
+
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>결제 완료</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }
+    .result { text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h2 { color: #333; margin-bottom: 8px; }
+    p { color: #666; margin-bottom: 24px; }
+    .info { background: #f0f7ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; color: #3182F6; }
+    button { background: #3182F6; color: white; border: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="result">
+    <div class="icon">&#10004;&#65039;</div>
+    <h2>결제가 완료되었습니다</h2>
+    <p>앱으로 돌아가면 잔액이 업데이트됩니다.</p>
+    <div class="info">주문번호: ${orderId}</div>
+    <button onclick="window.close()">확인</button>
+  </div>
+  <script>
+    // 결제 정보를 localStorage에 저장 (앱에서 읽을 수 있도록)
+    try {
+      localStorage.setItem('lastPayment', JSON.stringify({
+        paymentKey: '${paymentKey}',
+        orderId: '${orderId}',
+        amount: ${parseInt(amount) || 0},
+        status: 'success',
+        timestamp: Date.now()
+      }));
+    } catch(e) {}
+  </script>
+</body>
+</html>`);
+});
+
+// 모바일 결제 실패 콜백 (토스페이먼츠에서 리다이렉트)
+router.get('/mobile-fail', async (req, res) => {
+  const { code, message, orderId } = req.query;
+
+  // 결제 실패 상태 업데이트
+  if (orderId) {
+    try {
+      const payment = await Payment.findOne({ where: { orderId } });
+      if (payment && payment.status === 'PENDING') {
+        await payment.update({
+          status: 'FAILED',
+          failureReason: `${code}: ${message}`
+        });
+      }
+    } catch (err) {
+      console.error('결제 실패 상태 업데이트 오류:', err);
+    }
+  }
+
+  res.send(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>결제 실패</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f5f5f5; }
+    .result { text-align: center; background: white; padding: 40px; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .icon { font-size: 48px; margin-bottom: 16px; }
+    h2 { color: #333; margin-bottom: 8px; }
+    p { color: #666; margin-bottom: 24px; }
+    .error { background: #fff5f5; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; color: #ff6b6b; }
+    button { background: #3182F6; color: white; border: none; padding: 14px 32px; border-radius: 8px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div class="result">
+    <div class="icon">&#10060;</div>
+    <h2>결제에 실패했습니다</h2>
+    <p>${message || '다시 시도해주세요.'}</p>
+    <div class="error">오류 코드: ${code || 'UNKNOWN'}</div>
+    <button onclick="window.close()">닫기</button>
+  </div>
+</body>
+</html>`);
 });
 
 module.exports = router;

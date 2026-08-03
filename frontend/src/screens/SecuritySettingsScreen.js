@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -16,6 +18,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { securityAPI } from '../services/api';
 
 const SecuritySettingsScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState({
     twoFactorEnabled: false,
@@ -136,14 +140,14 @@ const SecuritySettingsScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -161,7 +165,7 @@ const SecuritySettingsScreen = ({ navigation }) => {
             onPress={() => setPinModalVisible(true)}
           >
             <View style={styles.settingLeft}>
-              <Ionicons name="keypad-outline" size={24} color="#3182F6" />
+              <Ionicons name="keypad-outline" size={24} color="#2B5FE3" />
               <View style={styles.settingInfo}>
                 <Text style={styles.settingTitle}>거래 비밀번호</Text>
                 <Text style={styles.settingDesc}>
@@ -177,7 +181,7 @@ const SecuritySettingsScreen = ({ navigation }) => {
             onPress={settings.twoFactorEnabled ? null : handleSetup2FA}
           >
             <View style={styles.settingLeft}>
-              <Ionicons name="shield-checkmark-outline" size={24} color="#3182F6" />
+              <Ionicons name="shield-checkmark-outline" size={24} color="#2B5FE3" />
               <View style={styles.settingInfo}>
                 <Text style={styles.settingTitle}>2단계 인증 (TOTP)</Text>
                 <Text style={styles.settingDesc}>
@@ -204,7 +208,7 @@ const SecuritySettingsScreen = ({ navigation }) => {
             onPress={() => setLimitModalVisible(true)}
           >
             <View style={styles.settingLeft}>
-              <Ionicons name="trending-up-outline" size={24} color="#3182F6" />
+              <Ionicons name="trending-up-outline" size={24} color="#2B5FE3" />
               <View style={styles.settingInfo}>
                 <Text style={styles.settingTitle}>일일 거래 한도</Text>
                 <Text style={styles.settingDesc}>
@@ -225,7 +229,7 @@ const SecuritySettingsScreen = ({ navigation }) => {
             onPress={() => navigation.navigate('IdentityVerification')}
           >
             <View style={styles.settingLeft}>
-              <Ionicons name="person-circle-outline" size={24} color="#3182F6" />
+              <Ionicons name="person-circle-outline" size={24} color="#2B5FE3" />
               <View style={styles.settingInfo}>
                 <Text style={styles.settingTitle}>신분증 인증</Text>
                 <Text style={[
@@ -237,7 +241,7 @@ const SecuritySettingsScreen = ({ navigation }) => {
               </View>
             </View>
             {settings.identityVerified ? (
-              <Ionicons name="checkmark-circle" size={24} color="#00C853" />
+              <Ionicons name="checkmark-circle" size={24} color="#00B368" />
             ) : (
               <Ionicons name="chevron-forward" size={20} color="#999" />
             )}
@@ -253,7 +257,7 @@ const SecuritySettingsScreen = ({ navigation }) => {
             onPress={() => navigation.navigate('LoginHistory')}
           >
             <View style={styles.settingLeft}>
-              <Ionicons name="time-outline" size={24} color="#3182F6" />
+              <Ionicons name="time-outline" size={24} color="#2B5FE3" />
               <View style={styles.settingInfo}>
                 <Text style={styles.settingTitle}>접속 기록</Text>
                 <Text style={styles.settingDesc}>최근 로그인 내역 확인</Text>
@@ -422,10 +426,10 @@ const SecuritySettingsScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -437,7 +441,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
@@ -466,7 +470,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: t.colors.backgroundSecondary,
   },
   settingLeft: {
     flexDirection: 'row',
@@ -486,10 +490,10 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   verifiedText: {
-    color: '#00C853',
+    color: t.colors.success,
   },
   activeBadge: {
-    backgroundColor: '#00C853',
+    backgroundColor: t.colors.success,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -550,7 +554,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   limitOption: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -565,7 +569,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -576,7 +580,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',

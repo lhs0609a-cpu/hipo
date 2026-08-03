@@ -1,6 +1,7 @@
 const { User, Referral, Attendance, InviteLeaderboard, Badge, UserBadge, Stock, Holding, Notification, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const crypto = require('crypto');
+const { updateBalance } = require('../utils/balanceService');
 
 // 추천 코드 생성
 const generateReferralCode = (username) => {
@@ -110,14 +111,12 @@ exports.applyReferralCode = async (req, res) => {
       status: 'PENDING'
     }, { transaction: t });
 
-    // 피추천인 보상 (1,000 PO)
-    const referredUser = await User.findByPk(userId);
-    referredUser.poBalance += 1000;
-    await referredUser.save({ transaction: t });
+    // 피추천인 보상 (1,000 PO) - User + Wallet 동시
+    await updateBalance(userId, 1000, { transaction: t });
+    const referredUser = await User.findByPk(userId, { transaction: t });
 
-    // 추천인 보상 (500 PO) - 가입 보상
-    referrer.poBalance += 500;
-    await referrer.save({ transaction: t });
+    // 추천인 보상 (500 PO) - User + Wallet 동시
+    await updateBalance(referrer.id, 500, { transaction: t });
 
     // 주간 리더보드 업데이트
     await updateWeeklyLeaderboard(referrer.id, t);
@@ -125,6 +124,7 @@ exports.applyReferralCode = async (req, res) => {
     // 알림 발송
     await Notification.create({
       userId: referrer.id,
+      actorId: userId,
       type: 'REFERRAL',
       title: '친구 초대 성공!',
       message: `${referredUser.username}님이 회원가입했습니다. 500 PO 지급!`,
@@ -195,15 +195,13 @@ exports.onReferredUserFirstTrade = async (userId) => {
     referral.totalCommission += 1000;
     await referral.save({ transaction: t });
 
-    // 추천인 추가 보상 (1,000 PO)
-    const referrer = await User.findByPk(referral.referrerId);
-    referrer.poBalance += 1000;
-    await referrer.save({ transaction: t });
+    // 추천인 추가 보상 (1,000 PO) - User + Wallet 동시
+    await updateBalance(referral.referrerId, 1000, { transaction: t });
+    const referrer = await User.findByPk(referral.referrerId, { transaction: t });
 
-    // 피추천인 추가 보상 (500 PO)
-    const referredUser = await User.findByPk(userId);
-    referredUser.poBalance += 500;
-    await referredUser.save({ transaction: t });
+    // 피추천인 추가 보상 (500 PO) - User + Wallet 동시
+    await updateBalance(userId, 500, { transaction: t });
+    const referredUser = await User.findByPk(userId, { transaction: t });
 
     // 주간 리더보드 - 완료 카운트 업데이트
     const weekStart = getWeekStart();
@@ -236,6 +234,7 @@ exports.onReferredUserFirstTrade = async (userId) => {
     // 알림 발송
     await Notification.create({
       userId: referral.referrerId,
+      actorId: userId,
       type: 'REFERRAL',
       title: '친구 첫 거래 완료!',
       message: `${referredUser.username}님이 첫 거래를 완료했습니다. 1,000 PO 추가 지급!`,
@@ -365,10 +364,8 @@ exports.checkIn = async (req, res) => {
       weeklyMilestone
     }, { transaction: t });
 
-    // PO 지급
-    const user = await User.findByPk(userId);
-    user.poBalance += totalReward;
-    await user.save({ transaction: t });
+    // PO 지급 (User + Wallet 동시)
+    await updateBalance(userId, totalReward, { transaction: t });
 
     await t.commit();
 
@@ -592,49 +589,137 @@ const getWeeklyReward = (rank) => {
 exports.getShareCard = async (req, res) => {
   try {
     const userId = req.user.id;
+    const { type, stockId } = req.query;
 
+    // === 주주 인증 카드 (type=shareholder & stockId 필요) ===
+    // "나는 OO의 N번째 주주" — 사는 사람이 자랑하며 외부로 퍼뜨리는 바이럴 카드
+    if (type === 'shareholder' && stockId) {
+      return await buildShareholderCard(req, res, userId, stockId);
+    }
+
+    // === 발행자(크리에이터) 카드 (기본) — 본인 종목 자랑 ===
     const user = await User.findByPk(userId, {
-      include: [{
-        model: Stock,
-        as: 'issuedStock'
-      }]
+      include: [{ model: Stock, as: 'issuedStock' }]
     });
 
-    if (!user.issuedStock) {
+    if (!user || !user.issuedStock) {
       return res.status(404).json({ message: '발행된 주식이 없습니다' });
     }
 
     const stock = user.issuedStock;
 
-    // 주가 변동 계산
-    const priceChange = stock.previousPrice
-      ? ((stock.currentPrice - stock.previousPrice) / stock.previousPrice * 100).toFixed(2)
-      : 0;
+    // 등락률: Stock에 계산된 priceChangePercent가 있으면 사용, 없으면 previousClose 대비 계산
+    const sharePrice = parseFloat(stock.sharePrice) || 0;
+    const prevClose = parseFloat(stock.previousClose) || 0;
+    const priceChange = stock.priceChangePercent != null
+      ? parseFloat(stock.priceChangePercent)
+      : (prevClose > 0 ? Number((((sharePrice - prevClose) / prevClose) * 100).toFixed(2)) : 0);
 
     const shareData = {
+      type: 'creator',
+      stockId: stock.id,
       username: user.username,
+      displayName: user.displayName || user.username,
       profileImage: user.profileImage,
-      currentPrice: stock.currentPrice,
-      priceChange: parseFloat(priceChange),
-      marketCap: stock.currentPrice * stock.totalShares,
-      holders: stock.holderCount || 0,
-      tier: stock.tier || 'BRONZE'
+      currentPrice: sharePrice,
+      priceChange,
+      marketCap: sharePrice * (parseInt(stock.totalShares, 10) || 0),
+      holders: stock.shareholderCount || 0,
+      tier: stock.tier || 'BRONZE',
+      // 프론트가 링크를 다시 만들 때 쓴다
+      referralCode: user.referralCode || null
     };
 
-    // 공유 메시지
-    const shareMessage = `${user.username}의 주식이 현재 ${stock.currentPrice.toLocaleString()} PO! ${priceChange >= 0 ? '📈' : '📉'} ${Math.abs(priceChange)}% 변동! HIPO에서 확인하세요!`;
+    /**
+     * 크리에이터가 자기 채널에 올릴 문구.
+     *
+     * 주주 수를 앞세운다 — 가격보다 "몇 명이 나를 응원하는가"가
+     * 본인도 팬도 더 자랑스러워하는 숫자다.
+     */
+    const holders = shareData.holders;
+    const changeMark = priceChange >= 0 ? '📈' : '📉';
+    const shareMessage = holders > 0
+      ? `제 주주가 ${holders.toLocaleString()}명이 됐어요! ${changeMark} 현재가 ${sharePrice.toLocaleString()} PO\nHIPO에서 저의 주주가 되어주세요`
+      : `HIPO에 제 종목이 열렸어요! 현재가 ${sharePrice.toLocaleString()} PO\n첫 주주가 되어주실 분?`;
+
+    // 크리에이터 공유에도 추천 코드를 붙인다.
+    // 예전에는 ref 가 없어서 크리에이터가 데려온 유입이 집계되지 않았다.
+    const ref = user.referralCode ? `?ref=${user.referralCode}` : '';
 
     res.json({
       shareData,
       shareMessage,
-      shareUrl: `https://hipo.app/stock/${stock.id}`,
-      referralUrl: `https://hipo.app/invite/${user.referralCode}`
+      shareUrl: `https://hipo.app/stock/${stock.id}${ref}`,
+      referralUrl: user.referralCode ? `https://hipo.app/invite/${user.referralCode}` : null
     });
   } catch (error) {
     console.error('Get share card error:', error);
     res.status(500).json({ message: '공유 카드 생성에 실패했습니다' });
   }
 };
+
+/**
+ * 주주 인증 카드 빌더 — "나는 OO의 N번째 주주"
+ * 랭크 = 해당 종목 Holding을 acquiredAt(취득 시각) 오름차순으로 센 내 순위.
+ */
+async function buildShareholderCard(req, res, userId, stockId) {
+  // 내 보유 확인
+  const myHolding = await Holding.findOne({ where: { holderId: userId, stockId } });
+  if (!myHolding || myHolding.shares <= 0) {
+    return res.status(404).json({ message: '해당 종목의 주주가 아닙니다' });
+  }
+
+  const stock = await Stock.findByPk(stockId, {
+    include: [{ model: User, as: 'issuer', attributes: ['id', 'username', 'displayName', 'profileImage'] }]
+  });
+  if (!stock) {
+    return res.status(404).json({ message: '종목을 찾을 수 없습니다' });
+  }
+
+  // 내 주주 순번(랭크): 나보다 먼저 취득한 주주 수 + 1
+  const earlierCount = await Holding.count({
+    where: {
+      stockId,
+      shares: { [Op.gt]: 0 },
+      acquiredAt: { [Op.lt]: myHolding.acquiredAt }
+    }
+  });
+  const rank = earlierCount + 1;
+
+  const me = await User.findByPk(userId, { attributes: ['id', 'username', 'displayName', 'profileImage', 'referralCode'] });
+
+  const sharePrice = parseFloat(stock.sharePrice) || 0;
+  const priceChange = stock.priceChangePercent != null ? parseFloat(stock.priceChangePercent) : 0;
+  const issuerName = stock.issuer?.displayName || stock.issuer?.username || '크리에이터';
+  const isEarlyBird = rank <= 100; // 얼리버드 뱃지 기준(viralController.grantEarlyBirdBadge와 동일)
+
+  const shareData = {
+    type: 'shareholder',
+    stockId: stock.id,
+    issuerName,
+    issuerProfileImage: stock.issuer?.profileImage || null,
+    rank,
+    isEarlyBird,
+    shares: myHolding.shares,
+    currentPrice: sharePrice,
+    priceChange,
+    holderUsername: me?.displayName || me?.username || '',
+    referralCode: me?.referralCode || null,
+  };
+
+  const rankText = isEarlyBird ? `${issuerName}의 ${rank}번째 주주 🏆` : `${issuerName}의 주주`;
+  const shareMessage = `나는 ${rankText}! ${priceChange >= 0 ? '📈' : '📉'} 현재가 ${sharePrice.toLocaleString()} PO. HIPO에서 응원하기!`;
+
+  // 추천 코드 + 종목을 함께 실어 보내 받는 사람이 바로 그 종목으로 유입되게 함
+  const ref = me?.referralCode ? `?ref=${me.referralCode}` : '';
+
+  return res.json({
+    shareData,
+    shareMessage,
+    shareUrl: `https://hipo.app/stock/${stock.id}${ref}`,
+    referralUrl: me?.referralCode ? `https://hipo.app/invite/${me.referralCode}` : null
+  });
+}
 
 // 자아 바이럴 - "누군가 당신의 주식을 샀습니다" 알림
 exports.notifyStockPurchase = async (sellerId, buyerId, quantity, price) => {
@@ -647,9 +732,10 @@ exports.notifyStockPurchase = async (sellerId, buyerId, quantity, price) => {
       attributes: ['id', 'username']
     });
 
-    // 판매자(크리에이터)에게 알림
+    // 판매자(크리에이터)에게 알림 (행위 주체 = 매수자)
     await Notification.create({
       userId: sellerId,
+      actorId: buyerId,
       type: 'STOCK_PURCHASED',
       title: '🎉 누군가 당신에게 투자했습니다!',
       message: `${buyer.username}님이 당신의 주식 ${quantity}주를 ${price.toLocaleString()} PO에 구매했습니다!`,
@@ -713,6 +799,7 @@ exports.grantEarlyBirdBadge = async (stockId, userId) => {
       // 알림 발송
       await Notification.create({
         userId,
+        actorId: userId,
         type: 'BADGE_EARNED',
         title: '🏆 얼리버드 뱃지 획득!',
         message: `${stock.creator.username}의 초기 100명 투자자가 되었습니다!`,
@@ -768,6 +855,7 @@ exports.checkInviteMission = async (userId) => {
       // 미션 완료 알림
       await Notification.create({
         userId,
+        actorId: userId,
         type: 'MISSION_COMPLETE',
         title: '🎯 미션 완료!',
         message: '첫 친구 초대 미션을 완료했습니다!',
@@ -798,9 +886,10 @@ exports.notifyStockPurchaseInternal = async (buyerId, stockId, shares) => {
 
     const totalAmount = stock.sharePrice * shares;
 
-    // 크리에이터에게 알림
+    // 크리에이터에게 알림 (행위 주체 = 매수자)
     await Notification.create({
       userId: stock.issuer.id,
+      actorId: buyer.id,
       type: 'STOCK_PURCHASED',
       title: '🎉 누군가 당신에게 투자했습니다!',
       message: `${buyer.username}님이 당신의 주식 ${shares}주를 ${totalAmount.toLocaleString()} PO에 구매했습니다!`,
@@ -862,6 +951,7 @@ exports.grantEarlyBirdBadgeInternal = async (userId, stockId) => {
       // 알림 발송
       await Notification.create({
         userId,
+        actorId: userId,
         type: 'BADGE_EARNED',
         title: '🏆 얼리버드 뱃지 획득!',
         message: `${stock.issuer.username}의 초기 ${holderCount}번째 투자자가 되었습니다!`,
@@ -899,19 +989,13 @@ exports.onReferredUserFirstTradeInternal = async (userId) => {
     referral.totalCommission = (referral.totalCommission || 0) + 1000;
     await referral.save({ transaction: t });
 
-    // 추천인 추가 보상 (1,000 PO)
+    // 추천인 추가 보상 (1,000 PO) - User + Wallet 동시
+    await updateBalance(referral.referrerId, 1000, { transaction: t });
     const referrer = await User.findByPk(referral.referrerId, { transaction: t });
-    if (referrer) {
-      referrer.poBalance = (referrer.poBalance || 0) + 1000;
-      await referrer.save({ transaction: t });
-    }
 
-    // 피추천인 추가 보상 (500 PO)
+    // 피추천인 추가 보상 (500 PO) - User + Wallet 동시
+    await updateBalance(userId, 500, { transaction: t });
     const referredUser = await User.findByPk(userId, { transaction: t });
-    if (referredUser) {
-      referredUser.poBalance = (referredUser.poBalance || 0) + 500;
-      await referredUser.save({ transaction: t });
-    }
 
     // 주간 리더보드 - 완료 카운트 업데이트
     const weekStart = getWeekStart();
@@ -946,6 +1030,7 @@ exports.onReferredUserFirstTradeInternal = async (userId) => {
     if (referrer && referredUser) {
       await Notification.create({
         userId: referral.referrerId,
+        actorId: userId,
         type: 'REFERRAL',
         title: '🎉 친구 첫 거래 완료!',
         message: `${referredUser.username}님이 첫 거래를 완료했습니다. 1,000 PO 추가 지급!`,
@@ -954,6 +1039,7 @@ exports.onReferredUserFirstTradeInternal = async (userId) => {
 
       await Notification.create({
         userId: userId,
+        actorId: userId,
         type: 'REFERRAL',
         title: '🎁 첫 거래 보너스!',
         message: `첫 거래 완료 보상으로 500 PO가 지급되었습니다!`,

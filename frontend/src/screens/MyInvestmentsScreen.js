@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -12,6 +14,8 @@ import { getMyHoldings } from '../api/stocks';
 import { COLORS } from '../constants/colors';
 
 export default function MyInvestmentsScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const [holdings, setHoldings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -84,10 +88,10 @@ export default function MyInvestmentsScreen({ navigation }) {
           <View style={[styles.detailRow, styles.profitRow]}>
             <Text style={styles.profitLabel}>손익</Text>
             <View style={styles.profitContainer}>
-              <Text style={[styles.profitValue, { color: isProfit ? COLORS.up : COLORS.down }]}>
+              <Text style={[styles.profitValue, { color: isProfit ? theme.colors.up : theme.colors.down }]}>
                 {isProfit ? '+' : ''}{profitLoss.toLocaleString()} PO
               </Text>
-              <Text style={[styles.profitPercent, { color: isProfit ? COLORS.up : COLORS.down }]}>
+              <Text style={[styles.profitPercent, { color: isProfit ? theme.colors.up : theme.colors.down }]}>
                 ({isProfit ? '+' : ''}{profitLossPercent}%)
               </Text>
             </View>
@@ -122,10 +126,10 @@ export default function MyInvestmentsScreen({ navigation }) {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryProfitLabel}>총 손익</Text>
             <View style={styles.profitContainer}>
-              <Text style={[styles.summaryProfitValue, { color: isProfit ? COLORS.up : COLORS.down }]}>
+              <Text style={[styles.summaryProfitValue, { color: isProfit ? theme.colors.up : theme.colors.down }]}>
                 {isProfit ? '+' : ''}{totalProfitLoss.toLocaleString()} PO
               </Text>
-              <Text style={[styles.summaryProfitPercent, { color: isProfit ? COLORS.up : COLORS.down }]}>
+              <Text style={[styles.summaryProfitPercent, { color: isProfit ? theme.colors.up : theme.colors.down }]}>
                 ({isProfit ? '+' : ''}{totalProfitLossPercent}%)
               </Text>
             </View>
@@ -138,7 +142,7 @@ export default function MyInvestmentsScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -168,16 +172,16 @@ export default function MyInvestmentsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   listContent: {
     padding: 16,
@@ -187,7 +191,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   summaryCard: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -195,7 +199,7 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: t.colors.surface,
     marginBottom: 16,
     opacity: 0.9,
   },
@@ -209,24 +213,24 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: t.colors.surface,
     opacity: 0.8,
   },
   summaryValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   summaryDivider: {
     height: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.colors.surface,
     opacity: 0.2,
     marginVertical: 8,
   },
   summaryProfitLabel: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   summaryProfitValue: {
     fontSize: 20,
@@ -238,11 +242,11 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   holdingCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   holdingHeader: {
     flexDirection: 'row',
@@ -259,12 +263,12 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 20,
     fontWeight: '700',
   },
@@ -274,15 +278,15 @@ const styles = StyleSheet.create({
   stockName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   stockMeta: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   chevron: {
     fontSize: 24,
-    color: COLORS.textTertiary,
+    color: t.colors.textTertiary,
     marginLeft: 8,
   },
   holdingDetails: {
@@ -295,23 +299,23 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   detailValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   profitRow: {
     marginTop: 8,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: t.colors.border,
   },
   profitLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   profitContainer: {
     flexDirection: 'row',
@@ -339,12 +343,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 40,
   },

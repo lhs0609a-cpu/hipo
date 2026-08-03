@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -13,6 +16,9 @@ import { COLORS } from '../constants/colors';
 import api from '../api/client';
 
 export default function CompetitionScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('ongoing'); // ongoing, upcoming, ended
   const [competitions, setCompetitions] = useState([]);
@@ -77,9 +83,9 @@ export default function CompetitionScreen({ navigation }) {
     const startDate = new Date(competition.startDate);
     const endDate = new Date(competition.endDate);
 
-    if (now < startDate) return { text: '대기중', color: '#FFA500' };
-    if (now > endDate) return { text: '종료', color: COLORS.textSecondary };
-    return { text: '진행중', color: COLORS.success };
+    if (now < startDate) return { text: '대기중', color: '#F59B00' };
+    if (now > endDate) return { text: '종료', color: theme.colors.textSecondary };
+    return { text: '진행중', color: theme.colors.success };
   };
 
   const getCompetitionTypeText = (type) => {
@@ -105,14 +111,14 @@ export default function CompetitionScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>로딩 중...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }, { paddingTop: insets.top }]}>
       {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -272,7 +278,7 @@ export default function CompetitionScreen({ navigation }) {
                       <Text style={styles.myRankLabel}>수익률</Text>
                       <Text style={[
                         styles.myRankValue,
-                        { color: competition.myProfitRate >= 0 ? COLORS.success : COLORS.danger }
+                        { color: competition.myProfitRate >= 0 ? theme.colors.success : theme.colors.danger }
                       ]}>
                         {competition.myProfitRate >= 0 ? '+' : ''}{competition.myProfitRate?.toFixed(2)}%
                       </Text>
@@ -288,31 +294,31 @@ export default function CompetitionScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   backButton: {
     width: 40,
@@ -322,24 +328,24 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
-    color: COLORS.text,
+    color: t.colors.text,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   myCompetitionsCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 20,
     marginTop: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   myCompetitionsTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 16,
   },
   myCompetitionsStats: {
@@ -352,23 +358,23 @@ const styles = StyleSheet.create({
   },
   myStatLabel: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   myStatValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   statDivider: {
     width: 1,
-    backgroundColor: COLORS.border,
+    backgroundColor: t.colors.border,
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   tab: {
     flex: 1,
@@ -378,25 +384,25 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: COLORS.primary,
+    borderBottomColor: t.colors.primary,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   tabTextActive: {
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   content: {
     flex: 1,
   },
   competitionCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 16,
     marginTop: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   competitionHeader: {
     flexDirection: 'row',
@@ -410,12 +416,12 @@ const styles = StyleSheet.create({
   competitionName: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 4,
   },
   competitionType: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -428,12 +434,12 @@ const styles = StyleSheet.create({
   },
   competitionDescription: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     lineHeight: 20,
     marginBottom: 16,
   },
   competitionInfo: {
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
@@ -445,15 +451,15 @@ const styles = StyleSheet.create({
   },
   infoLabel: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   infoValue: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   prizeValue: {
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   competitionActions: {
     flexDirection: 'row',
@@ -464,43 +470,43 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     alignItems: 'center',
   },
   detailButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   joinButton: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 8,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     alignItems: 'center',
   },
   joinButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   joinedBadge: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 8,
-    backgroundColor: COLORS.success + '20',
+    backgroundColor: t.colors.success + '20',
     borderWidth: 1,
-    borderColor: COLORS.success,
+    borderColor: t.colors.success,
     alignItems: 'center',
   },
   joinedText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.success,
+    color: t.colors.success,
   },
   myRankCard: {
     flexDirection: 'row',
-    backgroundColor: COLORS.primary + '10',
+    backgroundColor: t.colors.primary + '10',
     borderRadius: 8,
     padding: 12,
     marginTop: 12,
@@ -511,13 +517,13 @@ const styles = StyleSheet.create({
   },
   myRankLabel: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 4,
   },
   myRankValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   emptyContainer: {
     padding: 60,
@@ -529,6 +535,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
 });

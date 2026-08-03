@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -15,6 +17,8 @@ import { walletAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const WalletScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuth();
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
@@ -77,20 +81,11 @@ const WalletScreen = ({ navigation }) => {
       return;
     }
 
-    if (modalType === 'withdraw' && numAmount > balance) {
-      Alert.alert('오류', '잔액이 부족합니다');
-      return;
-    }
-
     setProcessing(true);
     try {
-      if (modalType === 'deposit') {
-        await walletAPI.deposit(numAmount);
-        Alert.alert('성공', `${numAmount.toLocaleString()}원이 입금되었습니다`);
-      } else {
-        await walletAPI.withdraw(numAmount);
-        Alert.alert('성공', `${numAmount.toLocaleString()}원이 출금되었습니다`);
-      }
+      // 게임머니 모델: 충전(입금)만 지원
+      await walletAPI.deposit(numAmount);
+      Alert.alert('성공', `${numAmount.toLocaleString()}원이 충전되었습니다`);
       setModalVisible(false);
       fetchWalletData();
     } catch (error) {
@@ -161,7 +156,7 @@ const WalletScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
@@ -169,7 +164,7 @@ const WalletScreen = ({ navigation }) => {
   if (!isAuthenticated) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
           <Text style={styles.headerTitle}>지갑</Text>
         </View>
         <View style={styles.loginRequiredContainer}>
@@ -192,7 +187,7 @@ const WalletScreen = ({ navigation }) => {
   if (error) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
           <Text style={styles.headerTitle}>지갑</Text>
         </View>
         <View style={styles.errorContainer}>
@@ -208,25 +203,20 @@ const WalletScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Text style={styles.headerTitle}>지갑</Text>
       </View>
 
       <View style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>보유 예수금</Text>
         <Text style={styles.balanceAmount}>{balance.toLocaleString()}원</Text>
+        {/* 게임머니 모델: 충전(입금)만 제공, 현금 출금 버튼 제거 */}
         <View style={styles.actionButtons}>
           <TouchableOpacity
             style={[styles.actionButton, styles.depositButton]}
             onPress={() => openModal('deposit')}
           >
-            <Text style={styles.actionButtonText}>입금</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.withdrawButton]}
-            onPress={() => openModal('withdraw')}
-          >
-            <Text style={styles.actionButtonText}>출금</Text>
+            <Text style={styles.actionButtonText}>충전</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -316,10 +306,10 @@ const WalletScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -327,8 +317,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#007AFF',
-    paddingTop: 50,
+    backgroundColor: t.colors.primary,
+    paddingTop: 10,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
@@ -372,10 +362,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   depositButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
   },
   withdrawButton: {
-    backgroundColor: '#FF5722',
+    backgroundColor: '#E85D2A',
   },
   actionButtonText: {
     color: '#fff',
@@ -404,7 +394,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -430,10 +420,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   positive: {
-    color: '#4CAF50',
+    color: t.colors.success,
   },
   negative: {
-    color: '#FF5722',
+    color: '#E85D2A',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -471,7 +461,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   loginButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
     paddingVertical: 14,
     paddingHorizontal: 60,
     borderRadius: 10,
@@ -499,7 +489,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 8,
@@ -529,7 +519,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   amountInput: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     borderRadius: 12,
     padding: 16,
     fontSize: 18,
@@ -542,13 +532,13 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   quickAmountButton: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: t.colors.primaryBackground,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
   },
   quickAmountText: {
-    color: '#007AFF',
+    color: t.colors.primary,
     fontSize: 14,
     fontWeight: '500',
   },
@@ -558,7 +548,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: 'center',
@@ -575,10 +565,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   depositConfirm: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
   },
   withdrawConfirm: {
-    backgroundColor: '#FF5722',
+    backgroundColor: '#E85D2A',
   },
   buttonDisabled: {
     opacity: 0.7,

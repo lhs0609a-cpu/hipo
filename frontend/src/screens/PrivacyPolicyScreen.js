@@ -1,8 +1,10 @@
 import React from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { COLORS } from '../constants/colors';
 
 export default function PrivacyPolicyScreen() {
+  const styles = useThemedStyles(makeStyles);
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
@@ -194,10 +196,10 @@ export default function PrivacyPolicyScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   content: {
     padding: 20,
@@ -205,16 +207,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
   },
   date: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 16,
   },
   intro: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
@@ -222,7 +224,7 @@ const styles = StyleSheet.create({
   introText: {
     fontSize: 14,
     lineHeight: 22,
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   section: {
     marginBottom: 24,
@@ -230,26 +232,26 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 12,
   },
   sectionContent: {
     fontSize: 14,
     lineHeight: 22,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   footer: {
     marginTop: 12,
     marginBottom: 40,
     padding: 16,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   footerText: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     fontWeight: '600',
   },

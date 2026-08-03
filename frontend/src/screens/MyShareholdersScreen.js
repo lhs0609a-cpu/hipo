@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -12,6 +14,8 @@ import { getMyShareholders } from '../api/stocks';
 import { COLORS, TRUST_LEVEL_COLORS } from '../constants/colors';
 
 export default function MyShareholdersScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const [shareholders, setShareholders] = useState([]);
   const [myStock, setMyStock] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -41,7 +45,7 @@ export default function MyShareholdersScreen({ navigation }) {
 
   const renderShareholder = ({ item, index }) => {
     const holder = item.holder;
-    const trustLevelColor = TRUST_LEVEL_COLORS[holder.trustLevel] || COLORS.textSecondary;
+    const trustLevelColor = TRUST_LEVEL_COLORS[holder.trustLevel] || theme.colors.textSecondary;
     const isTopHolder = index < 3;
 
     return (
@@ -129,7 +133,7 @@ export default function MyShareholdersScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -159,16 +163,16 @@ export default function MyShareholdersScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   listContent: {
     padding: 16,
@@ -178,17 +182,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   summaryCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   summaryTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 16,
   },
   summaryGrid: {
@@ -202,24 +206,24 @@ const styles = StyleSheet.create({
   summaryDivider: {
     width: 1,
     height: 40,
-    backgroundColor: COLORS.border,
+    backgroundColor: t.colors.border,
   },
   summaryLabel: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   summaryValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   shareholderCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   shareholderHeader: {
     flexDirection: 'row',
@@ -245,12 +249,12 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 20,
     fontWeight: '700',
   },
@@ -260,7 +264,7 @@ const styles = StyleSheet.create({
   holderName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   trustBadge: {
     paddingHorizontal: 8,
@@ -269,13 +273,13 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   trustText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 10,
     fontWeight: '600',
   },
   chevron: {
     fontSize: 24,
-    color: COLORS.textTertiary,
+    color: t.colors.textTertiary,
     marginLeft: 8,
   },
   shareholderDetails: {
@@ -288,33 +292,33 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   detailValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   percentageValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   totalRow: {
     marginTop: 8,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: t.colors.border,
   },
   totalLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   totalValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   emptyContainer: {
     flex: 1,
@@ -329,12 +333,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 40,
   },

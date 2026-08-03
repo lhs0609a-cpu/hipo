@@ -73,7 +73,7 @@ const OptimizedImage = ({
 
       {loading && showLoadingIndicator && (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="small" color="#4caf50" />
+          <ActivityIndicator size="small" color="#00B368" />
         </View>
       )}
 
@@ -93,7 +93,7 @@ const OptimizedImage = ({
 const styles = StyleSheet.create({
   container: {
     position: 'relative',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#F1F3F7',
   },
   image: {
     width: '100%',
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   errorContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#F1F3F7',
   },
 });
 

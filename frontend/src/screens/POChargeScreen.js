@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -16,6 +18,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { poWalletAPI } from '../services/api';
 
 const POChargeScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [balance, setBalance] = useState(0);
@@ -162,13 +166,13 @@ const POChargeScreen = ({ navigation }) => {
   const getTransactionIcon = (type) => {
     switch (type) {
       case 'CHARGE':
-        return { name: 'add-circle', color: '#3182F6' };
+        return { name: 'add-circle', color: '#2B5FE3' };
       case 'CONVERT':
-        return { name: 'arrow-down-circle', color: '#F04452' };
+        return { name: 'arrow-down-circle', color: '#F0344B' };
       case 'TRADE':
-        return { name: 'swap-horizontal', color: '#00C471' };
+        return { name: 'swap-horizontal', color: '#00B368' };
       case 'DIVIDEND':
-        return { name: 'gift', color: '#FFB800' };
+        return { name: 'gift', color: '#F59B00' };
       default:
         return { name: 'ellipse', color: '#999' };
     }
@@ -219,14 +223,14 @@ const POChargeScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -250,8 +254,8 @@ const POChargeScreen = ({ navigation }) => {
             style={[styles.balanceButton, styles.convertButton]}
             onPress={() => setConvertModalVisible(true)}
           >
-            <Ionicons name="arrow-down-circle" size={24} color="#3182F6" />
-            <Text style={[styles.balanceButtonText, { color: '#3182F6' }]}>환전</Text>
+            <Ionicons name="arrow-down-circle" size={24} color="#2B5FE3" />
+            <Text style={[styles.balanceButtonText, { color: '#2B5FE3' }]}>환전</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -364,7 +368,7 @@ const POChargeScreen = ({ navigation }) => {
                 {selectedProduct.bonus > 0 && (
                   <View style={styles.chargeRow}>
                     <Text style={styles.chargeLabel}>보너스</Text>
-                    <Text style={[styles.chargeValue, { color: '#3182F6' }]}>
+                    <Text style={[styles.chargeValue, { color: '#2B5FE3' }]}>
                       +{formatNumber(selectedProduct.bonus)} PO
                     </Text>
                   </View>
@@ -381,9 +385,9 @@ const POChargeScreen = ({ navigation }) => {
             <View style={styles.paymentMethods}>
               <Text style={styles.paymentTitle}>결제 수단</Text>
               <TouchableOpacity style={styles.paymentOption}>
-                <Ionicons name="card" size={24} color="#3182F6" />
+                <Ionicons name="card" size={24} color="#2B5FE3" />
                 <Text style={styles.paymentText}>신용/체크카드</Text>
-                <Ionicons name="checkmark-circle" size={24} color="#3182F6" />
+                <Ionicons name="checkmark-circle" size={24} color="#2B5FE3" />
               </TouchableOpacity>
             </View>
 
@@ -486,10 +490,10 @@ const POChargeScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -501,7 +505,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -510,7 +514,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   balanceCard: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     margin: 16,
     borderRadius: 16,
     padding: 24,
@@ -563,7 +567,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   activeTab: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
   },
   tabText: {
     fontSize: 15,
@@ -596,13 +600,13 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   popularProduct: {
-    borderColor: '#3182F6',
+    borderColor: t.colors.primary,
   },
   popularBadge: {
     position: 'absolute',
     top: -8,
     right: -8,
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
@@ -619,7 +623,7 @@ const styles = StyleSheet.create({
   },
   bonusText: {
     fontSize: 13,
-    color: '#3182F6',
+    color: t.colors.primary,
     fontWeight: '600',
     marginBottom: 8,
   },
@@ -642,7 +646,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   customButton: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 24,
     borderRadius: 8,
     justifyContent: 'center',
@@ -702,10 +706,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   positive: {
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   negative: {
-    color: '#F04452',
+    color: t.colors.error,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -741,7 +745,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   chargePreview: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -773,7 +777,7 @@ const styles = StyleSheet.create({
   totalValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   paymentMethods: {
     marginBottom: 20,
@@ -786,7 +790,7 @@ const styles = StyleSheet.create({
   paymentOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     padding: 16,
     borderRadius: 8,
     gap: 12,
@@ -812,7 +816,7 @@ const styles = StyleSheet.create({
   },
   convertPreview: {
     fontSize: 14,
-    color: '#3182F6',
+    color: t.colors.primary,
     marginTop: 8,
     fontWeight: '600',
   },
@@ -822,7 +826,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -833,7 +837,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -17,13 +18,13 @@ import { useAuth } from '../contexts/AuthContext';
 
 // 티어 색상 정의
 const TIER_COLORS = {
-  BRONZE: ['#CD7F32', '#8B4513'],
-  SILVER: ['#C0C0C0', '#808080'],
-  GOLD: ['#FFD700', '#DAA520'],
-  PLATINUM: ['#E5E4E2', '#B0B0B0'],
-  DIAMOND: ['#B9F2FF', '#87CEEB'],
-  MASTER: ['#9B59B6', '#8E44AD'],
-  LEGEND: ['#FF6B6B', '#EE5A5A'],
+  BRONZE: ['#B87333', '#8A5626'],
+  SILVER: ['#9BA3AF', '#7C8698'],
+  GOLD: ['#D9A521', '#D9A521'],
+  PLATINUM: ['#6E8CA0', '#A3ABBA'],
+  DIAMOND: ['#3FB6C9', '#91B8FB'],
+  MASTER: ['#8B5CF6', '#8B5CF6'],
+  LEGEND: ['#F0344B', '#F0344B'],
 };
 
 const TABS = [
@@ -33,6 +34,7 @@ const TABS = [
 ];
 
 export default function TierInfoScreen({ navigation, route }) {
+  const styles = useThemedStyles(makeStyles);
   const { user } = useAuth();
   const initialTab = route?.params?.tab || 'overview';
 
@@ -299,7 +301,7 @@ export default function TierInfoScreen({ navigation, route }) {
           <Text
             style={[
               styles.rankingChange,
-              { color: stock.priceChangePercent >= 0 ? '#4CAF50' : '#f44336' },
+              { color: stock.priceChangePercent >= 0 ? '#00B368' : '#F0344B' },
             ]}
           >
             {stock.priceChangePercent >= 0 ? '+' : ''}
@@ -357,7 +359,7 @@ export default function TierInfoScreen({ navigation, route }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="large" color="#00B368" />
         </View>
       </SafeAreaView>
     );
@@ -397,7 +399,7 @@ export default function TierInfoScreen({ navigation, route }) {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => fetchData(true)}
-              tintColor="#4CAF50"
+              tintColor="#00B368"
             />
           }
         >
@@ -418,7 +420,7 @@ export default function TierInfoScreen({ navigation, route }) {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => fetchData(true)}
-              tintColor="#4CAF50"
+              tintColor="#00B368"
             />
           }
         />
@@ -429,10 +431,10 @@ export default function TierInfoScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: t.colors.backgroundPure,
   },
   loadingContainer: {
     flex: 1,
@@ -474,7 +476,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#4CAF50',
+    borderBottomColor: t.colors.success,
   },
   tabText: {
     fontSize: 14,
@@ -482,7 +484,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   activeTabText: {
-    color: '#4CAF50',
+    color: t.colors.success,
     fontWeight: '600',
   },
   content: {
@@ -579,7 +581,7 @@ const styles = StyleSheet.create({
   },
   noTierCard: {
     margin: 16,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
@@ -600,7 +602,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   ipoButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 20,
@@ -621,7 +623,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   breakdownItem: {
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
@@ -637,7 +639,7 @@ const styles = StyleSheet.create({
   },
   breakdownScore: {
     fontSize: 13,
-    color: '#4CAF50',
+    color: t.colors.success,
   },
   breakdownBar: {
     height: 6,
@@ -647,7 +649,7 @@ const styles = StyleSheet.create({
   },
   breakdownFill: {
     height: '100%',
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     borderRadius: 3,
   },
   breakdownValue: {
@@ -708,7 +710,7 @@ const styles = StyleSheet.create({
   rankingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 12,
     padding: 12,
     marginBottom: 8,
@@ -778,7 +780,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   benefitCard: {
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 16,

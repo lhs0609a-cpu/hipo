@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -16,6 +19,9 @@ import { createPost, uploadImage } from '../api/posts';
 import { COLORS } from '../constants/colors';
 
 export default function CreatePostScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
   const [content, setContent] = useState('');
   const [image, setImage] = useState(null);
   const [visibilityType, setVisibilityType] = useState('PUBLIC');
@@ -107,7 +113,7 @@ export default function CreatePostScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }, { paddingTop: insets.top }]}>
       {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -138,7 +144,7 @@ export default function CreatePostScreen({ navigation }) {
         <TextInput
           style={styles.contentInput}
           placeholder="무슨 생각을 하고 계신가요?"
-          placeholderTextColor={COLORS.textTertiary}
+          placeholderTextColor={theme.colors.textTertiary}
           value={content}
           onChangeText={setContent}
           multiline
@@ -193,7 +199,7 @@ export default function CreatePostScreen({ navigation }) {
               <TextInput
                 style={styles.sharesInput}
                 placeholder="최소 보유 주식 수"
-                placeholderTextColor={COLORS.textTertiary}
+                placeholderTextColor={theme.colors.textTertiary}
                 value={minimumShares}
                 onChangeText={setMinimumShares}
                 keyboardType="numeric"
@@ -206,17 +212,17 @@ export default function CreatePostScreen({ navigation }) {
 
       {loading && (
         <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -224,26 +230,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   cancelButton: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   postButton: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   postButtonDisabled: {
-    color: COLORS.textTertiary,
+    color: t.colors.textTertiary,
   },
   content: {
     flex: 1,
@@ -256,14 +262,14 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 300,
     borderRadius: 12,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   imagePlaceholder: {
     height: 200,
     borderRadius: 12,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderWidth: 2,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
@@ -274,7 +280,7 @@ const styles = StyleSheet.create({
   },
   imagePlaceholderText: {
     fontSize: 15,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     fontWeight: '500',
   },
   contentInput: {
@@ -282,11 +288,11 @@ const styles = StyleSheet.create({
     padding: 16,
     minHeight: 120,
     fontSize: 16,
-    color: COLORS.text,
-    backgroundColor: COLORS.surface,
+    color: t.colors.text,
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   section: {
     margin: 20,
@@ -295,29 +301,29 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 16,
   },
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     marginBottom: 12,
   },
   optionCardSelected: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.surface,
+    borderColor: t.colors.primary,
+    backgroundColor: t.colors.surface,
   },
   radioButton: {
     width: 24,
     height: 24,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     marginRight: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -326,7 +332,7 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
   },
   optionContent: {
     flex: 1,
@@ -334,21 +340,21 @@ const styles = StyleSheet.create({
   optionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 4,
   },
   optionDescription: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     lineHeight: 18,
   },
   sharesInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     paddingHorizontal: 16,
     marginTop: 4,
   },
@@ -356,11 +362,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 16,
     fontSize: 16,
-    color: COLORS.text,
+    color: t.colors.text,
   },
   sharesInputUnit: {
     fontSize: 15,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginLeft: 8,
   },
   loadingOverlay: {

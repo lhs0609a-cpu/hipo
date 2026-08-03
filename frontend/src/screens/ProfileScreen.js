@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { getAppWidth, getAppHeight } from '../utils/appWidth';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -7,7 +11,6 @@ import {
   Alert,
   Platform,
   ActivityIndicator,
-  Dimensions,
   TextInput,
   Modal,
   Pressable,
@@ -17,13 +20,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getSavedUser } from '../api/auth';
 import { getUserProfile, followUser } from '../api/users';
 import api from '../api/client';
-import theme from '../styles/theme';
 import Button from '../components/Button';
 import { SectionCard, ListItem, StatsCard } from '../components/Card';
 
-const screenWidth = Dimensions.get('window').width;
+const screenWidth = getAppWidth();
 
 export default function ProfileScreen({ navigation, route }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [user, setUser] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -189,7 +194,7 @@ export default function ProfileScreen({ navigation, route }) {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Profile Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <View style={styles.profileSection}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
@@ -476,24 +481,24 @@ export default function ProfileScreen({ navigation, route }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: theme.colors.background,
+    backgroundColor: t.colors.background,
   },
 
   // Header
   header: {
-    backgroundColor: theme.colors.white,
-    paddingTop: 60,
-    paddingBottom: theme.spacing.lg,
-    paddingHorizontal: theme.spacing.lg,
+    backgroundColor: t.colors.white,
+    paddingTop: 10,
+    paddingBottom: t.spacing.lg,
+    paddingHorizontal: t.spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -509,14 +514,14 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.white,
+    fontSize: t.typography.fontSize.xl,
+    fontWeight: t.typography.fontWeight.bold,
+    color: t.colors.white,
   },
   verifiedBadge: {
     position: 'absolute',
@@ -525,29 +530,29 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: theme.colors.success,
+    backgroundColor: t.colors.success,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: theme.colors.white,
+    borderColor: t.colors.white,
   },
   verifiedIcon: {
     fontSize: 10,
-    color: theme.colors.white,
-    fontWeight: theme.typography.fontWeight.bold,
+    color: t.colors.white,
+    fontWeight: t.typography.fontWeight.bold,
   },
   profileInfo: {
-    marginLeft: theme.spacing.base,
+    marginLeft: t.spacing.base,
   },
   username: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textPrimary,
+    fontSize: t.typography.fontSize.lg,
+    fontWeight: t.typography.fontWeight.bold,
+    color: t.colors.textPrimary,
     marginBottom: 2,
   },
   email: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textSecondary,
+    fontSize: t.typography.fontSize.sm,
+    color: t.colors.textSecondary,
   },
   followButton: {
     minWidth: 80,
@@ -556,105 +561,105 @@ const styles = StyleSheet.create({
   // Stats Row
   statsRow: {
     flexDirection: 'row',
-    backgroundColor: theme.colors.white,
-    paddingVertical: theme.spacing.lg,
+    backgroundColor: t.colors.white,
+    paddingVertical: t.spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.divider,
+    borderBottomColor: t.colors.divider,
   },
   statItem: {
     flex: 1,
     alignItems: 'center',
   },
   statValue: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textPrimary,
+    fontSize: t.typography.fontSize.lg,
+    fontWeight: t.typography.fontWeight.bold,
+    color: t.colors.textPrimary,
     marginBottom: 2,
   },
   statLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textSecondary,
+    fontSize: t.typography.fontSize.sm,
+    color: t.colors.textSecondary,
   },
   statDivider: {
     width: 1,
     height: 24,
-    backgroundColor: theme.colors.gray200,
+    backgroundColor: t.colors.gray200,
     alignSelf: 'center',
   },
 
   // Stock Card
   stockCard: {
-    marginHorizontal: theme.spacing.lg,
-    padding: theme.spacing.lg,
-    backgroundColor: theme.colors.gray50,
-    borderRadius: theme.borderRadius.md,
+    marginHorizontal: t.spacing.lg,
+    padding: t.spacing.lg,
+    backgroundColor: t.colors.gray50,
+    borderRadius: t.borderRadius.md,
   },
   stockPriceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: theme.spacing.lg,
+    marginBottom: t.spacing.lg,
   },
   stockLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.xs,
+    fontSize: t.typography.fontSize.sm,
+    color: t.colors.textSecondary,
+    marginBottom: t.spacing.xs,
   },
   stockPrice: {
-    fontSize: theme.typography.fontSize['2xl'],
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textPrimary,
+    fontSize: t.typography.fontSize['2xl'],
+    fontWeight: t.typography.fontWeight.bold,
+    color: t.colors.textPrimary,
   },
   changeBadge: {
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.sm,
+    paddingHorizontal: t.spacing.sm,
+    paddingVertical: t.spacing.xs,
+    borderRadius: t.borderRadius.sm,
   },
   changeText: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.semibold,
+    fontSize: t.typography.fontSize.sm,
+    fontWeight: t.typography.fontWeight.semibold,
   },
   stockMetaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingTop: theme.spacing.base,
+    paddingTop: t.spacing.base,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.gray200,
+    borderTopColor: t.colors.gray200,
   },
   stockMetaItem: {
     flex: 1,
     alignItems: 'center',
   },
   stockMetaLabel: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.textTertiary,
+    fontSize: t.typography.fontSize.xs,
+    color: t.colors.textTertiary,
     marginBottom: 4,
   },
   stockMetaValue: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.textPrimary,
+    fontSize: t.typography.fontSize.sm,
+    fontWeight: t.typography.fontWeight.semibold,
+    color: t.colors.textPrimary,
   },
   chartSection: {
-    marginTop: theme.spacing.lg,
-    paddingTop: theme.spacing.base,
+    marginTop: t.spacing.lg,
+    paddingTop: t.spacing.base,
     borderTopWidth: 1,
-    borderTopColor: theme.colors.gray200,
+    borderTopColor: t.colors.gray200,
   },
   chartTitle: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.medium,
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.sm,
+    fontSize: t.typography.fontSize.sm,
+    fontWeight: t.typography.fontWeight.medium,
+    color: t.colors.textSecondary,
+    marginBottom: t.spacing.sm,
   },
   chart: {
-    borderRadius: theme.borderRadius.sm,
-    marginLeft: -theme.spacing.sm,
+    borderRadius: t.borderRadius.sm,
+    marginLeft: -t.spacing.sm,
   },
   tradeButtonsRow: {
     flexDirection: 'row',
-    gap: theme.spacing.sm,
-    marginTop: theme.spacing.lg,
+    gap: t.spacing.sm,
+    marginTop: t.spacing.lg,
   },
   tradeButton: {
     flex: 1,
@@ -662,155 +667,155 @@ const styles = StyleSheet.create({
 
   // Asset Value
   assetValue: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.textPrimary,
+    fontSize: t.typography.fontSize.base,
+    fontWeight: t.typography.fontWeight.semibold,
+    color: t.colors.textPrimary,
   },
   trustBadge: {
-    backgroundColor: theme.colors.primaryBackground,
-    paddingHorizontal: theme.spacing.sm,
-    paddingVertical: theme.spacing.xs,
-    borderRadius: theme.borderRadius.sm,
+    backgroundColor: t.colors.primaryBackground,
+    paddingHorizontal: t.spacing.sm,
+    paddingVertical: t.spacing.xs,
+    borderRadius: t.borderRadius.sm,
   },
   trustBadgeText: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.primary,
+    fontSize: t.typography.fontSize.sm,
+    fontWeight: t.typography.fontWeight.semibold,
+    color: t.colors.primary,
   },
 
   // Bio
   bioContainer: {
-    paddingHorizontal: theme.spacing.lg,
-    paddingBottom: theme.spacing.sm,
+    paddingHorizontal: t.spacing.lg,
+    paddingBottom: t.spacing.sm,
   },
   bioText: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.textPrimary,
-    lineHeight: theme.typography.fontSize.base * theme.typography.lineHeight.relaxed,
+    fontSize: t.typography.fontSize.base,
+    color: t.colors.textPrimary,
+    lineHeight: t.typography.fontSize.base * t.typography.lineHeight.relaxed,
   },
 
   // Logout
   logoutSection: {
-    paddingHorizontal: theme.spacing.lg,
-    marginTop: theme.spacing.lg,
+    paddingHorizontal: t.spacing.lg,
+    marginTop: t.spacing.lg,
   },
 
   // Bottom Spacing
   bottomSpacing: {
-    height: theme.spacing['4xl'],
+    height: t.spacing['4xl'],
   },
 
   // Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: theme.colors.overlay,
+    backgroundColor: t.colors.overlay,
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: theme.colors.white,
-    borderTopLeftRadius: theme.borderRadius.xl,
-    borderTopRightRadius: theme.borderRadius.xl,
+    backgroundColor: t.colors.white,
+    borderTopLeftRadius: t.borderRadius.xl,
+    borderTopRightRadius: t.borderRadius.xl,
     maxHeight: '85%',
   },
   modalHandle: {
     width: 36,
     height: 4,
-    backgroundColor: theme.colors.gray300,
+    backgroundColor: t.colors.gray300,
     borderRadius: 2,
     alignSelf: 'center',
-    marginTop: theme.spacing.sm,
+    marginTop: t.spacing.sm,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.lg,
-    paddingVertical: theme.spacing.base,
+    paddingHorizontal: t.spacing.lg,
+    paddingVertical: t.spacing.base,
     borderBottomWidth: 1,
-    borderBottomColor: theme.colors.divider,
+    borderBottomColor: t.colors.divider,
   },
   modalTitle: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textPrimary,
+    fontSize: t.typography.fontSize.lg,
+    fontWeight: t.typography.fontWeight.bold,
+    color: t.colors.textPrimary,
   },
   modalClose: {
     fontSize: 20,
-    color: theme.colors.textTertiary,
-    padding: theme.spacing.xs,
+    color: t.colors.textTertiary,
+    padding: t.spacing.xs,
   },
   modalBody: {
-    padding: theme.spacing.lg,
+    padding: t.spacing.lg,
   },
   tradeInfoCard: {
-    backgroundColor: theme.colors.gray50,
-    borderRadius: theme.borderRadius.base,
-    padding: theme.spacing.base,
-    marginBottom: theme.spacing.lg,
+    backgroundColor: t.colors.gray50,
+    borderRadius: t.borderRadius.base,
+    padding: t.spacing.base,
+    marginBottom: t.spacing.lg,
   },
   tradeInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: theme.spacing.sm,
+    paddingVertical: t.spacing.sm,
   },
   tradeInfoLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textSecondary,
+    fontSize: t.typography.fontSize.sm,
+    color: t.colors.textSecondary,
   },
   tradeInfoValue: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.textPrimary,
+    fontSize: t.typography.fontSize.sm,
+    fontWeight: t.typography.fontWeight.semibold,
+    color: t.colors.textPrimary,
   },
   inputLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.sm,
+    fontSize: t.typography.fontSize.sm,
+    fontWeight: t.typography.fontWeight.semibold,
+    color: t.colors.textPrimary,
+    marginBottom: t.spacing.sm,
   },
   inputWrapper: {
-    backgroundColor: theme.colors.gray50,
-    borderRadius: theme.borderRadius.base,
+    backgroundColor: t.colors.gray50,
+    borderRadius: t.borderRadius.base,
     borderWidth: 1,
     borderColor: 'transparent',
   },
   input: {
-    paddingHorizontal: theme.spacing.base,
-    paddingVertical: theme.spacing.base,
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.textPrimary,
+    paddingHorizontal: t.spacing.base,
+    paddingVertical: t.spacing.base,
+    fontSize: t.typography.fontSize.base,
+    color: t.colors.textPrimary,
   },
   totalCard: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: theme.colors.gray50,
-    padding: theme.spacing.base,
-    borderRadius: theme.borderRadius.base,
-    marginTop: theme.spacing.md,
+    backgroundColor: t.colors.gray50,
+    padding: t.spacing.base,
+    borderRadius: t.borderRadius.base,
+    marginTop: t.spacing.md,
   },
   totalLabel: {
-    fontSize: theme.typography.fontSize.base,
-    fontWeight: theme.typography.fontWeight.medium,
-    color: theme.colors.textSecondary,
+    fontSize: t.typography.fontSize.base,
+    fontWeight: t.typography.fontWeight.medium,
+    color: t.colors.textSecondary,
   },
   totalValue: {
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textPrimary,
+    fontSize: t.typography.fontSize.lg,
+    fontWeight: t.typography.fontWeight.bold,
+    color: t.colors.textPrimary,
   },
   noticeCard: {
-    backgroundColor: theme.colors.primaryBackground,
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.base,
-    marginTop: theme.spacing.md,
+    backgroundColor: t.colors.primaryBackground,
+    padding: t.spacing.md,
+    borderRadius: t.borderRadius.base,
+    marginTop: t.spacing.md,
   },
   noticeText: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.primary,
+    fontSize: t.typography.fontSize.sm,
+    color: t.colors.primary,
     textAlign: 'center',
   },
   confirmButton: {
-    marginTop: theme.spacing.lg,
+    marginTop: t.spacing.lg,
   },
 });

@@ -8,8 +8,9 @@ module.exports = (sequelize) => {
       autoIncrement: true
     },
     stockId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
+      field: 'stock_id',
       references: {
         model: 'stocks',
         key: 'id'

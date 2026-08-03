@@ -137,9 +137,9 @@ export const StockProvider = ({ children }) => {
 
   // 등락 색상 결정 헬퍼
   const getPriceColor = useCallback((changePercent) => {
-    if (changePercent > 0) return '#F04452'; // 상승 (빨강)
-    if (changePercent < 0) return '#1261C4'; // 하락 (파랑)
-    return '#666666'; // 보합
+    if (changePercent > 0) return '#F0344B'; // 상승 (빨강)
+    if (changePercent < 0) return '#1E4BC7'; // 하락 (파랑)
+    return '#5D6779'; // 보합
   }, []);
 
   const value = {

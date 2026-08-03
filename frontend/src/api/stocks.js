@@ -41,6 +41,16 @@ export const sellStock = async (stockId, shares) => {
 };
 
 /**
+ * 주주 인증 공유 카드 데이터 (매수 직후 바이럴 카드)
+ */
+export const getShareholderCard = async (stockId) => {
+  const response = await api.get('/viral/share/card', {
+    params: { type: 'shareholder', stockId },
+  });
+  return response.data;
+};
+
+/**
  * 내 보유 주식 조회
  */
 export const getMyHoldings = async () => {
@@ -107,6 +117,26 @@ export const getMarketChartData = async (timeframe = '1d', limit = 24) => {
  */
 export const getOrderBook = async (stockId) => {
   const response = await api.get(`/stocks/${stockId}/orderbook`);
+  return response.data;
+};
+
+/**
+ * 최근 체결 내역 (Time & Sales)
+ */
+export const getRecentTrades = async (stockId, limit = 50) => {
+  const response = await api.get(`/stocks/${stockId}/trades`, { params: { limit } });
+  return response.data;
+};
+
+/**
+ * 체결 경로 미리보기.
+ * 발행시장(크리에이터 직매수)과 호가창 중 어디서 체결될지 알려준다.
+ * route: 'primary' | 'secondary' | 'unavailable'
+ */
+export const getExecutionQuote = async (stockId, side, quantity) => {
+  const response = await api.get(`/stocks/${stockId}/quote`, {
+    params: { side, quantity },
+  });
   return response.data;
 };
 

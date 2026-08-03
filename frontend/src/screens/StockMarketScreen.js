@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -13,6 +16,9 @@ import api from '../api/client';
 import { useStockTicker, useStock } from '../contexts/StockContext';
 
 export default function StockMarketScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTab, setSelectedTab] = useState('all'); // all, rising, falling, volume
@@ -75,9 +81,9 @@ export default function StockMarketScreen({ navigation }) {
   };
 
   const getPriceChangeColor = (change) => {
-    if (change > 0) return COLORS.stockUp;
-    if (change < 0) return COLORS.stockDown;
-    return COLORS.textSecondary;
+    if (change > 0) return theme.colors.stockUp;
+    if (change < 0) return theme.colors.stockDown;
+    return theme.colors.textSecondary;
   };
 
   const getPriceChangeIcon = (change) => {
@@ -95,14 +101,14 @@ export default function StockMarketScreen({ navigation }) {
   if (loading && !refreshing) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>로딩 중...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }, { paddingTop: insets.top }]}>
       {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -227,31 +233,31 @@ export default function StockMarketScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   backButton: {
     width: 40,
@@ -261,27 +267,27 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
-    color: COLORS.text,
+    color: t.colors.text,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   content: {
     flex: 1,
   },
   statsCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 20,
     marginTop: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   statsTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 16,
   },
   statsRow: {
@@ -296,47 +302,47 @@ const styles = StyleSheet.create({
   statDivider: {
     width: 1,
     height: 40,
-    backgroundColor: COLORS.border,
+    backgroundColor: t.colors.border,
   },
   statLabel: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   statValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 0,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   tab: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     borderBottomWidth: 2,
-    borderBottomColor: COLORS.surface,
+    borderBottomColor: t.colors.surface,
   },
   tabActive: {
-    borderBottomColor: COLORS.primary,
+    borderBottomColor: t.colors.primary,
   },
   tabText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   tabTextActive: {
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   stockList: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     marginTop: 8,
   },
   stockItem: {
@@ -344,13 +350,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   stockRank: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -358,13 +364,13 @@ const styles = StyleSheet.create({
   rankNumber: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   stockAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -372,7 +378,7 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.white,
+    color: t.colors.white,
   },
   stockInfo: {
     flex: 1,
@@ -380,12 +386,12 @@ const styles = StyleSheet.create({
   stockName: {
     fontSize: 15,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 4,
   },
   stockSymbol: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   stockPriceInfo: {
     alignItems: 'flex-end',
@@ -393,14 +399,14 @@ const styles = StyleSheet.create({
   stockPrice: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 4,
   },
   priceChange: {
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 4,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   priceChangeText: {
     fontSize: 12,
@@ -412,6 +418,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
 });

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -12,6 +14,8 @@ import {
 import { merchandiseAPI } from '../services/api';
 
 const MerchandiseScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -85,14 +89,14 @@ const MerchandiseScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Text style={styles.headerTitle}>굿즈샵</Text>
         <Text style={styles.headerSubtitle}>크리에이터 공식 굿즈</Text>
       </View>
@@ -117,10 +121,10 @@ const MerchandiseScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -128,8 +132,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#FF6B6B',
-    paddingTop: 50,
+    backgroundColor: t.colors.error,
+    paddingTop: 10,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
@@ -169,7 +173,7 @@ const styles = StyleSheet.create({
   productImagePlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -180,7 +184,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#FF6B6B',
+    backgroundColor: t.colors.error,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,

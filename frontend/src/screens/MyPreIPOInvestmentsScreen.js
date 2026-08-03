@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -21,6 +22,7 @@ const STATUS_TABS = [
 ];
 
 export default function MyPreIPOInvestmentsScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
   const [activeTab, setActiveTab] = useState('all');
   const [investments, setInvestments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -74,11 +76,11 @@ export default function MyPreIPOInvestmentsScreen({ navigation }) {
 
   const getStatusInfo = (status) => {
     const statusMap = {
-      pending: { text: '확인 중', color: '#FF9800', icon: '⏳' },
-      confirmed: { text: '투자 확정', color: '#4CAF50', icon: '✓' },
-      converted: { text: 'IPO 전환', color: '#2196F3', icon: '🚀' },
-      refunded: { text: '환불됨', color: '#9E9E9E', icon: '↩' },
-      cancelled: { text: '취소됨', color: '#f44336', icon: '✕' },
+      pending: { text: '확인 중', color: '#F59B00', icon: '⏳' },
+      confirmed: { text: '투자 확정', color: '#00B368', icon: '✓' },
+      converted: { text: 'IPO 전환', color: '#2B5FE3', icon: '🚀' },
+      refunded: { text: '환불됨', color: '#7C8698', icon: '↩' },
+      cancelled: { text: '취소됨', color: '#F0344B', icon: '✕' },
     };
     return statusMap[status] || { text: status, color: '#666', icon: '?' };
   };
@@ -90,11 +92,11 @@ export default function MyPreIPOInvestmentsScreen({ navigation }) {
     const lockupEnd = new Date(investment.lockupEndAt);
 
     if (now >= lockupEnd) {
-      return { text: '해제됨', color: '#4CAF50' };
+      return { text: '해제됨', color: '#00B368' };
     }
 
     const daysRemaining = Math.ceil((lockupEnd - now) / (1000 * 60 * 60 * 24));
-    return { text: `${daysRemaining}일 남음`, color: '#FF9800' };
+    return { text: `${daysRemaining}일 남음`, color: '#F59B00' };
   };
 
   const renderInvestmentCard = ({ item: investment }) => {
@@ -209,7 +211,7 @@ export default function MyPreIPOInvestmentsScreen({ navigation }) {
       </View>
 
       {/* 통계 배너 */}
-      <LinearGradient colors={['#1a237e', '#283593']} style={styles.statsBanner}>
+      <LinearGradient colors={['#182F68', '#183580']} style={styles.statsBanner}>
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{formatNumber(stats.totalInvested)}원</Text>
@@ -251,7 +253,7 @@ export default function MyPreIPOInvestmentsScreen({ navigation }) {
       {/* 목록 */}
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="large" color="#00B368" />
         </View>
       ) : (
         <FlatList
@@ -263,7 +265,7 @@ export default function MyPreIPOInvestmentsScreen({ navigation }) {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => fetchInvestments(true)}
-              tintColor="#4CAF50"
+              tintColor="#00B368"
             />
           }
           ListEmptyComponent={renderEmptyState}
@@ -273,10 +275,10 @@ export default function MyPreIPOInvestmentsScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: t.colors.backgroundPure,
   },
   header: {
     flexDirection: 'row',
@@ -315,7 +317,7 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#3F51B5',
+    backgroundColor: '#193CA0',
   },
   statValue: {
     fontSize: 20,
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#9FA8DA',
+    color: '#91B8FB',
     marginTop: 4,
   },
   tabContainer: {
@@ -345,7 +347,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#4CAF50',
+    borderBottomColor: t.colors.success,
   },
   tabText: {
     fontSize: 13,
@@ -353,7 +355,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   activeTabText: {
-    color: '#4CAF50',
+    color: t.colors.success,
     fontWeight: '600',
   },
   loadingContainer: {
@@ -366,7 +368,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   investmentCard: {
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -414,7 +416,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   investmentInfo: {
-    backgroundColor: '#252525',
+    backgroundColor: t.colors.surfaceRaised,
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
@@ -430,7 +432,7 @@ const styles = StyleSheet.create({
   },
   infoLabelBonus: {
     fontSize: 13,
-    color: '#FF9800',
+    color: t.colors.warning,
   },
   infoValue: {
     fontSize: 13,
@@ -438,12 +440,12 @@ const styles = StyleSheet.create({
   },
   infoValueBonus: {
     fontSize: 13,
-    color: '#FF9800',
+    color: t.colors.warning,
     fontWeight: '500',
   },
   infoValueHighlight: {
     fontSize: 14,
-    color: '#4CAF50',
+    color: t.colors.success,
     fontWeight: 'bold',
   },
   discountBadge: {
@@ -455,7 +457,7 @@ const styles = StyleSheet.create({
   },
   discountText: {
     fontSize: 12,
-    color: '#FF9800',
+    color: t.colors.warning,
     textAlign: 'center',
   },
   lockupInfo: {
@@ -507,7 +509,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   exploreButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 20,

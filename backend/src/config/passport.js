@@ -1,14 +1,24 @@
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const crypto = require('crypto');
 const { User, Stock } = require('../models');
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL,
-    },
+// =====================================================
+// Google OAuth 환경 변수 검증
+// =====================================================
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL;
+
+// Google OAuth가 설정된 경우에만 전략 등록
+if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET && GOOGLE_CALLBACK_URL) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: GOOGLE_CLIENT_ID,
+        clientSecret: GOOGLE_CLIENT_SECRET,
+        callbackURL: GOOGLE_CALLBACK_URL,
+      },
     async (accessToken, refreshToken, profile, done) => {
       try {
         // Google 프로필에서 이메일 가져오기
@@ -27,14 +37,15 @@ passport.use(
           return done(null, user);
         }
 
-        // 새 사용자 생성
+        // 새 사용자 생성 (OAuth 사용자는 암호학적으로 안전한 임시 비밀번호 사용)
+        const securePassword = 'oauth_' + crypto.randomBytes(32).toString('hex');
         user = await User.create({
           email,
           username,
           profileImage,
-          password: 'google_oauth_' + Math.random().toString(36), // 임시 비밀번호
-          poBalance: parseInt(process.env.INITIAL_PO_BALANCE) || 10000,
-          marketCap: parseInt(process.env.INITIAL_MARKET_CAP) || 5000,
+          password: securePassword,
+          poBalance: parseInt(process.env.INITIAL_PO_BALANCE, 10) || 10000,
+          marketCap: parseInt(process.env.INITIAL_MARKET_CAP, 10) || 5000,
           trustLevel: 'bronze',
           isCreator: true,
         });
@@ -54,8 +65,13 @@ passport.use(
         return done(error, null);
       }
     }
-  )
-);
+    )
+  );
+} else {
+  // Google OAuth 환경 변수가 설정되지 않은 경우 경고
+  console.warn('[WARN] Google OAuth is disabled: Missing GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, or GOOGLE_CALLBACK_URL');
+  console.warn('[WARN] To enable Google OAuth, set these environment variables');
+}
 
 // 세션 직렬화
 passport.serializeUser((user, done) => {

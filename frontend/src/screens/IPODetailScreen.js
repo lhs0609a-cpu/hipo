@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -17,6 +19,8 @@ import { ipoOfferingAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const IPODetailScreen = ({ navigation, route }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const { offeringId } = route.params;
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
@@ -144,17 +148,17 @@ const IPODetailScreen = ({ navigation, route }) => {
   };
 
   const getCompetitionColor = (rate) => {
-    if (rate >= 300) return '#F04452';
-    if (rate >= 100) return '#FF9800';
-    return '#00C471';
+    if (rate >= 300) return '#F0344B';
+    if (rate >= 100) return '#F59B00';
+    return '#00B368';
   };
 
   const getPhaseInfo = (phase) => {
     switch (phase) {
-      case 'upcoming': return { label: '청약 예정', color: '#3182F6' };
-      case 'subscription': return { label: '청약 진행중', color: '#00C471' };
-      case 'allocation': return { label: '배정 중', color: '#FF9800' };
-      case 'listing': return { label: '상장 예정', color: '#9C27B0' };
+      case 'upcoming': return { label: '청약 예정', color: '#2B5FE3' };
+      case 'subscription': return { label: '청약 진행중', color: '#00B368' };
+      case 'allocation': return { label: '배정 중', color: '#F59B00' };
+      case 'listing': return { label: '상장 예정', color: '#8B5CF6' };
       case 'listed': return { label: '상장 완료', color: '#666' };
       default: return { label: '대기', color: '#999' };
     }
@@ -163,7 +167,7 @@ const IPODetailScreen = ({ navigation, route }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
@@ -183,7 +187,7 @@ const IPODetailScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -274,28 +278,28 @@ const IPODetailScreen = ({ navigation, route }) => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>일정</Text>
           <View style={styles.scheduleItem}>
-            <View style={[styles.scheduleDot, { backgroundColor: '#3182F6' }]} />
+            <View style={[styles.scheduleDot, { backgroundColor: '#2B5FE3' }]} />
             <View style={styles.scheduleContent}>
               <Text style={styles.scheduleLabel}>청약 시작</Text>
               <Text style={styles.scheduleDate}>{formatDate(offering.subscriptionStartAt)}</Text>
             </View>
           </View>
           <View style={styles.scheduleItem}>
-            <View style={[styles.scheduleDot, { backgroundColor: '#FF9800' }]} />
+            <View style={[styles.scheduleDot, { backgroundColor: '#F59B00' }]} />
             <View style={styles.scheduleContent}>
               <Text style={styles.scheduleLabel}>청약 마감</Text>
               <Text style={styles.scheduleDate}>{formatDate(offering.subscriptionEndAt)}</Text>
             </View>
           </View>
           <View style={styles.scheduleItem}>
-            <View style={[styles.scheduleDot, { backgroundColor: '#9C27B0' }]} />
+            <View style={[styles.scheduleDot, { backgroundColor: '#8B5CF6' }]} />
             <View style={styles.scheduleContent}>
               <Text style={styles.scheduleLabel}>배정 발표</Text>
               <Text style={styles.scheduleDate}>{formatDate(offering.allocationAt)}</Text>
             </View>
           </View>
           <View style={styles.scheduleItem}>
-            <View style={[styles.scheduleDot, { backgroundColor: '#00C471' }]} />
+            <View style={[styles.scheduleDot, { backgroundColor: '#00B368' }]} />
             <View style={styles.scheduleContent}>
               <Text style={styles.scheduleLabel}>상장 예정</Text>
               <Text style={styles.scheduleDate}>{formatDate(offering.listingAt)}</Text>
@@ -326,7 +330,7 @@ const IPODetailScreen = ({ navigation, route }) => {
               </View>
               <View style={styles.mySubscriptionRow}>
                 <Text style={styles.mySubscriptionLabel}>상태</Text>
-                <Text style={[styles.mySubscriptionValue, { color: '#00C471' }]}>
+                <Text style={[styles.mySubscriptionValue, { color: '#00B368' }]}>
                   {offering.mySubscription.status === 'confirmed' ? '청약 완료' :
                    offering.mySubscription.status === 'allocated' ? '배정 완료' : offering.mySubscription.status}
                 </Text>
@@ -334,7 +338,7 @@ const IPODetailScreen = ({ navigation, route }) => {
               {offering.mySubscription.allocatedShares > 0 && (
                 <View style={styles.mySubscriptionRow}>
                   <Text style={styles.mySubscriptionLabel}>배정 수량</Text>
-                  <Text style={[styles.mySubscriptionValue, { color: '#3182F6' }]}>
+                  <Text style={[styles.mySubscriptionValue, { color: '#2B5FE3' }]}>
                     {formatNumber(offering.mySubscription.allocatedShares)}주
                   </Text>
                 </View>
@@ -425,10 +429,10 @@ const IPODetailScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -450,7 +454,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -474,7 +478,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     marginBottom: 12,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
   },
   issuerName: {
     fontSize: 22,
@@ -498,7 +502,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   countdownCard: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
@@ -536,7 +540,7 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     height: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     borderRadius: 4,
     overflow: 'hidden',
     marginBottom: 16,
@@ -571,7 +575,7 @@ const styles = StyleSheet.create({
   },
   infoItem: {
     width: '47%',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
     padding: 14,
     borderRadius: 10,
   },
@@ -589,7 +593,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   scheduleDot: {
     width: 12,
@@ -616,7 +620,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   mySubscriptionCard: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: t.colors.successBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 12,
@@ -624,7 +628,7 @@ const styles = StyleSheet.create({
   mySubscriptionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#00C471',
+    color: t.colors.success,
     marginBottom: 16,
   },
   mySubscriptionInfo: {
@@ -654,7 +658,7 @@ const styles = StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 15,
-    color: '#F04452',
+    color: t.colors.error,
     fontWeight: '500',
   },
   bottomButton: {
@@ -665,10 +669,10 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: t.colors.backgroundSecondary,
   },
   subscribeButton: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 18,
     borderRadius: 12,
     alignItems: 'center',
@@ -696,7 +700,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   modalInfo: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
     borderRadius: 10,
     padding: 14,
     marginBottom: 20,
@@ -731,7 +735,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   depositBox: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: t.colors.primaryBackground,
     borderRadius: 10,
     padding: 16,
     alignItems: 'center',
@@ -745,7 +749,7 @@ const styles = StyleSheet.create({
   depositValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -753,7 +757,7 @@ const styles = StyleSheet.create({
   },
   modalCancelButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',
@@ -764,7 +768,7 @@ const styles = StyleSheet.create({
   },
   modalConfirmButton: {
     flex: 1,
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',

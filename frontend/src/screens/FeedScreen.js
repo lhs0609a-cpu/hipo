@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -15,6 +17,8 @@ import { postAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const FeedScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const { isAuthenticated, user } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -185,7 +189,7 @@ const FeedScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
@@ -193,7 +197,7 @@ const FeedScreen = ({ navigation }) => {
   if (error && posts.length === 0) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
           <Text style={styles.headerTitle}>피드</Text>
         </View>
         <View style={styles.errorContainer}>
@@ -209,7 +213,7 @@ const FeedScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Text style={styles.headerTitle}>피드</Text>
         <Text style={styles.headerSubtitle}>주주들의 이야기</Text>
       </View>
@@ -259,10 +263,10 @@ const FeedScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -270,8 +274,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#007AFF',
-    paddingTop: 50,
+    backgroundColor: t.colors.primary,
+    paddingTop: 10,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
@@ -292,7 +296,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#eee',
   },
   postInput: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     borderRadius: 12,
     padding: 12,
     fontSize: 15,
@@ -300,7 +304,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   postButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
@@ -337,7 +341,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -376,7 +380,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: t.colors.backgroundSecondary,
   },
   actionButton: {
     flexDirection: 'row',
@@ -426,7 +430,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   retryButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 8,

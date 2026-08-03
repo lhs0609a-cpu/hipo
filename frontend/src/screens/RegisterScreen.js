@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -11,17 +13,27 @@ import {
   ActivityIndicator,
   ScrollView,
   Linking,
+  Modal,
 } from 'react-native';
-import { register } from '../api/auth';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { API_URL } from '../config';
 import { COLORS } from '../constants/colors';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../contexts/AuthContext';
+
+const WELCOME_BONUS = 10000; // 웰컴 보너스 금액
 
 export default function RegisterScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
+  const { register } = useAuth();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [welcomeModalVisible, setWelcomeModalVisible] = useState(false);
+  const [welcomeBonusAmount, setWelcomeBonusAmount] = useState(WELCOME_BONUS);
 
   const handleRegister = async () => {
     // 디버깅: 입력값 출력
@@ -110,31 +122,30 @@ export default function RegisterScreen({ navigation }) {
 
     try {
       console.log('회원가입 시도:', email, username);
-      const data = await register(email, username, password);
-      console.log('회원가입 성공:', data);
+      const result = await register({ email, username, password });
+      console.log('회원가입 결과:', result);
 
-      // 토큰과 사용자 정보 저장 (자동 로그인)
-      if (data.token && data.user) {
-        await AsyncStorage.setItem('token', data.token);
-        await AsyncStorage.setItem('user', JSON.stringify(data.user));
-      }
+      if (result.success) {
+        // AuthContext가 자동으로 토큰/사용자 정보를 저장하고 isAuthenticated를 설정
 
-      // 웹에서는 페이지를 새로고침하여 인증 상태 업데이트
-      if (Platform.OS === 'web') {
-        window.location.href = '/';
+        // 웰컴 보너스 모달 표시
+        if (Platform.OS === 'web') {
+          alert(`🎉 환영합니다!\n\n${WELCOME_BONUS.toLocaleString()} PO가 지급되었습니다.\n지금 바로 투자를 시작해보세요!`);
+          window.location.href = '/';
+        } else {
+          setWelcomeModalVisible(true);
+        }
       } else {
-        Alert.alert('성공', '회원가입이 완료되었습니다!', [
-          {
-            text: '확인',
-            onPress: () => navigation.replace('Main'),
-          },
-        ]);
+        const errorMsg = result.error || '회원가입 중 오류가 발생했습니다';
+        if (Platform.OS === 'web') {
+          alert('회원가입 실패: ' + errorMsg);
+        } else {
+          Alert.alert('회원가입 실패', errorMsg);
+        }
       }
     } catch (error) {
       console.error('회원가입 실패:', error);
-      console.error('에러 응답:', error.response?.data);
-
-      const errorMsg = error.response?.data?.error || error.message || '회원가입 중 오류가 발생했습니다';
+      const errorMsg = error.message || '회원가입 중 오류가 발생했습니다';
 
       if (Platform.OS === 'web') {
         alert('회원가입 실패: ' + errorMsg);
@@ -148,8 +159,9 @@ export default function RegisterScreen({ navigation }) {
 
   const handleGoogleLogin = async () => {
     try {
-      // Google OAuth URL (포트 5555로 변경)
-      const googleAuthUrl = 'http://localhost:5555/api/auth/google';
+      // Google OAuth URL을 환경변수 기반으로 설정
+      const baseUrl = API_URL.replace('/api', '');
+      const googleAuthUrl = `${baseUrl}/api/auth/google`;
 
       if (Platform.OS === 'web') {
         // 웹에서는 직접 페이지 이동
@@ -184,6 +196,22 @@ export default function RegisterScreen({ navigation }) {
           <Text style={styles.subtitle}>
             HIPO에 가입하고 사람들과 거래를 시작하세요
           </Text>
+
+          {/* 웰컴 보너스 배너 */}
+          <View style={styles.welcomeBanner}>
+            <LinearGradient
+              colors={['#D9A521', '#F59B00']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.welcomeBannerGradient}
+            >
+              <Ionicons name="gift" size={24} color="#fff" />
+              <View style={styles.welcomeBannerText}>
+                <Text style={styles.welcomeBannerTitle}>신규 가입 보너스</Text>
+                <Text style={styles.welcomeBannerAmount}>{WELCOME_BONUS.toLocaleString()} PO 즉시 지급!</Text>
+              </View>
+            </LinearGradient>
+          </View>
 
           <View style={styles.form}>
             <View style={styles.inputContainer}>
@@ -286,14 +314,71 @@ export default function RegisterScreen({ navigation }) {
           </View>
         </View>
       </ScrollView>
+
+      {/* 웰컴 보너스 모달 */}
+      <Modal
+        visible={welcomeModalVisible}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => {}}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <LinearGradient
+              colors={['#D9A521', '#F59B00']}
+              style={styles.modalHeader}
+            >
+              <View style={styles.giftIconContainer}>
+                <Ionicons name="gift" size={48} color="#fff" />
+              </View>
+            </LinearGradient>
+
+            <View style={styles.modalBody}>
+              <Text style={styles.modalTitle}>🎉 환영합니다!</Text>
+              <Text style={styles.modalSubtitle}>
+                HIPO에 가입해 주셔서 감사합니다
+              </Text>
+
+              <View style={styles.bonusBox}>
+                <Text style={styles.bonusLabel}>웰컴 보너스 지급</Text>
+                <Text style={styles.bonusAmount}>
+                  {welcomeBonusAmount.toLocaleString()} PO
+                </Text>
+              </View>
+
+              <Text style={styles.modalDescription}>
+                지금 바로 크리에이터에 투자하고{'\n'}
+                수익을 창출해보세요!
+              </Text>
+
+              <TouchableOpacity
+                style={styles.startButton}
+                onPress={() => {
+                  setWelcomeModalVisible(false);
+                  // AuthContext isAuthenticated=true이므로
+                  // AppNavigator가 자동으로 Main 화면으로 전환합니다
+                }}
+              >
+                <LinearGradient
+                  colors={[theme.colors.primary, '#2B5FE3']}
+                  style={styles.startButtonGradient}
+                >
+                  <Text style={styles.startButtonText}>투자 시작하기</Text>
+                  <Ionicons name="arrow-forward" size={20} color="#fff" />
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -306,13 +391,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: t.colors.text,
     textAlign: 'center',
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 40,
   },
@@ -323,25 +408,25 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   input: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 15,
     borderRadius: 10,
     fontSize: 16,
   },
   helperText: {
     fontSize: 12,
-    color: COLORS.danger,
+    color: t.colors.danger,
     marginTop: 6,
     marginLeft: 4,
   },
   helperTextSuccess: {
     fontSize: 12,
-    color: COLORS.success,
+    color: t.colors.success,
     marginTop: 6,
     marginLeft: 4,
   },
   button: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     padding: 18,
     borderRadius: 10,
     alignItems: 'center',
@@ -360,7 +445,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   linkText: {
-    color: COLORS.primary,
+    color: t.colors.primary,
     fontSize: 14,
   },
   divider: {
@@ -371,11 +456,11 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: COLORS.border,
+    backgroundColor: t.colors.border,
   },
   dividerText: {
     marginHorizontal: 10,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     fontSize: 14,
   },
   googleButton: {
@@ -384,11 +469,119 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   googleButtonText: {
-    color: COLORS.text,
+    color: t.colors.text,
     fontSize: 16,
     fontWeight: '600',
+  },
+  // 웰컴 보너스 배너 스타일
+  welcomeBanner: {
+    marginBottom: 24,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  welcomeBannerGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  welcomeBannerText: {
+    marginLeft: 12,
+  },
+  welcomeBannerTitle: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  welcomeBannerAmount: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  // 모달 스타일
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 340,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    alignItems: 'center',
+    paddingVertical: 30,
+  },
+  giftIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalBody: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: t.colors.text,
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: t.colors.textSecondary,
+    marginBottom: 20,
+  },
+  bonusBox: {
+    backgroundColor: t.colors.warningBackground,
+    borderRadius: 12,
+    padding: 16,
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  bonusLabel: {
+    fontSize: 12,
+    color: t.colors.warningText,
+    marginBottom: 4,
+  },
+  bonusAmount: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: t.colors.warning,
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: t.colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  startButton: {
+    width: '100%',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  startButtonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+  },
+  startButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+    marginRight: 8,
   },
 });

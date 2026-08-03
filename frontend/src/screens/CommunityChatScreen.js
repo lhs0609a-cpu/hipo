@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -17,6 +19,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CommunityChatScreen({ route, navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const { communityId, communityName } = route.params;
   const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -176,7 +180,7 @@ export default function CommunityChatScreen({ route, navigation }) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -252,10 +256,10 @@ export default function CommunityChatScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
@@ -264,18 +268,18 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 12,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   headerText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   typingText: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 4,
   },
   messageList: {
@@ -284,10 +288,10 @@ const styles = StyleSheet.create({
   messageContainer: {
     marginBottom: 16,
     padding: 12,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   messageHeader: {
     flexDirection: 'row',
@@ -297,38 +301,38 @@ const styles = StyleSheet.create({
   senderName: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   timestamp: {
     fontSize: 11,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   replyContainer: {
     padding: 8,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderLeftWidth: 3,
-    borderLeftColor: COLORS.primary,
+    borderLeftColor: t.colors.primary,
     marginBottom: 8,
     borderRadius: 4,
   },
   replyText: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   messageContent: {
     fontSize: 15,
-    color: COLORS.text,
+    color: t.colors.text,
     lineHeight: 20,
   },
   aiWarning: {
     fontSize: 11,
-    color: COLORS.danger,
+    color: t.colors.danger,
     marginTop: 8,
     fontWeight: '600',
   },
   pinnedBadge: {
     fontSize: 11,
-    color: COLORS.warning,
+    color: t.colors.warning,
     marginTop: 4,
     fontWeight: '600',
   },
@@ -343,19 +347,19 @@ const styles = StyleSheet.create({
   },
   actionText: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 12,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: t.colors.border,
     alignItems: 'flex-end',
   },
   input: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -364,7 +368,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   sendButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
@@ -384,9 +388,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 12,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: t.colors.border,
   },
   replyPreviewContent: {
     flex: 1,
@@ -394,16 +398,16 @@ const styles = StyleSheet.create({
   replyPreviewTitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: t.colors.primary,
     marginBottom: 2,
   },
   replyPreviewText: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   replyPreviewClose: {
     fontSize: 20,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     paddingHorizontal: 12,
   },
   emptyContainer: {
@@ -413,11 +417,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
 });

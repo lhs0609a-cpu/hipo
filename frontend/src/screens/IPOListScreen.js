@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -14,6 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { ipoOfferingAPI } from '../services/api';
 
 const IPOListScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [offerings, setOfferings] = useState([]);
@@ -72,9 +76,9 @@ const IPOListScreen = ({ navigation }) => {
   };
 
   const getCompetitionColor = (rate) => {
-    if (rate >= 300) return '#F04452';
-    if (rate >= 100) return '#FF9800';
-    return '#00C471';
+    if (rate >= 300) return '#F0344B';
+    if (rate >= 100) return '#F59B00';
+    return '#00B368';
   };
 
   const renderOfferingCard = ({ item }) => {
@@ -161,13 +165,13 @@ const IPOListScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>IPO 공모</Text>
         <TouchableOpacity onPress={() => navigation.navigate('IPOEligibility')}>
-          <Ionicons name="add-circle-outline" size={24} color="#3182F6" />
+          <Ionicons name="add-circle-outline" size={24} color="#2B5FE3" />
         </TouchableOpacity>
       </View>
 
@@ -201,7 +205,7 @@ const IPOListScreen = ({ navigation }) => {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#3182F6" />
+          <ActivityIndicator size="large" color="#2B5FE3" />
         </View>
       ) : offerings.length === 0 ? (
         <View style={styles.emptyContainer}>
@@ -226,17 +230,17 @@ const IPOListScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -249,7 +253,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   tab: {
     flex: 1,
@@ -258,14 +262,14 @@ const styles = StyleSheet.create({
   },
   tabActive: {
     borderBottomWidth: 2,
-    borderBottomColor: '#3182F6',
+    borderBottomColor: t.colors.primary,
   },
   tabText: {
     fontSize: 15,
     color: '#666',
   },
   tabTextActive: {
-    color: '#3182F6',
+    color: t.colors.primary,
     fontWeight: '600',
   },
   loadingContainer: {
@@ -308,7 +312,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
   },
   issuerName: {
     fontSize: 17,
@@ -323,10 +327,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
   },
   statusBadgeActive: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: t.colors.successBackground,
   },
   statusText: {
     fontSize: 13,
@@ -334,10 +338,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   statusTextActive: {
-    color: '#00C471',
+    color: t.colors.success,
   },
   cardBody: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
     borderRadius: 12,
     padding: 14,
     marginBottom: 16,
@@ -385,7 +389,7 @@ const styles = StyleSheet.create({
   },
   progressContainer: {
     height: 4,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     borderRadius: 2,
     overflow: 'hidden',
   },

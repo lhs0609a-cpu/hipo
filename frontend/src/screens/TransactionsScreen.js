@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -11,6 +13,8 @@ import { getTransactions } from '../api/stocks';
 import { COLORS } from '../constants/colors';
 
 export default function TransactionsScreen() {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -50,7 +54,7 @@ export default function TransactionsScreen() {
           </View>
           <View style={[
             styles.typeBadge,
-            { backgroundColor: isBuy ? COLORS.danger : COLORS.success }
+            { backgroundColor: isBuy ? theme.colors.danger : theme.colors.success }
           ]}>
             <Text style={styles.typeText}>{isBuy ? '매수' : '매도'}</Text>
           </View>
@@ -70,7 +74,7 @@ export default function TransactionsScreen() {
             <Text style={[
               styles.value,
               styles.totalAmount,
-              { color: isBuy ? COLORS.danger : COLORS.success }
+              { color: isBuy ? theme.colors.danger : theme.colors.success }
             ]}>
               {isBuy ? '-' : '+'}{item.totalAmount.toLocaleString()} PO
             </Text>
@@ -83,7 +87,7 @@ export default function TransactionsScreen() {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -108,22 +112,22 @@ export default function TransactionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   list: {
     padding: 15,
   },
   transactionCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 15,
     borderRadius: 12,
     marginBottom: 12,
@@ -140,16 +144,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   stockName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   date: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 4,
   },
   typeBadge: {
@@ -171,12 +175,12 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   value: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   totalAmount: {
     fontSize: 16,
@@ -188,6 +192,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
 });

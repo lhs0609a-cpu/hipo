@@ -1,6 +1,13 @@
 const { User, Follow, Post, Comment, Like, Bookmark, Stock } = require('../models');
 const { createNotification } = require('./notificationController');
 const { Op } = require('sequelize');
+const {
+  validatePagination,
+  validatePositiveInt,
+  sanitizeSearchQuery,
+  isValidUUID,
+  validateString
+} = require('../utils/validation');
 
 /**
  * 사용자 프로필 조회
@@ -8,6 +15,11 @@ const { Op } = require('sequelize');
 exports.getUserProfile = async (req, res) => {
   try {
     const { userId } = req.params;
+
+    // UUID 형식 검증
+    if (!isValidUUID(userId)) {
+      return res.status(400).json({ error: '유효하지 않은 사용자 ID입니다' });
+    }
 
     const user = await User.findByPk(userId, {
       attributes: { exclude: ['password'] }
@@ -66,6 +78,11 @@ exports.followUser = async (req, res) => {
     const { userId } = req.params;
     const followerId = req.user.id;
 
+    // UUID 형식 검증
+    if (!isValidUUID(userId)) {
+      return res.status(400).json({ error: '유효하지 않은 사용자 ID입니다' });
+    }
+
     if (followerId === userId) {
       return res.status(400).json({ error: '자기 자신을 팔로우할 수 없습니다' });
     }
@@ -117,6 +134,11 @@ exports.getFollowers = async (req, res) => {
   try {
     const { userId } = req.params;
 
+    // UUID 형식 검증
+    if (!isValidUUID(userId)) {
+      return res.status(400).json({ error: '유효하지 않은 사용자 ID입니다' });
+    }
+
     const followers = await Follow.findAll({
       where: { followingId: userId },
       include: [{
@@ -142,6 +164,11 @@ exports.getFollowing = async (req, res) => {
   try {
     const { userId } = req.params;
 
+    // UUID 형식 검증
+    if (!isValidUUID(userId)) {
+      return res.status(400).json({ error: '유효하지 않은 사용자 ID입니다' });
+    }
+
     const following = await Follow.findAll({
       where: { followerId: userId },
       include: [{
@@ -165,20 +192,22 @@ exports.getFollowing = async (req, res) => {
  */
 exports.searchUsers = async (req, res) => {
   try {
-    const { q } = req.query;
+    // 입력 검증 (XSS 및 DoS 방지)
+    const searchTerm = sanitizeSearchQuery(req.query.q, 100);
+    const { limit } = validatePagination({ limit: req.query.limit });
 
-    if (!q || q.trim() === '') {
+    if (!searchTerm || searchTerm.trim() === '') {
       return res.json({ users: [] });
     }
 
     const users = await User.findAll({
       where: {
         username: {
-          [require('sequelize').Op.like]: `%${q}%`
+          [Op.like]: `%${searchTerm}%`
         }
       },
       attributes: ['id', 'username', 'profileImage', 'bio'],
-      limit: 20
+      limit
     });
 
     res.json({ users });
@@ -196,6 +225,11 @@ exports.updateProfile = async (req, res) => {
     const { userId } = req.params;
     const currentUserId = req.user.id;
 
+    // UUID 형식 검증
+    if (!isValidUUID(userId)) {
+      return res.status(400).json({ error: '유효하지 않은 사용자 ID입니다' });
+    }
+
     // 본인만 수정 가능
     if (userId !== currentUserId) {
       return res.status(403).json({ error: '본인의 프로필만 수정할 수 있습니다' });
@@ -208,9 +242,14 @@ exports.updateProfile = async (req, res) => {
 
     const { username, bio, profileImage } = req.body;
 
+    // 입력 검증
+    const sanitizedUsername = username ? validateString(username, { minLength: 2, maxLength: 50 }) : undefined;
+    const sanitizedBio = bio ? validateString(bio, { maxLength: 500 }) : undefined;
+    const sanitizedProfileImage = profileImage ? validateString(profileImage, { maxLength: 500 }) : undefined;
+
     // 사용자 이름 중복 체크
-    if (username && username !== user.username) {
-      const existingUser = await User.findOne({ where: { username } });
+    if (sanitizedUsername && sanitizedUsername !== user.username) {
+      const existingUser = await User.findOne({ where: { username: sanitizedUsername } });
       if (existingUser) {
         return res.status(400).json({ error: '이미 사용 중인 사용자 이름입니다' });
       }
@@ -218,9 +257,9 @@ exports.updateProfile = async (req, res) => {
 
     // 업데이트할 필드만 추출
     const updateData = {};
-    if (username !== undefined) updateData.username = username;
-    if (bio !== undefined) updateData.bio = bio;
-    if (profileImage !== undefined) updateData.profileImage = profileImage;
+    if (sanitizedUsername !== undefined) updateData.username = sanitizedUsername;
+    if (sanitizedBio !== undefined) updateData.bio = sanitizedBio;
+    if (sanitizedProfileImage !== undefined) updateData.profileImage = sanitizedProfileImage;
 
     await user.update(updateData);
 
@@ -245,8 +284,14 @@ exports.updateProfile = async (req, res) => {
 exports.getUserPosts = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { page = 1, limit = 20 } = req.query;
-    const offset = (page - 1) * limit;
+
+    // UUID 형식 검증
+    if (!isValidUUID(userId)) {
+      return res.status(400).json({ error: '유효하지 않은 사용자 ID입니다' });
+    }
+
+    // 입력 검증 (DoS 방지)
+    const { page, limit, offset } = validatePagination(req.query);
 
     // 사용자 확인
     const user = await User.findByPk(userId);
@@ -276,8 +321,8 @@ exports.getUserPosts = async (req, res) => {
         }
       ],
       order: [['created_at', 'DESC']],
-      limit: parseInt(limit),
-      offset: parseInt(offset)
+      limit,
+      offset
     });
 
     // 현재 사용자의 좋아요/북마크 여부 확인
@@ -308,8 +353,8 @@ exports.getUserPosts = async (req, res) => {
       posts,
       pagination: {
         total: totalPosts,
-        page: parseInt(page),
-        limit: parseInt(limit),
+        page,
+        limit,
         totalPages: Math.ceil(totalPosts / limit)
       }
     });
@@ -324,7 +369,8 @@ exports.getUserPosts = async (req, res) => {
  */
 exports.getTrendingByCategories = async (req, res) => {
   try {
-    const { limit = 10 } = req.query;
+    // 입력 검증 (DoS 방지)
+    const { limit } = validatePagination({ limit: req.query.limit || 10 });
 
     // 카테고리 정의 (실제로는 User 모델에 category 필드를 추가하는 것이 좋음)
     // 현재는 trustLevel과 활동 기준으로 구분
@@ -355,7 +401,7 @@ exports.getTrendingByCategories = async (req, res) => {
           ['marketCap', 'DESC'],
           ['trustLevel', 'DESC']
         ],
-        limit: parseInt(limit)
+        limit
       });
 
       // 각 사용자의 팔로워 수 추가
@@ -394,8 +440,12 @@ exports.getTrendingByCategories = async (req, res) => {
  */
 exports.updatePushToken = async (req, res) => {
   try {
-    const { pushToken, platform, deviceInfo } = req.body;
     const userId = req.user.id;
+
+    // 입력 검증 (악성 입력 방지)
+    const pushToken = validateString(req.body.pushToken, { minLength: 1, maxLength: 500 });
+    const platform = req.body.platform ? validateString(req.body.platform, { maxLength: 50 }) : null;
+    const deviceInfo = req.body.deviceInfo;
 
     if (!pushToken) {
       return res.status(400).json({ error: '푸시 토큰이 필요합니다' });
@@ -410,13 +460,13 @@ exports.updatePushToken = async (req, res) => {
     // 푸시 토큰 업데이트
     await user.update({
       pushToken,
-      pushPlatform: platform || null
+      pushPlatform: platform
     });
 
-    console.log(`Push token updated for user ${userId}:`, {
-      platform,
-      deviceInfo
-    });
+    // ⚠️ 보안: 푸시 토큰 및 디바이스 정보는 로깅하지 않음 (개인정보 보호)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[DEV] Push token updated for user ${userId}`);
+    }
 
     res.json({
       success: true,

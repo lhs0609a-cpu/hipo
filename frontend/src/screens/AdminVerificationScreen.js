@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -17,6 +19,8 @@ import { COLORS } from '../constants/colors';
 import api from '../api/client';
 
 export default function AdminVerificationScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const [verifications, setVerifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -122,9 +126,9 @@ export default function AdminVerificationScreen({ navigation }) {
     };
 
     const statusColors = {
-      pending: COLORS.warning,
-      approved: COLORS.success,
-      rejected: COLORS.error
+      pending: theme.colors.warning,
+      approved: theme.colors.success,
+      rejected: theme.colors.error
     };
 
     const statusLabels = {
@@ -427,7 +431,7 @@ export default function AdminVerificationScreen({ navigation }) {
 
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       ) : (
         <FlatList
@@ -469,7 +473,7 @@ export default function AdminVerificationScreen({ navigation }) {
             <TextInput
               style={styles.rejectInput}
               placeholder="예: 제출된 정보가 불충분합니다"
-              placeholderTextColor={COLORS.textSecondary}
+              placeholderTextColor={theme.colors.textSecondary}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -501,10 +505,10 @@ export default function AdminVerificationScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
@@ -513,15 +517,15 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 16,
     gap: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   statCard: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -529,17 +533,17 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.primary,
+    color: t.colors.primary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   tabScrollView: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   tabContainer: {
     paddingHorizontal: 16,
@@ -550,29 +554,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   tabActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   tabTextActive: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   listContent: {
     padding: 16,
   },
   verificationCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   verificationHeader: {
     flexDirection: 'row',
@@ -588,13 +592,13 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   avatarText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 20,
     fontWeight: '700',
   },
@@ -604,12 +608,12 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 4,
   },
   userOccupation: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -633,33 +637,33 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   scoreHigh: {
-    backgroundColor: COLORS.success + '20',
+    backgroundColor: t.colors.success + '20',
     borderWidth: 1,
-    borderColor: COLORS.success,
+    borderColor: t.colors.success,
   },
   scoreMedium: {
-    backgroundColor: COLORS.warning + '20',
+    backgroundColor: t.colors.warning + '20',
     borderWidth: 1,
-    borderColor: COLORS.warning,
+    borderColor: t.colors.warning,
   },
   scoreLow: {
-    backgroundColor: COLORS.error + '20',
+    backgroundColor: t.colors.error + '20',
     borderWidth: 1,
-    borderColor: COLORS.error,
+    borderColor: t.colors.error,
   },
   scoreLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   scoreValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   scoreDecision: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   scoreContainerModal: {
     padding: 16,
@@ -670,34 +674,34 @@ const styles = StyleSheet.create({
   scoreValueLarge: {
     fontSize: 32,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 4,
   },
   scoreDecisionText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   scoreBreakdown: {
     marginTop: 16,
     padding: 12,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderRadius: 8,
   },
   breakdownTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
   },
   breakdownText: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     lineHeight: 20,
   },
   infoText: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   actionButtons: {
     flexDirection: 'row',
@@ -706,30 +710,30 @@ const styles = StyleSheet.create({
   },
   approveButton: {
     flex: 1,
-    backgroundColor: COLORS.success,
+    backgroundColor: t.colors.success,
     borderRadius: 12,
     padding: 14,
     alignItems: 'center',
   },
   approveButtonText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 15,
     fontWeight: '700',
   },
   rejectButton: {
     flex: 1,
-    backgroundColor: COLORS.error,
+    backgroundColor: t.colors.error,
     borderRadius: 12,
     padding: 14,
     alignItems: 'center',
   },
   rejectButtonText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 15,
     fontWeight: '700',
   },
   rejectionBox: {
-    backgroundColor: COLORS.error + '15',
+    backgroundColor: t.colors.error + '15',
     borderRadius: 8,
     padding: 12,
     marginTop: 8,
@@ -737,12 +741,12 @@ const styles = StyleSheet.create({
   rejectionLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: COLORS.error,
+    color: t.colors.error,
     marginBottom: 4,
   },
   rejectionText: {
     fontSize: 13,
-    color: COLORS.text,
+    color: t.colors.text,
   },
   emptyContainer: {
     flex: 1,
@@ -756,37 +760,37 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
   },
   modalContainer: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   modalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   closeButton: {
     fontSize: 24,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   modalContent: {
     flex: 1,
     padding: 20,
   },
   detailSection: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -794,12 +798,12 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   detailValue: {
     fontSize: 15,
-    color: COLORS.text,
+    color: t.colors.text,
     lineHeight: 22,
   },
   linkButton: {
@@ -807,7 +811,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   modalActions: {
     flexDirection: 'row',
@@ -829,7 +833,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   rejectModalContent: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -838,22 +842,22 @@ const styles = StyleSheet.create({
   rejectModalTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
   },
   rejectModalDescription: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 16,
   },
   rejectInput: {
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     borderRadius: 12,
     padding: 14,
     fontSize: 15,
-    color: COLORS.text,
+    color: t.colors.text,
     height: 120,
     textAlignVertical: 'top',
     marginBottom: 20,
@@ -866,13 +870,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 14,
     borderRadius: 12,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     alignItems: 'center',
   },
   rejectModalCancelText: {
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -880,11 +884,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 14,
     borderRadius: 12,
-    backgroundColor: COLORS.error,
+    backgroundColor: t.colors.error,
     alignItems: 'center',
   },
   rejectModalConfirmText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 16,
     fontWeight: '700',
   },

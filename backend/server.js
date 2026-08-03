@@ -5,20 +5,102 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 
+// 환경 변수 검증 (프로덕션에서 필수 변수 누락 시 시작 중단)
+const { checkEnvironmentOrExit } = require('./src/utils/envValidation');
+checkEnvironmentOrExit();
+
 const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(helmet());
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
+// =====================================================
+// CORS 허용 도메인 설정
+// =====================================================
+const ALLOWED_ORIGINS = [
+  'http://localhost:8081',
+  'http://localhost:3000',
+  'http://localhost:19006',
+  'https://hipo.app',
+  'https://www.hipo.app',
+  'https://api.hipo.app',
+];
 
-// Health check (always available)
+// 환경 변수에서 추가 도메인 허용
+if (process.env.ADDITIONAL_CORS_ORIGINS) {
+  const additionalOrigins = process.env.ADDITIONAL_CORS_ORIGINS.split(',').map(o => o.trim());
+  ALLOWED_ORIGINS.push(...additionalOrigins);
+}
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // 개발 환경에서는 origin이 없는 요청(Postman 등) 허용
+    if (!origin && process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    if (ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else if (process.env.NODE_ENV !== 'production') {
+      // 개발 환경에서는 로컬호스트 허용
+      if (origin && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
+        callback(null, true);
+      } else {
+        callback(new Error('CORS policy violation'));
+      }
+    } else {
+      callback(new Error('CORS policy violation'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+
+// =====================================================
+// Middleware 설정
+// =====================================================
+
+// Helmet 보안 헤더 강화
+app.use(helmet({
+  // HSTS: HTTPS 강제 (1년, 서브도메인 포함, preload 목록 등록 가능)
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true,
+  },
+  // Referrer-Policy: 민감한 정보 누출 방지
+  referrerPolicy: {
+    policy: 'strict-origin-when-cross-origin',
+  },
+  // Content-Security-Policy: XSS 방지 (기본값 사용, 필요시 커스터마이즈)
+  contentSecurityPolicy: process.env.NODE_ENV === 'production' ? undefined : false,
+  // X-Frame-Options: 클릭재킹 방지
+  frameguard: {
+    action: 'deny',
+  },
+  // X-Content-Type-Options: MIME 스니핑 방지
+  noSniff: true,
+  // X-XSS-Protection: XSS 필터 활성화 (레거시 브라우저용)
+  xssFilter: true,
+}));
+app.use(cors(corsOptions));
+
+// Request Body 크기 제한 (DoS 방지)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// 로깅 설정 (프로덕션에서는 combined 포맷 사용)
+if (process.env.NODE_ENV === 'production') {
+  // 프로덕션: 간략한 로깅, 민감 정보 제외
+  app.use(morgan('combined', {
+    skip: (req, res) => res.statusCode < 400 // 에러만 로깅
+  }));
+} else {
+  app.use(morgan('dev'));
+}
+
+// Health check (환경 정보 노출 제거)
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString(), env: process.env.NODE_ENV });
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 // Root endpoint
@@ -101,11 +183,29 @@ function loadRoutes() {
     // === 주주 전용 커뮤니티 라우트 ===
     app.use('/api/shareholder-community', require('./src/routes/shareholderCommunity'));
 
+    // === 연속 로그인 보상 라우트 ===
+    app.use('/api/login-streak', require('./src/routes/loginStreak'));
+
+    // === 장기 보유 보너스 라우트 ===
+    app.use('/api/holding-bonus', require('./src/routes/holdingBonus'));
+
+    // === 크리에이터 수익 정산 라우트 ===
+    app.use('/api/settlement', require('./src/routes/settlement'));
+
+    // === 온보딩(첫 주주 되기) 라우트 ===
+    app.use('/api/onboarding', require('./src/routes/onboarding'));
+
+    // === 가상 셀럽 사전상장 라우트 ===
+    app.use('/api/virtual-celebrity', require('./src/routes/virtualCelebrity'));
+
     console.log('✅ All routes loaded successfully');
     return true;
   } catch (error) {
+    // 프로덕션에서는 스택 트레이스 로깅 제외
     console.error('⚠️ Failed to load routes:', error.message);
-    console.error(error.stack);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(error.stack);
+    }
     return false;
   }
 }
@@ -116,12 +216,23 @@ function add404Handler() {
     res.status(404).json({ error: '요청하신 엔드포인트를 찾을 수 없습니다' });
   });
 
-  // Error handler
+  // Error handler (보안 강화: 에러 메시지 노출 방지)
   app.use((err, req, res, next) => {
-    console.error(err.stack);
+    // 개발 환경에서만 스택 트레이스 로깅
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('[DEV ERROR]', err.message);
+      console.error(err.stack);
+    } else {
+      // 프로덕션에서는 에러 ID와 메시지만 로깅 (스택 트레이스 제외)
+      const errorId = Date.now().toString(36);
+      console.error(`[ERROR ${errorId}]`, err.message);
+    }
+
+    // 클라이언트에게 항상 일반적인 에러 메시지만 반환
     res.status(500).json({
       error: '서버 오류가 발생했습니다',
-      message: process.env.NODE_ENV === 'development' ? err.message : undefined
+      // 프로덕션에서는 절대 에러 메시지 노출하지 않음
+      ...(process.env.NODE_ENV !== 'production' && { debug: err.message })
     });
   });
 }
@@ -136,8 +247,12 @@ async function startServer() {
 
     // 2. 테이블 동기화 (먼저!)
     if (dbConnected) {
-      // alter: true로 새 컬럼 동기화
-      await sequelize.sync({ alter: true });
+      // 프로덕션에서는 alter 없이 동기화 (마이그레이션 사용 권장)
+      if (process.env.NODE_ENV === 'production') {
+        await sequelize.sync();
+      } else {
+        await sequelize.sync({ alter: true });
+      }
       console.log('📊 Database synchronized');
     }
 
@@ -156,6 +271,7 @@ async function startServer() {
         const stockAlertMonitorService = require('./src/services/stockAlertMonitorService');
         const stockTickerService = require('./src/services/stockTickerService');
         const orderMatchingService = require('./src/services/orderMatchingService');
+        const { startPriceHistoryScheduler } = require('./src/jobs/priceHistoryScheduler');
 
         // Socket.IO 초기화
         initSocket(server);
@@ -174,6 +290,9 @@ async function startServer() {
 
         // 주문 매칭 엔진 시작 (5초 간격)
         orderMatchingService.start(5000);
+
+        // 가격 히스토리(캔들) 기록 스케줄러 시작 (1분 간격)
+        startPriceHistoryScheduler();
 
         console.log('✅ Background services started');
       } catch (serviceError) {

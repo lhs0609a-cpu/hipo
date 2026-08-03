@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -12,6 +14,8 @@ import { getTransactions } from '../api/stocks';
 import { COLORS } from '../constants/colors';
 
 export default function TransactionHistoryScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -56,7 +60,7 @@ export default function TransactionHistoryScreen({ navigation }) {
 
   const renderTransaction = ({ item }) => {
     const isBuy = item.transactionType === 'BUY';
-    const typeColor = isBuy ? COLORS.up : COLORS.down;
+    const typeColor = isBuy ? theme.colors.up : theme.colors.down;
     const typeText = isBuy ? '매수' : '매도';
     const totalAmount = item.shares * item.pricePerShare;
 
@@ -133,7 +137,7 @@ export default function TransactionHistoryScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -170,44 +174,44 @@ export default function TransactionHistoryScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   filterTabs: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 20,
     paddingVertical: 12,
     gap: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   filterTab: {
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     alignItems: 'center',
   },
   filterTabActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
   },
   filterTabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   filterTabTextActive: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   listContent: {
     padding: 16,
@@ -217,11 +221,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   transactionCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   transactionHeader: {
     flexDirection: 'row',
@@ -240,7 +244,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   typeBadgeText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -250,11 +254,11 @@ const styles = StyleSheet.create({
   stockName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   transactionDate: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   transactionDetails: {
     gap: 8,
@@ -266,23 +270,23 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   detailValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   totalRow: {
     marginTop: 8,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: t.colors.border,
   },
   totalLabel: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   totalValue: {
     fontSize: 18,
@@ -301,12 +305,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
   },
 });

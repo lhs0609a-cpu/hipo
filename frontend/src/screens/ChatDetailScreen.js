@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -17,6 +19,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSocket } from '../contexts/SocketContext';
 
 export default function ChatDetailScreen({ route, navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const { conversationId, otherUser } = route.params;
   const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState('');
@@ -218,7 +222,7 @@ export default function ChatDetailScreen({ route, navigation }) {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -273,10 +277,10 @@ export default function ChatDetailScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
@@ -304,13 +308,13 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   myMessage: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     borderBottomRightRadius: 4,
   },
   otherMessage: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     borderBottomLeftRadius: 4,
   },
   messageText: {
@@ -321,28 +325,28 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   otherMessageText: {
-    color: COLORS.text,
+    color: t.colors.text,
   },
   messageTime: {
     fontSize: 11,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   sendingText: {
     fontSize: 10,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     fontStyle: 'italic',
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 12,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: t.colors.border,
     alignItems: 'flex-end',
   },
   input: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -351,7 +355,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   sendButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
@@ -373,6 +377,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
 });

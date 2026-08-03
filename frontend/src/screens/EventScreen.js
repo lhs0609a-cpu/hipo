@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -14,6 +17,9 @@ import { eventAPI, newsAPI } from '../services/api';
 import { COLORS } from '../constants/colors';
 
 const EventScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [events, setEvents] = useState([]);
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,13 +58,13 @@ const EventScreen = ({ navigation }) => {
   const getCategoryColor = (category) => {
     switch (category) {
       case '공지':
-        return '#007AFF';
+        return '#2B5FE3';
       case '상장':
-        return '#4CAF50';
+        return '#00B368';
       case '배당':
-        return '#FF9800';
+        return '#F59B00';
       case '업데이트':
-        return '#9C27B0';
+        return '#8B5CF6';
       default:
         return '#666';
     }
@@ -106,7 +112,7 @@ const EventScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -114,7 +120,7 @@ const EventScreen = ({ navigation }) => {
   if (error) {
     return (
       <View style={styles.errorContainer}>
-        <Ionicons name="alert-circle-outline" size={48} color={COLORS.error} />
+        <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error} />
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={fetchData}>
           <Text style={styles.retryText}>다시 시도</Text>
@@ -125,7 +131,7 @@ const EventScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Text style={styles.headerTitle}>이벤트 & 뉴스</Text>
         <Text style={styles.headerSubtitle}>HIPO의 새로운 소식</Text>
       </View>
@@ -186,27 +192,27 @@ const EventScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     padding: 20,
   },
   errorText: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 12,
     textAlign: 'center',
   },
@@ -214,16 +220,16 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     borderRadius: 8,
   },
   retryText: {
-    color: COLORS.white,
+    color: t.colors.white,
     fontWeight: '600',
   },
   header: {
-    backgroundColor: COLORS.primary,
-    paddingTop: 50,
+    backgroundColor: t.colors.primary,
+    paddingTop: 10,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
@@ -252,7 +258,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   activeTab: {
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
   },
   tabText: {
     fontSize: 15,
@@ -278,7 +284,7 @@ const styles = StyleSheet.create({
   },
   eventImagePlaceholder: {
     height: 120,
-    backgroundColor: '#e3f2fd',
+    backgroundColor: t.colors.primaryBackground,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -293,7 +299,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   activeBadge: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,

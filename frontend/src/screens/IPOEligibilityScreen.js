@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -15,6 +17,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { ipoAPI } from '../services/api';
 
 const IPOEligibilityScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [eligibility, setEligibility] = useState(null);
@@ -96,7 +100,7 @@ const IPOEligibilityScreen = ({ navigation }) => {
   };
 
   const getRequirementColor = (met) => {
-    return met ? '#00C471' : '#F04452';
+    return met ? '#00B368' : '#F0344B';
   };
 
   const formatNumber = (num) => {
@@ -105,15 +109,15 @@ const IPOEligibilityScreen = ({ navigation }) => {
   };
 
   const getProgressColor = (progress) => {
-    if (progress >= 100) return '#00C471';
-    if (progress >= 60) return '#FFB800';
-    return '#F04452';
+    if (progress >= 100) return '#00B368';
+    if (progress >= 60) return '#F59B00';
+    return '#F0344B';
   };
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
@@ -121,7 +125,7 @@ const IPOEligibilityScreen = ({ navigation }) => {
   if (eligibility?.alreadyListed) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
@@ -129,7 +133,7 @@ const IPOEligibilityScreen = ({ navigation }) => {
           <View style={{ width: 24 }} />
         </View>
         <View style={styles.alreadyListedContainer}>
-          <Ionicons name="checkmark-circle" size={80} color="#00C471" />
+          <Ionicons name="checkmark-circle" size={80} color="#00B368" />
           <Text style={styles.alreadyListedTitle}>이미 상장되었습니다</Text>
           <Text style={styles.alreadyListedDesc}>
             IPO 관리 화면에서 주식을 관리하세요
@@ -147,7 +151,7 @@ const IPOEligibilityScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -182,7 +186,7 @@ const IPOEligibilityScreen = ({ navigation }) => {
           </View>
           {eligibility?.isEligible ? (
             <View style={styles.eligibleBadge}>
-              <Ionicons name="checkmark-circle" size={20} color="#00C471" />
+              <Ionicons name="checkmark-circle" size={20} color="#00B368" />
               <Text style={styles.eligibleText}>상장 자격 충족!</Text>
             </View>
           ) : (
@@ -286,7 +290,7 @@ const IPOEligibilityScreen = ({ navigation }) => {
               <Text
                 style={[
                   styles.requirementStatus,
-                  { color: eligibility?.requirements?.identityVerification?.met ? '#00C471' : '#F04452' },
+                  { color: eligibility?.requirements?.identityVerification?.met ? '#00B368' : '#F0344B' },
                 ]}
               >
                 {eligibility?.requirements?.identityVerification?.verified ? '완료' : '미완료'}
@@ -298,7 +302,7 @@ const IPOEligibilityScreen = ({ navigation }) => {
                 onPress={() => navigation.navigate('SecuritySettings')}
               >
                 <Text style={styles.actionButtonText}>본인인증 하러가기</Text>
-                <Ionicons name="chevron-forward" size={16} color="#3182F6" />
+                <Ionicons name="chevron-forward" size={16} color="#2B5FE3" />
               </TouchableOpacity>
             )}
           </View>
@@ -366,7 +370,7 @@ const IPOEligibilityScreen = ({ navigation }) => {
                 onPress={() => navigation.navigate('EditProfile')}
               >
                 <Text style={styles.actionButtonText}>프로필 수정하기</Text>
-                <Ionicons name="chevron-forward" size={16} color="#3182F6" />
+                <Ionicons name="chevron-forward" size={16} color="#2B5FE3" />
               </TouchableOpacity>
             )}
           </View>
@@ -381,7 +385,7 @@ const IPOEligibilityScreen = ({ navigation }) => {
                 <Ionicons
                   name="bulb"
                   size={20}
-                  color={tip.priority === 'high' ? '#FFB800' : '#999'}
+                  color={tip.priority === 'high' ? '#F59B00' : '#999'}
                 />
                 <Text style={styles.tipText}>{tip.message}</Text>
               </View>
@@ -495,10 +499,10 @@ const IPOEligibilityScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -510,7 +514,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -540,7 +544,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   manageButton: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
@@ -572,7 +576,7 @@ const styles = StyleSheet.create({
   },
   progressBarContainer: {
     height: 12,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     borderRadius: 6,
     overflow: 'hidden',
     marginBottom: 16,
@@ -585,13 +589,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: t.colors.successBackground,
     padding: 12,
     borderRadius: 8,
     gap: 8,
   },
   eligibleText: {
-    color: '#00C471',
+    color: t.colors.success,
     fontSize: 16,
     fontWeight: '600',
   },
@@ -614,7 +618,7 @@ const styles = StyleSheet.create({
   requirementItem: {
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   requirementHeader: {
     flexDirection: 'row',
@@ -634,7 +638,7 @@ const styles = StyleSheet.create({
   requirementCurrent: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   requirementDivider: {
     fontSize: 16,
@@ -655,14 +659,14 @@ const styles = StyleSheet.create({
   },
   progressBarSmallContainer: {
     height: 6,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: 8,
   },
   progressBarSmall: {
     height: '100%',
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     borderRadius: 3,
   },
   remainingText: {
@@ -677,7 +681,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 14,
-    color: '#3182F6',
+    color: t.colors.primary,
     fontWeight: '500',
   },
   tipItem: {
@@ -686,7 +690,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   tipText: {
     flex: 1,
@@ -698,7 +702,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 18,
     borderRadius: 12,
     gap: 10,
@@ -749,7 +753,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 14,
     fontSize: 16,
-    backgroundColor: '#fafafa',
+    backgroundColor: t.colors.surface,
   },
   categoryContainer: {
     flexDirection: 'row',
@@ -764,8 +768,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   categoryChipActive: {
-    backgroundColor: '#3182F6',
-    borderColor: '#3182F6',
+    backgroundColor: t.colors.primary,
+    borderColor: t.colors.primary,
   },
   categoryChipText: {
     fontSize: 14,
@@ -776,7 +780,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   estimateBox: {
-    backgroundColor: '#f0f7ff',
+    backgroundColor: t.colors.primaryBackground,
     padding: 16,
     borderRadius: 10,
     marginBottom: 20,
@@ -789,7 +793,7 @@ const styles = StyleSheet.create({
   estimateValue: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -797,7 +801,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',
@@ -809,7 +813,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 16,
     borderRadius: 10,
     alignItems: 'center',

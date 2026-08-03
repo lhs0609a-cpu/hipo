@@ -1,6 +1,7 @@
 const { User, Stock, Holding, Post, Comment, StockTransaction, Wallet } = require('../models');
 const { Op } = require('sequelize');
 const { sendStockPriceUpdate } = require('../config/socket');
+const { checkAndTriggerCircuitBreaker } = require('../utils/circuitBreaker');
 
 class StockPriceService {
   /**
@@ -67,6 +68,12 @@ class StockPriceService {
       });
 
       console.log(`📊 주가 업데이트: ${user.username} - ${oldPrice} → ${newPrice} PO`);
+
+      // 가격 변동률이 dailyPriceLimit을 초과하면 서킷브레이커 자동 발동
+      const triggered = await checkAndTriggerCircuitBreaker(stock, oldPrice, newPrice);
+      if (triggered) {
+        console.log(`🚨 서킷브레이커 자동 발동: ${user.username} (${oldPrice} → ${newPrice})`);
+      }
 
       // 주가 변동이 있으면 실시간 알림 전송
       if (oldPrice !== newPrice) {

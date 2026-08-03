@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -11,6 +12,7 @@ import {
 import api from '../api/client';
 
 const PaymentHistoryScreen = () => {
+  const styles = useThemedStyles(makeStyles);
   const [tab, setTab] = useState('payments'); // 'payments' | 'transactions'
   const [payments, setPayments] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -51,11 +53,11 @@ const PaymentHistoryScreen = () => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      PENDING: { text: '대기중', color: '#FF9500', bgColor: '#FFF3E0' },
-      COMPLETED: { text: '완료', color: '#34C759', bgColor: '#E8F5E9' },
-      FAILED: { text: '실패', color: '#FF3B30', bgColor: '#FFEBEE' },
-      CANCELLED: { text: '취소', color: '#8E8E93', bgColor: '#F5F5F5' },
-      REFUNDED: { text: '환불', color: '#5856D6', bgColor: '#EDE7F6' }
+      PENDING: { text: '대기중', color: '#F59B00', bgColor: '#FFF6E6' },
+      COMPLETED: { text: '완료', color: '#00B368', bgColor: '#E7F8F0' },
+      FAILED: { text: '실패', color: '#F0344B', bgColor: '#FFF1F2' },
+      CANCELLED: { text: '취소', color: '#7C8698', bgColor: '#F8F9FB' },
+      REFUNDED: { text: '환불', color: '#5E93F7', bgColor: '#F2EEFE' }
     };
 
     const config = statusConfig[status] || statusConfig.PENDING;
@@ -83,11 +85,11 @@ const PaymentHistoryScreen = () => {
 
   const getTransactionTypeConfig = (type) => {
     const config = {
-      CHARGE: { icon: '⬆️', text: '충전', color: '#34C759' },
-      USE: { icon: '⬇️', text: '사용', color: '#FF3B30' },
-      REFUND: { icon: '↩️', text: '환불', color: '#5856D6' },
-      BONUS: { icon: '🎁', text: '보너스', color: '#FF9500' },
-      ADMIN_ADJUSTMENT: { icon: '⚙️', text: '조정', color: '#8E8E93' }
+      CHARGE: { icon: '⬆️', text: '충전', color: '#00B368' },
+      USE: { icon: '⬇️', text: '사용', color: '#F0344B' },
+      REFUND: { icon: '↩️', text: '환불', color: '#5E93F7' },
+      BONUS: { icon: '🎁', text: '보너스', color: '#F59B00' },
+      ADMIN_ADJUSTMENT: { icon: '⚙️', text: '조정', color: '#7C8698' }
     };
     return config[type] || config.USE;
   };
@@ -151,7 +153,7 @@ const PaymentHistoryScreen = () => {
           </View>
           <Text style={[
             styles.transactionAmount,
-            { color: isPositive ? '#34C759' : '#FF3B30' }
+            { color: isPositive ? '#00B368' : '#F0344B' }
           ]}>
             {isPositive ? '+' : ''}{item.amount.toLocaleString()}원
           </Text>
@@ -201,7 +203,7 @@ const PaymentHistoryScreen = () => {
       {/* 리스트 */}
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color="#2B5FE3" />
         </View>
       ) : (
         <FlatList
@@ -219,16 +221,16 @@ const PaymentHistoryScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5'
+    backgroundColor: t.colors.background
   },
   tabContainer: {
     flexDirection: 'row',
     backgroundColor: '#FFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0'
+    borderBottomColor: t.colors.border
   },
   tab: {
     flex: 1,
@@ -238,15 +240,15 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent'
   },
   tabActive: {
-    borderBottomColor: '#007AFF'
+    borderBottomColor: t.colors.primary
   },
   tabText: {
     fontSize: 15,
-    color: '#8E8E93',
+    color: t.colors.textTertiary,
     fontWeight: '500'
   },
   tabTextActive: {
-    color: '#007AFF',
+    color: t.colors.primary,
     fontWeight: 'bold'
   },
   loadingContainer: {
@@ -294,7 +296,7 @@ const styles = StyleSheet.create({
   },
   itemDate: {
     fontSize: 12,
-    color: '#8E8E93'
+    color: t.colors.textTertiary
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -307,7 +309,7 @@ const styles = StyleSheet.create({
   },
   itemDetails: {
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: t.colors.backgroundSecondary,
     paddingTop: 12
   },
   detailRow: {
@@ -327,14 +329,14 @@ const styles = StyleSheet.create({
   detailBonus: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#FF9500'
+    color: t.colors.warning
   },
   detailRowTotal: {
     marginTop: 4,
     marginBottom: 12,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0'
+    borderTopColor: t.colors.backgroundSecondary
   },
   detailLabelTotal: {
     fontSize: 15,
@@ -344,11 +346,11 @@ const styles = StyleSheet.create({
   detailValueTotal: {
     fontSize: 17,
     fontWeight: 'bold',
-    color: '#007AFF'
+    color: t.colors.primary
   },
   detailOrderId: {
     fontSize: 12,
-    color: '#8E8E93',
+    color: t.colors.textTertiary,
     fontFamily: 'monospace'
   },
   transactionCard: {
@@ -382,7 +384,7 @@ const styles = StyleSheet.create({
   },
   transactionDate: {
     fontSize: 12,
-    color: '#8E8E93'
+    color: t.colors.textTertiary
   },
   transactionAmount: {
     fontSize: 16,
@@ -393,7 +395,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0'
+    borderTopColor: t.colors.backgroundSecondary
   },
   balanceLabel: {
     fontSize: 13,
@@ -415,7 +417,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#8E8E93'
+    color: t.colors.textTertiary
   }
 });
 

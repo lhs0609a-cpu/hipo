@@ -7,8 +7,13 @@
 
 const { User, Stock, Holding, StockOrder, StockTrade, Transaction, Wallet, sequelize } = require('../models');
 const { Op } = require('sequelize');
-const { getIO } = require('../config/socket');
+const { getIO, sendTradeTick } = require('../config/socket');
+const { broadcastOrderBook } = require('./orderBookService');
 const stockPriceService = require('./stockPriceService');
+const { updateBalance } = require('../utils/balanceService');
+const { isCircuitBreakerActive } = require('../utils/circuitBreaker');
+const { checkDailyTradeLimit, recordDailyTradeAmount } = require('../utils/dailyTradeLimit');
+const { applyTradePrice } = require('../utils/priceEngine');
 
 class OrderMatchingService {
   constructor() {
@@ -215,12 +220,30 @@ class OrderMatchingService {
     // 주식 정보
     const stock = await Stock.findByPk(buyOrder.stockId, { transaction });
 
+    // 서킷브레이커 확인
+    if (isCircuitBreakerActive(stock)) {
+      console.log(`서킷브레이커 활성: stockId=${stock.id}, 매칭 스킵`);
+      return;
+    }
+
     // 잔액 검증 (매수자)
     if (buyer.poBalance < totalAmount) {
       console.log(`매수자 잔액 부족: ${buyer.id}`);
       await buyOrder.update({
         status: 'CANCELLED',
         cancelReason: '잔액 부족',
+        cancelledAt: new Date()
+      }, { transaction });
+      return;
+    }
+
+    // 일일 거래 한도 확인 (매수자)
+    const buyerTradeCheck = await checkDailyTradeLimit(buyer, totalAmount, transaction);
+    if (!buyerTradeCheck.allowed) {
+      console.log(`매수자 일일 한도 초과: ${buyer.id}`);
+      await buyOrder.update({
+        status: 'CANCELLED',
+        cancelReason: '일일 거래 한도 초과',
         cancelledAt: new Date()
       }, { transaction });
       return;
@@ -244,36 +267,14 @@ class OrderMatchingService {
 
     // === 체결 처리 ===
 
-    // 1. 매수자 PO 차감
-    await buyer.update({
-      poBalance: buyer.poBalance - totalAmount
-    }, { transaction });
-
-    const buyerWallet = await Wallet.findOne({
-      where: { userId: buyer.id },
-      transaction
+    // 1. 매수자 PO 차감 (User + Wallet 동시)
+    await updateBalance(buyer.id, -totalAmount, {
+      transaction,
+      walletFields: { totalPOSpent: totalAmount }
     });
-    if (buyerWallet) {
-      await buyerWallet.update({
-        poBalance: parseFloat(buyerWallet.poBalance) - totalAmount,
-        totalPOSpent: parseFloat(buyerWallet.totalPOSpent) + totalAmount
-      }, { transaction });
-    }
 
-    // 2. 매도자 PO 증가
-    await seller.update({
-      poBalance: seller.poBalance + totalAmount
-    }, { transaction });
-
-    const sellerWallet = await Wallet.findOne({
-      where: { userId: seller.id },
-      transaction
-    });
-    if (sellerWallet) {
-      await sellerWallet.update({
-        poBalance: parseFloat(sellerWallet.poBalance) + totalAmount
-      }, { transaction });
-    }
+    // 2. 매도자 PO 증가 (User + Wallet 동시)
+    await updateBalance(seller.id, totalAmount, { transaction });
 
     // 3. 매수자 보유 주식 업데이트
     const [buyerHolding, created] = await Holding.findOrCreate({
@@ -347,13 +348,17 @@ class OrderMatchingService {
       filledAt: sellFilled >= sellOrder.quantity ? new Date() : null
     }, { transaction });
 
+    // 8. 일일 거래 사용량 기록
+    await recordDailyTradeAmount(buyer, totalAmount, transaction);
+    await recordDailyTradeAmount(seller, totalAmount, transaction);
+
     console.log(`체결: ${quantity}주 @ ${price} PO (매수: ${buyer.username}, 매도: ${seller.username})`);
 
-    // 8. 실시간 알림
-    this.emitTradeExecuted(trade, buyer, seller, stock, quantity, price);
+    // 9. 체결가 = 현재가 반영 (호가 매칭 체결가가 곧 시장가)
+    await applyTradePrice(stock, price, { volume: quantity, transaction });
 
-    // 9. 주가 재계산 (비동기)
-    stockPriceService.calculateStockPrice(stock.userId).catch(console.error);
+    // 10. 실시간 알림
+    this.emitTradeExecuted(trade, buyer, seller, stock, quantity, price);
   }
 
   /**
@@ -440,6 +445,18 @@ class OrderMatchingService {
         totalAmount: quantity * price,
         timestamp: new Date()
       });
+
+      // 종목 구독자에게 체결 한 건 (체결 내역 화면용)
+      sendTradeTick(stock.id, {
+        id: trade.id,
+        quantity,
+        price,
+        totalAmount: quantity * price
+      });
+
+      // 체결로 잔량이 바뀌었으므로 호가창을 다시 만들어 보낸다.
+      // await 하지 않는다 — 체결 경로를 소켓 I/O 로 지연시키지 않기 위함.
+      broadcastOrderBook(stock.id);
 
       // 매수자에게 알림
       io.to(`user:${buyer.id}`).emit('order:filled', {

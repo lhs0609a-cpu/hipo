@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -16,17 +18,29 @@ import { Ionicons } from '@expo/vector-icons';
 import { stockOrderAPI } from '../services/api';
 
 const AdvancedOrderScreen = ({ navigation, route }) => {
-  const { stockId, stockName, currentPrice } = route.params || {};
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
+  const {
+    stockId,
+    stockName,
+    currentPrice,
+    // 호가창에서 호가를 눌러 진입한 경우
+    presetPrice,
+    presetOrderType,
+    initialTab,
+  } = route.params || {};
 
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
-  const [activeTab, setActiveTab] = useState('new'); // new, pending, history
+  const [activeTab, setActiveTab] = useState(initialTab || 'new'); // new, pending, history
 
   // Order form states
-  const [orderType, setOrderType] = useState('BUY'); // BUY, SELL
-  const [orderMode, setOrderMode] = useState('limit'); // limit, stop_loss, take_profit, stop_limit
+  const [orderType, setOrderType] = useState(presetOrderType || 'BUY'); // BUY, SELL
+  const [orderMode, setOrderMode] = useState('limit'); // market, limit, stop_loss, take_profit, stop_limit
   const [quantity, setQuantity] = useState('');
-  const [limitPrice, setLimitPrice] = useState(currentPrice?.toString() || '');
+  const [limitPrice, setLimitPrice] = useState(
+    (presetPrice ?? currentPrice)?.toString() || ''
+  );
   const [stopPrice, setStopPrice] = useState('');
   const [triggerCondition, setTriggerCondition] = useState('gte'); // gte, lte
 
@@ -69,31 +83,39 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
 
   const orderModes = [
     {
+      id: 'market',
+      name: '시장가',
+      icon: 'flash',
+      color: '#5D6779',
+      description:
+        '가격을 지정하지 않고 지금 시장에 나와 있는 최우선 호가로 즉시 체결합니다. 체결은 빠르지만 수량이 많으면 체결가가 밀릴 수 있습니다.',
+    },
+    {
       id: 'limit',
       name: '지정가',
       icon: 'pricetag',
-      color: '#3182F6',
+      color: '#2B5FE3',
       description: '원하는 가격에 주문을 체결합니다. 지정한 가격 이하(매수) 또는 이상(매도)이 되면 자동으로 체결됩니다.',
     },
     {
       id: 'stop_loss',
       name: '손절',
       icon: 'trending-down',
-      color: '#F04452',
+      color: '#F0344B',
       description: '손실을 제한합니다. 가격이 설정한 손절가에 도달하면 자동으로 매도하여 추가 손실을 방지합니다.',
     },
     {
       id: 'take_profit',
       name: '익절',
       icon: 'trending-up',
-      color: '#00C471',
+      color: '#00B368',
       description: '수익을 실현합니다. 가격이 설정한 익절가에 도달하면 자동으로 매도하여 수익을 확정합니다.',
     },
     {
       id: 'stop_limit',
       name: '스탑리밋',
       icon: 'swap-horizontal',
-      color: '#FFB800',
+      color: '#F59B00',
       description: '트리거 가격에 도달하면 지정가 주문이 활성화됩니다. 스탑 가격과 지정가를 별도로 설정할 수 있습니다.',
     },
   ];
@@ -113,7 +135,8 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
       return;
     }
 
-    if (!limitPrice || parseInt(limitPrice) <= 0) {
+    // 시장가는 가격을 입력받지 않는다
+    if (orderMode !== 'market' && (!limitPrice || parseInt(limitPrice) <= 0)) {
       showAlert('오류', '주문 가격을 입력해주세요');
       return;
     }
@@ -131,11 +154,17 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
         orderType,
         orderMode,
         quantity: parseInt(quantity),
-        limitPrice: parseInt(limitPrice),
       };
 
+      if (orderMode === 'market') {
+        // 시장가는 현재가를 기준으로 접수한다 (서버가 최우선 호가로 체결)
+        orderData.limitPrice = parseInt(currentPrice, 10) || undefined;
+      } else {
+        orderData.limitPrice = parseInt(limitPrice);
+      }
+
       // 스탑 주문인 경우 stopPrice 추가
-      if (orderMode !== 'limit') {
+      if (orderMode !== 'limit' && orderMode !== 'market') {
         orderData.stopPrice = parseInt(stopPrice);
       }
 
@@ -193,10 +222,10 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
 
   const getStatusBadge = (status) => {
     const badges = {
-      PENDING: { label: '대기', color: '#FFB800', bg: '#FFF5E0' },
-      PARTIAL: { label: '부분체결', color: '#3182F6', bg: '#E8F3FF' },
-      FILLED: { label: '체결', color: '#00C471', bg: '#E0FFF0' },
-      CANCELLED: { label: '취소', color: '#999', bg: '#F5F5F5' },
+      PENDING: { label: '대기', color: '#F59B00', bg: '#FFF6E6' },
+      PARTIAL: { label: '부분체결', color: '#2B5FE3', bg: '#EEF4FF' },
+      FILLED: { label: '체결', color: '#00B368', bg: '#E7F8F0' },
+      CANCELLED: { label: '취소', color: '#999', bg: '#F8F9FB' },
     };
     return badges[status] || badges.PENDING;
   };
@@ -265,7 +294,7 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -391,38 +420,50 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
             </View>
           </View>
 
-          {/* 지정 가격 */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {orderMode === 'limit' ? '지정가' : '체결 가격'}
-            </Text>
-            <View style={styles.inputRow}>
-              <TextInput
-                style={styles.input}
-                value={limitPrice}
-                onChangeText={setLimitPrice}
-                placeholder="가격 입력"
-                keyboardType="number-pad"
-              />
-              <Text style={styles.inputSuffix}>PO</Text>
+          {/* 가격 — 시장가는 입력받지 않는다 */}
+          {orderMode === 'market' ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>주문 가격</Text>
+              <View style={styles.marketPriceBox}>
+                <Ionicons name="flash" size={16} color="#5D6779" />
+                <Text style={styles.marketPriceText}>
+                  최우선 호가로 즉시 체결 (현재가 {formatNumber(currentPrice)} PO)
+                </Text>
+              </View>
             </View>
-            <View style={styles.priceButtons}>
-              {[-5, -1, 0, 1, 5].map((percent) => (
-                <TouchableOpacity
-                  key={percent}
-                  style={styles.priceButton}
-                  onPress={() => {
-                    const newPrice = Math.floor(currentPrice * (1 + percent / 100));
-                    setLimitPrice(newPrice.toString());
-                  }}
-                >
-                  <Text style={styles.priceButtonText}>
-                    {percent === 0 ? '현재가' : `${percent > 0 ? '+' : ''}${percent}%`}
-                  </Text>
-                </TouchableOpacity>
-              ))}
+          ) : (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {orderMode === 'limit' ? '지정가' : '체결 가격'}
+              </Text>
+              <View style={styles.inputRow}>
+                <TextInput
+                  style={styles.input}
+                  value={limitPrice}
+                  onChangeText={setLimitPrice}
+                  placeholder="가격 입력"
+                  keyboardType="number-pad"
+                />
+                <Text style={styles.inputSuffix}>PO</Text>
+              </View>
+              <View style={styles.priceButtons}>
+                {[-5, -1, 0, 1, 5].map((percent) => (
+                  <TouchableOpacity
+                    key={percent}
+                    style={styles.priceButton}
+                    onPress={() => {
+                      const newPrice = Math.floor(currentPrice * (1 + percent / 100));
+                      setLimitPrice(newPrice.toString());
+                    }}
+                  >
+                    <Text style={styles.priceButtonText}>
+                      {percent === 0 ? '현재가' : `${percent > 0 ? '+' : ''}${percent}%`}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-          </View>
+          )}
 
           {/* 트리거 가격 (손절/익절/스탑리밋) */}
           {(orderMode === 'stop_loss' || orderMode === 'take_profit' || orderMode === 'stop_limit') && (
@@ -482,18 +523,29 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
             </View>
           )}
 
-          {/* 주문 요약 */}
-          {quantity && limitPrice && (
+          {/* 주문 요약 — 시장가는 현재가 기준 추정치 */}
+          {quantity && (orderMode === 'market' ? currentPrice : limitPrice) ? (
             <View style={styles.summaryCard}>
               <Text style={styles.summaryTitle}>주문 요약</Text>
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>예상 체결 금액</Text>
                 <Text style={styles.summaryValue}>
-                  {formatNumber(parseInt(quantity || 0) * parseInt(limitPrice || 0))} PO
+                  {formatNumber(
+                    parseInt(quantity || 0, 10) *
+                      parseInt(
+                        (orderMode === 'market' ? currentPrice : limitPrice) || 0,
+                        10
+                      )
+                  )} PO
                 </Text>
               </View>
+              {orderMode === 'market' ? (
+                <Text style={styles.summaryNote}>
+                  실제 체결가는 호가 상황에 따라 달라질 수 있습니다
+                </Text>
+              ) : null}
             </View>
-          )}
+          ) : null}
 
           {/* 주문 버튼 */}
           <TouchableOpacity
@@ -565,17 +617,17 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -589,7 +641,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   tab: {
     flex: 1,
@@ -598,7 +650,7 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#3182F6',
+    borderBottomColor: t.colors.primary,
   },
   tabText: {
     fontSize: 15,
@@ -606,7 +658,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activeTabText: {
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   content: {
     padding: 16,
@@ -651,13 +703,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
   },
   buyButton: {
-    backgroundColor: '#F04452',
+    backgroundColor: t.colors.error,
   },
   sellButton: {
-    backgroundColor: '#1261C4',
+    backgroundColor: t.colors.primaryDark,
   },
   orderTypeButtonText: {
     fontSize: 16,
@@ -677,7 +729,7 @@ const styles = StyleSheet.create({
   },
   modeCard: {
     width: '47%',
-    backgroundColor: '#f8f8f8',
+    backgroundColor: t.colors.background,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -707,7 +759,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     borderRadius: 8,
     padding: 14,
     fontSize: 18,
@@ -718,6 +770,21 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 12,
   },
+  marketPriceBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: t.colors.backgroundSecondary,
+  },
+  marketPriceText: {
+    flex: 1,
+    fontSize: 13,
+    color: t.colors.textSecondary,
+    lineHeight: 18,
+  },
   priceButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -726,7 +793,7 @@ const styles = StyleSheet.create({
   },
   priceButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     paddingVertical: 10,
     borderRadius: 6,
     alignItems: 'center',
@@ -746,13 +813,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     padding: 14,
     borderRadius: 8,
     gap: 8,
   },
   activeCondition: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
   },
   conditionText: {
     fontSize: 14,
@@ -763,14 +830,14 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   summaryCard: {
-    backgroundColor: '#E8F3FF',
+    backgroundColor: t.colors.primaryBackground,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
   },
   summaryTitle: {
     fontSize: 14,
-    color: '#3182F6',
+    color: t.colors.primary,
     marginBottom: 8,
   },
   summaryRow: {
@@ -784,7 +851,12 @@ const styles = StyleSheet.create({
   summaryValue: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#3182F6',
+    color: t.colors.primary,
+  },
+  summaryNote: {
+    marginTop: 6,
+    fontSize: 11,
+    color: t.colors.textTertiary,
   },
   submitButton: {
     paddingVertical: 16,
@@ -792,10 +864,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buySubmitButton: {
-    backgroundColor: '#F04452',
+    backgroundColor: t.colors.error,
   },
   sellSubmitButton: {
-    backgroundColor: '#1261C4',
+    backgroundColor: t.colors.primaryDark,
   },
   disabledButton: {
     opacity: 0.7,
@@ -857,15 +929,15 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   buyText: {
-    backgroundColor: '#FFF0F1',
-    color: '#F04452',
+    backgroundColor: t.colors.errorBackground,
+    color: t.colors.error,
   },
   sellText: {
-    backgroundColor: '#E8F3FF',
-    color: '#1261C4',
+    backgroundColor: t.colors.primaryBackground,
+    color: t.colors.primaryDark,
   },
   orderDetails: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     borderRadius: 8,
     padding: 12,
   },
@@ -893,7 +965,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   cancelOrderButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
@@ -947,7 +1019,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   infoModalButton: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 12,
     borderRadius: 8,

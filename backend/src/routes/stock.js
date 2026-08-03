@@ -88,6 +88,18 @@ router.get('/:stockId/history', stockController.getPriceHistory);
 router.get('/:stockId/orderbook', stockController.getOrderBook);
 
 /**
+ * GET /api/stocks/:stockId/trades
+ * 최근 체결 내역 (Time & Sales)
+ */
+router.get('/:stockId/trades', stockController.getRecentTrades);
+
+/**
+ * GET /api/stocks/:stockId/quote?side=buy&quantity=10
+ * 체결 경로 미리보기 (발행시장 vs 호가창 중 유리한 쪽)
+ */
+router.get('/:stockId/quote', stockController.getExecutionQuote);
+
+/**
  * GET /api/stocks/:stockId/stats
  * 주식 상세 통계 조회 (시가, 고가, 저가, 거래량)
  */

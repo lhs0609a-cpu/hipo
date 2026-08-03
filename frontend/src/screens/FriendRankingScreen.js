@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -13,6 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { friendRankingAPI, earlyBirdAPI } from '../services/api';
 
 const FriendRankingScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [rankings, setRankings] = useState([]);
@@ -56,9 +60,9 @@ const FriendRankingScreen = ({ navigation }) => {
   };
 
   const getRankBadge = (rank) => {
-    if (rank === 1) return { icon: 'trophy', color: '#FFD700', label: '1위' };
-    if (rank === 2) return { icon: 'medal', color: '#C0C0C0', label: '2위' };
-    if (rank === 3) return { icon: 'medal', color: '#CD7F32', label: '3위' };
+    if (rank === 1) return { icon: 'trophy', color: '#D9A521', label: '1위' };
+    if (rank === 2) return { icon: 'medal', color: '#9BA3AF', label: '2위' };
+    if (rank === 3) return { icon: 'medal', color: '#B87333', label: '3위' };
     return { icon: null, color: '#666', label: `${rank}위` };
   };
 
@@ -191,14 +195,14 @@ const FriendRankingScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -215,7 +219,7 @@ const FriendRankingScreen = ({ navigation }) => {
           <Ionicons
             name="podium"
             size={20}
-            color={activeTab === 'ranking' ? '#3182F6' : '#999'}
+            color={activeTab === 'ranking' ? '#2B5FE3' : '#999'}
           />
           <Text style={[styles.tabText, activeTab === 'ranking' && styles.activeTabText]}>
             수익률 랭킹
@@ -228,7 +232,7 @@ const FriendRankingScreen = ({ navigation }) => {
           <Ionicons
             name="ribbon"
             size={20}
-            color={activeTab === 'badges' ? '#3182F6' : '#999'}
+            color={activeTab === 'badges' ? '#2B5FE3' : '#999'}
           />
           <Text style={[styles.tabText, activeTab === 'badges' && styles.activeTabText]}>
             얼리버드 뱃지
@@ -297,10 +301,10 @@ const FriendRankingScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -312,7 +316,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -325,7 +329,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   tab: {
     flex: 1,
@@ -337,7 +341,7 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#3182F6',
+    borderBottomColor: t.colors.primary,
   },
   tabText: {
     fontSize: 15,
@@ -345,13 +349,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activeTabText: {
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   listContent: {
     padding: 16,
   },
   myRankCard: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -398,10 +402,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   profit: {
-    color: '#F04452',
+    color: t.colors.error,
   },
   loss: {
-    color: '#1261C4',
+    color: t.colors.primaryDark,
   },
   rankingItem: {
     flexDirection: 'row',
@@ -412,9 +416,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   myRankItem: {
-    backgroundColor: '#E8F3FF',
+    backgroundColor: t.colors.primaryBackground,
     borderWidth: 1,
-    borderColor: '#3182F6',
+    borderColor: t.colors.primary,
   },
   rankSection: {
     width: 40,
@@ -438,7 +442,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   avatarPlaceholder: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -461,7 +465,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   meBadge: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
@@ -551,7 +555,7 @@ const styles = StyleSheet.create({
   inviteButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 14,
     borderRadius: 8,

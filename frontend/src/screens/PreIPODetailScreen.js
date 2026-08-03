@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -18,6 +19,7 @@ import { preIPOAPI, walletAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function PreIPODetailScreen({ route, navigation }) {
+  const styles = useThemedStyles(makeStyles);
   const { roundId } = route.params;
   const { user } = useAuth();
 
@@ -139,10 +141,10 @@ export default function PreIPODetailScreen({ route, navigation }) {
 
   const getEligibilityBadge = (type) => {
     const badges = {
-      public: { text: '전체 공개', color: '#4CAF50', icon: '🌍' },
-      followers_only: { text: '팔로워 전용', color: '#2196F3', icon: '👥' },
-      vip_only: { text: 'VIP 전용', color: '#9C27B0', icon: '💎' },
-      invited_only: { text: '초대 전용', color: '#FF9800', icon: '🎟️' },
+      public: { text: '전체 공개', color: '#00B368', icon: '🌍' },
+      followers_only: { text: '팔로워 전용', color: '#2B5FE3', icon: '👥' },
+      vip_only: { text: 'VIP 전용', color: '#8B5CF6', icon: '💎' },
+      invited_only: { text: '초대 전용', color: '#F59B00', icon: '🎟️' },
     };
     return badges[type] || { text: type, color: '#666', icon: '📌' };
   };
@@ -243,7 +245,7 @@ export default function PreIPODetailScreen({ route, navigation }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="large" color="#00B368" />
         </View>
       </SafeAreaView>
     );
@@ -277,7 +279,7 @@ export default function PreIPODetailScreen({ route, navigation }) {
       <ScrollView
         style={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#4CAF50" />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor="#00B368" />
         }
       >
         {/* 크리에이터 정보 */}
@@ -298,7 +300,7 @@ export default function PreIPODetailScreen({ route, navigation }) {
 
         {/* 카운트다운 */}
         <LinearGradient
-          colors={round.status === 'active' ? ['#1a237e', '#283593'] : ['#424242', '#616161']}
+          colors={round.status === 'active' ? ['#182F68', '#183580'] : ['#454E5E', '#5D6779']}
           style={styles.countdownBanner}
         >
           <Text style={styles.countdownLabel}>
@@ -362,7 +364,7 @@ export default function PreIPODetailScreen({ route, navigation }) {
             </View>
             <View style={styles.progressBar}>
               <LinearGradient
-                colors={['#4CAF50', '#8BC34A']}
+                colors={['#00B368', '#00B368']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={[styles.progressFill, { width: `${Math.min(progress, 100)}%` }]}
@@ -390,7 +392,7 @@ export default function PreIPODetailScreen({ route, navigation }) {
         {round.earlyBirdBonus > 0 && (
           <View style={styles.section}>
             <LinearGradient
-              colors={['#FF9800', '#F57C00']}
+              colors={['#F59B00', '#B26F00']}
               style={styles.earlyBirdCard}
             >
               <Text style={styles.earlyBirdTitle}>🎁 얼리버드 혜택</Text>
@@ -570,10 +572,10 @@ export default function PreIPODetailScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: t.colors.backgroundPure,
   },
   loadingContainer: {
     flex: 1,
@@ -612,7 +614,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
   },
   issuerAvatar: {
     width: 70,
@@ -659,7 +661,7 @@ const styles = StyleSheet.create({
   },
   countdownLabel: {
     fontSize: 14,
-    color: '#9FA8DA',
+    color: '#91B8FB',
     marginBottom: 4,
   },
   countdownTime: {
@@ -668,7 +670,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   section: {
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     marginHorizontal: 16,
     marginBottom: 16,
     borderRadius: 12,
@@ -691,7 +693,7 @@ const styles = StyleSheet.create({
   },
   priceCard: {
     flex: 1,
-    backgroundColor: '#252525',
+    backgroundColor: t.colors.surfaceRaised,
     borderRadius: 8,
     padding: 12,
     marginRight: 8,
@@ -705,7 +707,7 @@ const styles = StyleSheet.create({
   priceValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: t.colors.success,
   },
   expectedPrice: {
     fontSize: 18,
@@ -715,7 +717,7 @@ const styles = StyleSheet.create({
   },
   discountBadge: {
     fontSize: 12,
-    color: '#f44336',
+    color: t.colors.error,
     marginTop: 4,
   },
   conditionRow: {
@@ -749,7 +751,7 @@ const styles = StyleSheet.create({
   progressPercent: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: t.colors.success,
   },
   progressBar: {
     height: 10,
@@ -828,12 +830,12 @@ const styles = StyleSheet.create({
   },
   eligibleIcon: {
     fontSize: 20,
-    color: '#4CAF50',
+    color: t.colors.success,
     marginRight: 8,
   },
   eligibleText: {
     fontSize: 14,
-    color: '#4CAF50',
+    color: t.colors.success,
   },
   ineligibleCard: {
     flexDirection: 'row',
@@ -844,12 +846,12 @@ const styles = StyleSheet.create({
   },
   ineligibleIcon: {
     fontSize: 20,
-    color: '#f44336',
+    color: t.colors.error,
     marginRight: 8,
   },
   ineligibleText: {
     fontSize: 14,
-    color: '#f44336',
+    color: t.colors.error,
   },
   alreadyInvestedCard: {
     backgroundColor: '#2196F320',
@@ -859,14 +861,14 @@ const styles = StyleSheet.create({
   },
   alreadyInvestedText: {
     fontSize: 14,
-    color: '#2196F3',
+    color: t.colors.primary,
     textAlign: 'center',
   },
   bottomBar: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     borderTopWidth: 1,
     borderTopColor: '#333',
   },
@@ -883,7 +885,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   investButton: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 8,
@@ -902,7 +904,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -929,7 +931,7 @@ const styles = StyleSheet.create({
   modalInfoValue: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: t.colors.success,
   },
   inputContainer: {
     marginBottom: 16,
@@ -945,7 +947,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: '#252525',
+    backgroundColor: t.colors.surfaceRaised,
     borderRadius: 8,
     padding: 14,
     fontSize: 16,
@@ -972,7 +974,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   calculation: {
-    backgroundColor: '#252525',
+    backgroundColor: t.colors.surfaceRaised,
     borderRadius: 8,
     padding: 16,
     marginBottom: 20,
@@ -992,11 +994,11 @@ const styles = StyleSheet.create({
   },
   calcLabelDiscount: {
     fontSize: 14,
-    color: '#FF9800',
+    color: t.colors.warning,
   },
   calcValueDiscount: {
     fontSize: 14,
-    color: '#FF9800',
+    color: t.colors.warning,
   },
   calcTotal: {
     borderTopWidth: 1,
@@ -1013,7 +1015,7 @@ const styles = StyleSheet.create({
   calcValueTotal: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: t.colors.success,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -1032,7 +1034,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     flex: 2,
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     paddingVertical: 14,
     borderRadius: 8,
     alignItems: 'center',

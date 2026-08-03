@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -12,12 +14,14 @@ import {
   TextInput,
   Modal,
   FlatList,
-  Clipboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { viralReferralAPI, inviteLeaderboardAPI, shareAPI } from '../services/api';
+import { copyText, copyFeedback } from '../utils/clipboard';
 
 const InviteScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('invite');
@@ -72,9 +76,16 @@ const InviteScreen = ({ navigation }) => {
     return num.toLocaleString();
   };
 
-  const handleCopyCode = () => {
-    Clipboard.setString(referralData?.referralCode);
-    Alert.alert('복사 완료', '추천 코드가 클립보드에 복사되었습니다');
+  /**
+   * 추천 코드 복사.
+   * 예전에는 react-native 의 Clipboard 를 썼는데 RN 신아키텍처에서 제거돼
+   * 누르는 순간 크래시했다. utils/clipboard 가 폴백까지 처리한다.
+   */
+  const handleCopyCode = async () => {
+    const code = referralData?.referralCode;
+    if (!code) return;
+    const result = await copyText(code);
+    Alert.alert(result.ok ? '복사 완료' : '알림', copyFeedback(result));
   };
 
   const handleShare = async (type) => {
@@ -114,17 +125,17 @@ const InviteScreen = ({ navigation }) => {
   };
 
   const getRankBadge = (rank) => {
-    if (rank === 1) return { icon: 'trophy', color: '#FFD700' };
-    if (rank === 2) return { icon: 'medal', color: '#C0C0C0' };
-    if (rank === 3) return { icon: 'medal', color: '#CD7F32' };
-    return { icon: 'ribbon', color: '#3182F6' };
+    if (rank === 1) return { icon: 'trophy', color: '#D9A521' };
+    if (rank === 2) return { icon: 'medal', color: '#9BA3AF' };
+    if (rank === 3) return { icon: 'medal', color: '#B87333' };
+    return { icon: 'ribbon', color: '#2B5FE3' };
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'COMPLETED': return '#00C471';
-      case 'ACTIVE': return '#3182F6';
-      default: return '#FFB800';
+      case 'COMPLETED': return '#00B368';
+      case 'ACTIVE': return '#2B5FE3';
+      default: return '#F59B00';
     }
   };
 
@@ -187,14 +198,14 @@ const InviteScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -244,7 +255,7 @@ const InviteScreen = ({ navigation }) => {
             <Text style={styles.rewardTitle}>친구 초대 보상</Text>
             <View style={styles.rewardGrid}>
               <View style={styles.rewardItem}>
-                <Ionicons name="person-add" size={32} color="#3182F6" />
+                <Ionicons name="person-add" size={32} color="#2B5FE3" />
                 <Text style={styles.rewardLabel}>친구 가입 시</Text>
                 <Text style={styles.rewardValue}>
                   나: <Text style={styles.highlight}>500 PO</Text>
@@ -255,7 +266,7 @@ const InviteScreen = ({ navigation }) => {
               </View>
               <View style={styles.rewardDivider} />
               <View style={styles.rewardItem}>
-                <Ionicons name="swap-horizontal" size={32} color="#00C471" />
+                <Ionicons name="swap-horizontal" size={32} color="#00B368" />
                 <Text style={styles.rewardLabel}>첫 거래 완료 시</Text>
                 <Text style={styles.rewardValue}>
                   나: <Text style={styles.highlight}>1,000 PO</Text>
@@ -266,7 +277,7 @@ const InviteScreen = ({ navigation }) => {
               </View>
             </View>
             <View style={styles.vipReward}>
-              <Ionicons name="star" size={20} color="#FFD700" />
+              <Ionicons name="star" size={20} color="#D9A521" />
               <Text style={styles.vipText}>10명 초대 달성 시 VIP 배지 + 거래 수수료 50% 할인!</Text>
             </View>
           </View>
@@ -277,7 +288,7 @@ const InviteScreen = ({ navigation }) => {
             <View style={styles.codeBox}>
               <Text style={styles.codeText}>{referralData?.referralCode}</Text>
               <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
-                <Ionicons name="copy-outline" size={20} color="#3182F6" />
+                <Ionicons name="copy-outline" size={20} color="#2B5FE3" />
               </TouchableOpacity>
             </View>
           </View>
@@ -389,17 +400,17 @@ const InviteScreen = ({ navigation }) => {
           {/* 상위 보상 안내 */}
           <View style={styles.prizeCard}>
             <View style={styles.prizeItem}>
-              <Ionicons name="trophy" size={24} color="#FFD700" />
+              <Ionicons name="trophy" size={24} color="#D9A521" />
               <Text style={styles.prizeRank}>1위</Text>
               <Text style={styles.prizeAmount}>100,000 PO</Text>
             </View>
             <View style={styles.prizeItem}>
-              <Ionicons name="medal" size={24} color="#C0C0C0" />
+              <Ionicons name="medal" size={24} color="#9BA3AF" />
               <Text style={styles.prizeRank}>2위</Text>
               <Text style={styles.prizeAmount}>50,000 PO</Text>
             </View>
             <View style={styles.prizeItem}>
-              <Ionicons name="medal" size={24} color="#CD7F32" />
+              <Ionicons name="medal" size={24} color="#B87333" />
               <Text style={styles.prizeRank}>3위</Text>
               <Text style={styles.prizeAmount}>30,000 PO</Text>
             </View>
@@ -472,10 +483,10 @@ const InviteScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -487,7 +498,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -497,14 +508,14 @@ const styles = StyleSheet.create({
   },
   applyCodeText: {
     fontSize: 14,
-    color: '#3182F6',
+    color: t.colors.primary,
     fontWeight: '600',
   },
   tabContainer: {
     flexDirection: 'row',
     backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   tab: {
     flex: 1,
@@ -513,7 +524,7 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#3182F6',
+    borderBottomColor: t.colors.primary,
   },
   tabText: {
     fontSize: 15,
@@ -521,7 +532,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activeTabText: {
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   content: {
     padding: 16,
@@ -568,13 +579,13 @@ const styles = StyleSheet.create({
   },
   highlight: {
     fontWeight: '700',
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   vipReward: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFF5E0',
+    backgroundColor: t.colors.warningBackground,
     padding: 12,
     borderRadius: 8,
     marginTop: 16,
@@ -582,7 +593,7 @@ const styles = StyleSheet.create({
   },
   vipText: {
     fontSize: 13,
-    color: '#B8860B',
+    color: '#A57C18',
     fontWeight: '600',
   },
   codeCard: {
@@ -600,7 +611,7 @@ const styles = StyleSheet.create({
   codeBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     paddingHorizontal: 24,
     paddingVertical: 16,
     borderRadius: 12,
@@ -630,10 +641,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEE500',
   },
   smsButton: {
-    backgroundColor: '#00C471',
+    backgroundColor: t.colors.success,
   },
   linkButton: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
   },
   shareButtonText: {
     fontSize: 16,
@@ -641,7 +652,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   stockShareCard: {
-    backgroundColor: '#E8F3FF',
+    backgroundColor: t.colors.primaryBackground,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -649,7 +660,7 @@ const styles = StyleSheet.create({
   stockShareTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#3182F6',
+    color: t.colors.primary,
     marginBottom: 8,
   },
   stockShareDesc: {
@@ -672,16 +683,16 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   priceUp: {
-    color: '#F04452',
+    color: t.colors.error,
   },
   priceDown: {
-    color: '#1261C4',
+    color: t.colors.primaryDark,
   },
   stockShareButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 14,
     borderRadius: 8,
     gap: 8,
@@ -711,7 +722,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   statLabel: {
     fontSize: 13,
@@ -730,7 +741,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -768,7 +779,7 @@ const styles = StyleSheet.create({
   commissionText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   leaderboardHeader: {
     marginBottom: 16,
@@ -801,11 +812,11 @@ const styles = StyleSheet.create({
   },
   prizeAmount: {
     fontSize: 13,
-    color: '#3182F6',
+    color: t.colors.primary,
     fontWeight: '700',
   },
   myRankCard: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -835,9 +846,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   myRankItem: {
-    backgroundColor: '#E8F3FF',
+    backgroundColor: t.colors.primaryBackground,
     borderWidth: 1,
-    borderColor: '#3182F6',
+    borderColor: t.colors.primary,
   },
   rankBadge: {
     width: 40,
@@ -864,7 +875,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   rewardBadge: {
-    backgroundColor: '#FFF5E0',
+    backgroundColor: t.colors.warningBackground,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -872,7 +883,7 @@ const styles = StyleSheet.create({
   rewardText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#B8860B',
+    color: '#A57C18',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -928,7 +939,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -939,7 +950,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',

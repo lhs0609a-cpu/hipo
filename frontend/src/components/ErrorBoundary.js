@@ -115,7 +115,7 @@ class ErrorBoundary extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8F9FB',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -151,17 +151,17 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#DFE3EB',
   },
   errorTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#d32f2f',
+    color: '#D91F36',
     marginBottom: 8,
   },
   errorText: {
     fontSize: 12,
-    color: '#d32f2f',
+    color: '#D91F36',
     marginBottom: 8,
     fontFamily: 'monospace',
   },
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
   },
   retryButton: {
-    backgroundColor: '#4caf50',
+    backgroundColor: '#00B368',
     paddingVertical: 14,
     paddingHorizontal: 40,
     borderRadius: 8,
@@ -191,12 +191,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#4caf50',
+    borderColor: '#00B368',
     width: '100%',
     maxWidth: 300,
   },
   reportButtonText: {
-    color: '#4caf50',
+    color: '#00B368',
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',

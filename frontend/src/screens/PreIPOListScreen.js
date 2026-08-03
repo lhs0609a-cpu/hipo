@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -20,6 +21,7 @@ const TABS = [
 ];
 
 export default function PreIPOListScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
   const [activeTab, setActiveTab] = useState('active');
   const [rounds, setRounds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,10 +107,10 @@ export default function PreIPOListScreen({ navigation }) {
 
   const getEligibilityBadge = (type) => {
     const badges = {
-      public: { text: '전체 공개', color: '#4CAF50' },
-      followers_only: { text: '팔로워 전용', color: '#2196F3' },
-      vip_only: { text: 'VIP 전용', color: '#9C27B0' },
-      invited_only: { text: '초대 전용', color: '#FF9800' },
+      public: { text: '전체 공개', color: '#00B368' },
+      followers_only: { text: '팔로워 전용', color: '#2B5FE3' },
+      vip_only: { text: 'VIP 전용', color: '#8B5CF6' },
+      invited_only: { text: '초대 전용', color: '#F59B00' },
     };
     return badges[type] || { text: type, color: '#666' };
   };
@@ -178,7 +180,7 @@ export default function PreIPOListScreen({ navigation }) {
           </View>
           <View style={styles.progressBar}>
             <LinearGradient
-              colors={['#4CAF50', '#8BC34A']}
+              colors={['#00B368', '#00B368']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
               style={[styles.progressFill, { width: `${Math.min(progress, 100)}%` }]}
@@ -253,7 +255,7 @@ export default function PreIPOListScreen({ navigation }) {
 
       {/* 설명 배너 */}
       <LinearGradient
-        colors={['#1a237e', '#283593']}
+        colors={['#182F68', '#183580']}
         style={styles.infoBanner}
       >
         <Text style={styles.infoBannerTitle}>상장 전 선투자</Text>
@@ -280,7 +282,7 @@ export default function PreIPOListScreen({ navigation }) {
       {/* 목록 */}
       {loading && page === 1 ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#4CAF50" />
+          <ActivityIndicator size="large" color="#00B368" />
         </View>
       ) : (
         <FlatList
@@ -292,7 +294,7 @@ export default function PreIPOListScreen({ navigation }) {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => fetchRounds(true)}
-              tintColor="#4CAF50"
+              tintColor="#00B368"
             />
           }
           onEndReached={handleLoadMore}
@@ -300,7 +302,7 @@ export default function PreIPOListScreen({ navigation }) {
           ListEmptyComponent={renderEmptyState}
           ListFooterComponent={
             loading && page > 1 ? (
-              <ActivityIndicator size="small" color="#4CAF50" style={styles.footerLoader} />
+              <ActivityIndicator size="small" color="#00B368" style={styles.footerLoader} />
             ) : null
           }
         />
@@ -309,10 +311,10 @@ export default function PreIPOListScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#121212',
+    backgroundColor: t.colors.backgroundPure,
   },
   header: {
     flexDirection: 'row',
@@ -342,7 +344,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   myInvestButtonText: {
-    color: '#4CAF50',
+    color: t.colors.success,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -359,7 +361,7 @@ const styles = StyleSheet.create({
   },
   infoBannerDesc: {
     fontSize: 14,
-    color: '#9FA8DA',
+    color: '#91B8FB',
   },
   tabContainer: {
     flexDirection: 'row',
@@ -374,7 +376,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   activeTab: {
-    borderBottomColor: '#4CAF50',
+    borderBottomColor: t.colors.success,
   },
   tabText: {
     fontSize: 14,
@@ -382,7 +384,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   activeTabText: {
-    color: '#4CAF50',
+    color: t.colors.success,
     fontWeight: '600',
   },
   loadingContainer: {
@@ -395,7 +397,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   roundCard: {
-    backgroundColor: '#1e1e1e',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -475,7 +477,7 @@ const styles = StyleSheet.create({
   discountRate: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#f44336',
+    color: t.colors.error,
   },
   progressSection: {
     marginBottom: 12,
@@ -492,7 +494,7 @@ const styles = StyleSheet.create({
   progressPercent: {
     fontSize: 13,
     fontWeight: 'bold',
-    color: '#4CAF50',
+    color: t.colors.success,
   },
   progressBar: {
     height: 8,
@@ -532,14 +534,14 @@ const styles = StyleSheet.create({
   },
   timeRemainingText: {
     fontSize: 12,
-    color: '#4CAF50',
+    color: t.colors.success,
     fontWeight: '600',
   },
   earlyBirdBadge: {
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: '#FF9800',
+    backgroundColor: t.colors.warning,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderBottomLeftRadius: 12,

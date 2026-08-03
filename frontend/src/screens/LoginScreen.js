@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -10,13 +12,16 @@ import {
   ActivityIndicator,
   Linking,
   Pressable,
-  SafeAreaView,
 } from 'react-native';
-import { login } from '../api/auth';
-import theme from '../styles/theme';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { API_URL } from '../config';
+import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/Button';
 
 export default function LoginScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -49,18 +54,25 @@ export default function LoginScreen({ navigation }) {
     setLoading(true);
 
     try {
-      const data = await login(email, password);
+      const result = await login(email, password);
 
-      if (Platform.OS === 'web') {
-        window.location.href = '/';
+      if (result.success) {
+        // AuthContext가 isAuthenticated를 true로 설정하면
+        // AppNavigator가 자동으로 Main 화면으로 전환합니다
+        if (Platform.OS === 'web') {
+          window.location.href = '/';
+        }
+        // 모바일에서는 AuthContext 상태 변경으로 자동 전환
       } else {
-        Alert.alert('환영합니다', `${data.user.username}님, 반갑습니다!`, [
-          { text: '확인', onPress: () => navigation.replace('Main') },
-        ]);
+        const errorMsg = result.error || '로그인 중 오류가 발생했습니다';
+        if (Platform.OS === 'web') {
+          alert(errorMsg);
+        } else {
+          Alert.alert('로그인 실패', errorMsg);
+        }
       }
     } catch (error) {
-      const errorMsg = error.response?.data?.error || error.message || '로그인 중 오류가 발생했습니다';
-
+      const errorMsg = error.message || '로그인 중 오류가 발생했습니다';
       if (Platform.OS === 'web') {
         alert(errorMsg);
       } else {
@@ -73,7 +85,9 @@ export default function LoginScreen({ navigation }) {
 
   const handleGoogleLogin = async () => {
     try {
-      const googleAuthUrl = 'http://localhost:5555/api/auth/google';
+      // API_URL에서 /api를 제거하고 Google OAuth 경로 추가
+      const baseUrl = API_URL.replace('/api', '');
+      const googleAuthUrl = `${baseUrl}/api/auth/google`;
 
       if (Platform.OS === 'web') {
         window.location.href = googleAuthUrl;
@@ -199,103 +213,103 @@ export default function LoginScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.white,
+    backgroundColor: t.colors.white,
   },
   keyboardView: {
     flex: 1,
   },
   content: {
     flex: 1,
-    paddingHorizontal: theme.spacing.xl,
+    paddingHorizontal: t.spacing.xl,
     justifyContent: 'center',
   },
 
   // Logo Section
   logoSection: {
     alignItems: 'center',
-    marginBottom: theme.spacing['4xl'],
+    marginBottom: t.spacing['4xl'],
   },
   logo: {
     fontSize: 48,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.primary,
-    letterSpacing: theme.typography.letterSpacing.tight,
-    marginBottom: theme.spacing.sm,
+    fontWeight: t.typography.fontWeight.bold,
+    color: t.colors.primary,
+    letterSpacing: t.typography.letterSpacing.tight,
+    marginBottom: t.spacing.sm,
   },
   tagline: {
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.textSecondary,
-    fontWeight: theme.typography.fontWeight.medium,
+    fontSize: t.typography.fontSize.base,
+    color: t.colors.textSecondary,
+    fontWeight: t.typography.fontWeight.medium,
   },
 
   // Form Section
   formSection: {
-    marginBottom: theme.spacing['2xl'],
+    marginBottom: t.spacing['2xl'],
   },
   inputGroup: {
-    marginBottom: theme.spacing.lg,
+    marginBottom: t.spacing.lg,
   },
   inputLabel: {
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.semibold,
-    color: theme.colors.textPrimary,
-    marginBottom: theme.spacing.sm,
+    fontSize: t.typography.fontSize.sm,
+    fontWeight: t.typography.fontWeight.semibold,
+    color: t.colors.textPrimary,
+    marginBottom: t.spacing.sm,
   },
   inputWrapper: {
-    backgroundColor: theme.colors.gray50,
-    borderRadius: theme.borderRadius.base,
+    backgroundColor: t.colors.gray50,
+    borderRadius: t.borderRadius.base,
     borderWidth: 1.5,
     borderColor: 'transparent',
   },
   inputWrapperFocused: {
-    borderColor: theme.colors.primary,
-    backgroundColor: theme.colors.white,
+    borderColor: t.colors.primary,
+    backgroundColor: t.colors.white,
   },
   inputWrapperError: {
-    borderColor: theme.colors.error,
+    borderColor: t.colors.error,
   },
   input: {
-    paddingHorizontal: theme.spacing.base,
-    paddingVertical: theme.spacing.base,
-    fontSize: theme.typography.fontSize.base,
-    color: theme.colors.textPrimary,
+    paddingHorizontal: t.spacing.base,
+    paddingVertical: t.spacing.base,
+    fontSize: t.typography.fontSize.base,
+    color: t.colors.textPrimary,
   },
   errorText: {
-    fontSize: theme.typography.fontSize.xs,
-    color: theme.colors.error,
-    marginTop: theme.spacing.xs,
-    marginLeft: theme.spacing.xs,
+    fontSize: t.typography.fontSize.xs,
+    color: t.colors.error,
+    marginTop: t.spacing.xs,
+    marginLeft: t.spacing.xs,
   },
   loginButton: {
-    marginTop: theme.spacing.sm,
+    marginTop: t.spacing.sm,
   },
 
   // Divider
   divider: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: theme.spacing.xl,
+    marginVertical: t.spacing.xl,
   },
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: theme.colors.gray200,
+    backgroundColor: t.colors.gray200,
   },
   dividerText: {
-    marginHorizontal: theme.spacing.base,
-    color: theme.colors.textTertiary,
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: theme.typography.fontWeight.medium,
+    marginHorizontal: t.spacing.base,
+    color: t.colors.textTertiary,
+    fontSize: t.typography.fontSize.sm,
+    fontWeight: t.typography.fontWeight.medium,
   },
 
   // Google Button
   googleIcon: {
     fontSize: 18,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.textPrimary,
+    fontWeight: t.typography.fontWeight.bold,
+    color: t.colors.textPrimary,
   },
 
   // Footer
@@ -303,15 +317,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: theme.spacing.sm,
+    gap: t.spacing.sm,
   },
   footerText: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.textSecondary,
+    fontSize: t.typography.fontSize.sm,
+    color: t.colors.textSecondary,
   },
   signupLink: {
-    fontSize: theme.typography.fontSize.sm,
-    color: theme.colors.primary,
-    fontWeight: theme.typography.fontWeight.semibold,
+    fontSize: t.typography.fontSize.sm,
+    color: t.colors.primary,
+    fontWeight: t.typography.fontWeight.semibold,
   },
 });

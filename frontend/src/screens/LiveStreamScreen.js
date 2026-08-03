@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -13,6 +15,8 @@ import { liveStreamAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 const LiveStreamScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const { isAuthenticated } = useAuth();
   const [streams, setStreams] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -78,14 +82,14 @@ const LiveStreamScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Text style={styles.headerTitle}>라이브</Text>
         <Text style={styles.headerSubtitle}>실시간 방송</Text>
       </View>
@@ -118,10 +122,10 @@ const LiveStreamScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -129,8 +133,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#e74c3c',
-    paddingTop: 50,
+    backgroundColor: t.colors.error,
+    paddingTop: 10,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
@@ -148,7 +152,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#e74c3c',
+    backgroundColor: t.colors.error,
     margin: 16,
     padding: 16,
     borderRadius: 12,
@@ -199,7 +203,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#e74c3c',
+    backgroundColor: t.colors.error,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -230,7 +234,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#007AFF',
+    backgroundColor: t.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,

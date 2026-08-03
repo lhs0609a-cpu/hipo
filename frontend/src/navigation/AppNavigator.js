@@ -1,13 +1,19 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, Platform } from 'react-native';
+import { NavigationContainer, DefaultTheme, DarkTheme } from '@react-navigation/native';
+import { createStackNavigator, CardStyleInterpolators } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import { useTheme } from '../contexts/ThemeContext';
+import { linking } from '../services/deepLinkService';
+import haptics from '../utils/haptics';
 
 // Auth Screens
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
 
 // Main Tab Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -86,100 +92,160 @@ import TierInfoScreen from '../screens/TierInfoScreen';
 // Shareholder Community Screens
 import ShareholderCommunityScreen from '../screens/ShareholderCommunityScreen';
 
+// Onboarding (첫 주주 되기)
+import FirstBuyOnboardingScreen from '../screens/onboarding/FirstBuyOnboardingScreen';
+
+// Settlement Screen
+import SettlementScreen from '../screens/SettlementScreen';
+
+// Virtual Celebrity Screens
+import VirtualClaimScreen from '../screens/VirtualClaimScreen';
+import AdminVirtualCelebrityScreen from '../screens/AdminVirtualCelebrityScreen';
+import ClaimRequestScreen from '../screens/ClaimRequestScreen';
+import ClaimStatusScreen from '../screens/ClaimStatusScreen';
+import CelebSuggestionScreen from '../screens/CelebSuggestionScreen';
+import AdminVirtualCelebScreen from '../screens/AdminVirtualCelebScreen';
+import AdminClaimReviewScreen from '../screens/AdminClaimReviewScreen';
+
 // Detail Screens
 import PostDetailScreen from '../screens/PostDetailScreen';
 import UserProfileScreen from '../screens/UserProfileScreen';
+
+// Growth & Engagement Screens
+import CopyTradingScreen from '../screens/CopyTradingScreen';
 
 // Viral/Marketing Screens
 import InviteScreen from '../screens/InviteScreen';
 import AttendanceScreen from '../screens/AttendanceScreen';
 import FriendRankingScreen from '../screens/FriendRankingScreen';
 
+// Settings Screens
+import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
+import PrivacySettingsScreen from '../screens/PrivacySettingsScreen';
+import AboutScreen from '../screens/AboutScreen';
+import PriceAlertScreen from '../screens/PriceAlertScreen';
+import TutorialScreen from '../screens/TutorialScreen';
+
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// 탭 정의 — 아이콘은 outline/filled 쌍으로 두어 선택 상태를 형태로도 구분한다
+const TABS = [
+  { name: 'Home', component: HomeScreen, title: '홈', icon: 'home-outline', iconActive: 'home' },
+  {
+    name: 'Community',
+    component: CommunityScreen,
+    title: '피드',
+    icon: 'people-outline',
+    iconActive: 'people',
+  },
+  { name: 'Menu', component: MenuScreen, title: '메뉴', icon: 'grid-outline', iconActive: 'grid' },
+];
+
 // 하단 탭 네비게이터
 function MainTabs() {
+  const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
+
+  // 제스처바가 있는 기기에서는 인셋만큼만 더한다. 홈 버튼 기기는 최소 여백을 준다.
+  const bottomInset = insets.bottom > 0 ? insets.bottom : theme.spacing.sm;
+
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#4CAF50',
-        tabBarInactiveTintColor: '#999',
+        headerShown: false,
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.textTertiary,
         tabBarStyle: {
-          backgroundColor: '#1a1a1a',
-          borderTopColor: '#333',
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          backgroundColor: theme.colors.surface,
+          borderTopColor: theme.colors.borderLight,
+          borderTopWidth: theme.layout.hairline,
+          height: theme.layout.tabBarHeight + bottomInset,
+          paddingBottom: bottomInset,
+          paddingTop: theme.spacing.sm,
+          elevation: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: 11,
           fontWeight: '600',
+          letterSpacing: -0.1,
+          marginTop: 2,
+        },
+        tabBarItemStyle: {
+          paddingTop: 2,
         },
       }}
+      screenListeners={{
+        tabPress: () => haptics.selection(),
+      }}
     >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          title: '홈',
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: focused ? 28 : 24, color, fontWeight: focused ? 'bold' : 'normal' }}>⌂</Text>
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Community"
-        component={CommunityScreen}
-        options={{
-          title: '피드',
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: focused ? 28 : 24, color, fontWeight: focused ? 'bold' : 'normal' }}>◉</Text>
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Menu"
-        component={MenuScreen}
-        options={{
-          title: '메뉴',
-          headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: focused ? 28 : 24, color, fontWeight: focused ? 'bold' : 'normal' }}>≡</Text>
-          ),
-        }}
-      />
+      {TABS.map((tab) => (
+        <Tab.Screen
+          key={tab.name}
+          name={tab.name}
+          component={tab.component}
+          options={{
+            title: tab.title,
+            tabBarAccessibilityLabel: tab.title,
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons name={focused ? tab.iconActive : tab.icon} size={24} color={color} />
+            ),
+          }}
+        />
+      ))}
     </Tab.Navigator>
   );
 }
 
 // 메인 앱 스택
 function MainStack() {
+  const { theme } = useTheme();
+  const { user } = useAuth();
+
+  // 온보딩 미완료(첫 매수 동선 안 거침)면 온보딩 화면을 첫 화면으로
+  const needsOnboarding = user && !user.onboardedAt;
+
   return (
     <Stack.Navigator
+      initialRouteName={needsOnboarding ? 'FirstBuyOnboarding' : 'MainTabs'}
       screenOptions={{
-        headerStyle: { backgroundColor: '#1a1a1a' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: 'bold' },
+        // 헤더에 그림자 대신 헤어라인 — 무게감을 줄이고 콘텐츠에 집중시킨다
+        headerStyle: {
+          backgroundColor: theme.colors.surface,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: theme.layout.hairline,
+          borderBottomColor: theme.colors.borderLight,
+        },
+        headerTintColor: theme.colors.textPrimary,
+        headerTitleAlign: 'center',
+        headerBackTitleVisible: false,
+        headerTitleStyle: {
+          ...theme.textStyles.headline,
+          color: theme.colors.textPrimary,
+        },
+        headerLeftContainerStyle: { paddingLeft: theme.spacing.xs },
+        headerRightContainerStyle: { paddingRight: theme.spacing.base },
+        headerBackImage: ({ tintColor }) => (
+          <Ionicons
+            name="chevron-back"
+            size={26}
+            color={tintColor}
+            style={{ marginLeft: Platform.OS === 'ios' ? 8 : 0 }}
+          />
+        ),
+        cardStyle: { backgroundColor: theme.colors.background },
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
       }}
     >
       <Stack.Screen
+        name="FirstBuyOnboarding"
+        component={FirstBuyOnboardingScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="MainTabs"
         component={MainTabs}
-        options={{ headerShown: false }}
-      />
-
-      {/* Auth Screens */}
-      <Stack.Screen
-        name="Login"
-        component={LoginScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="Register"
-        component={RegisterScreen}
         options={{ headerShown: false }}
       />
 
@@ -473,6 +539,13 @@ function MainStack() {
         options={{ headerShown: false }}
       />
 
+      {/* Settlement Screen */}
+      <Stack.Screen
+        name="Settlement"
+        component={SettlementScreen}
+        options={{ headerShown: false }}
+      />
+
       {/* Viral/Marketing Screens */}
       <Stack.Screen
         name="Invite"
@@ -489,25 +562,140 @@ function MainStack() {
         component={FriendRankingScreen}
         options={{ headerShown: false }}
       />
+
+      {/* Virtual Celebrity Screens */}
+      <Stack.Screen
+        name="VirtualClaim"
+        component={VirtualClaimScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AdminVirtualCelebrity"
+        component={AdminVirtualCelebrityScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ClaimRequest"
+        component={ClaimRequestScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="ClaimStatus"
+        component={ClaimStatusScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="CelebSuggestion"
+        component={CelebSuggestionScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AdminVirtualCeleb"
+        component={AdminVirtualCelebScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="AdminClaimReview"
+        component={AdminClaimReviewScreen}
+        options={{ headerShown: false }}
+      />
+
+      {/* Settings Screens */}
+      <Stack.Screen
+        name="NotificationSettings"
+        component={NotificationSettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PrivacySettings"
+        component={PrivacySettingsScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="About"
+        component={AboutScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="PriceAlert"
+        component={PriceAlertScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="Tutorial"
+        component={TutorialScreen}
+        options={{ headerShown: false }}
+      />
+
+      {/* Growth & Engagement */}
+      <Stack.Screen
+        name="CopyTrading"
+        component={CopyTradingScreen}
+        options={{ headerShown: false }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// 온보딩/인증 스택 (로그인 전)
+function AuthStack() {
+  const { onboardingCompleted } = useAuth();
+  const { theme } = useTheme();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: theme.colors.surface,
+        },
+        headerTintColor: theme.colors.textPrimary,
+        headerShown: false,
+        cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
+      }}
+      initialRouteName={onboardingCompleted ? 'Login' : 'Onboarding'}
+    >
+      <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
 }
 
 // 앱 네비게이터
 export default function AppNavigator() {
-  const { loading } = useAuth();
+  const { loading, isAuthenticated } = useAuth();
+  const { theme, isDark } = useTheme();
+
+  // React Navigation v7 은 theme.fonts 를 참조하므로 기본 테마를 반드시 스프레드한다
+  const navigationTheme = useMemo(() => {
+    const base = isDark ? DarkTheme : DefaultTheme;
+    return {
+      ...base,
+      dark: isDark,
+      colors: {
+        ...base.colors,
+        primary: theme.colors.primary,
+        background: theme.colors.background,
+        card: theme.colors.surface,
+        text: theme.colors.textPrimary,
+        border: theme.colors.borderLight,
+        notification: theme.colors.error,
+      },
+    };
+  }, [isDark, theme]);
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>HIPO</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+        <Text style={[styles.loadingWordmark, { color: theme.colors.primary }]}>HIPO</Text>
+        <View style={[styles.loadingRule, { backgroundColor: theme.colors.primary }]} />
       </View>
     );
   }
 
   return (
-    <NavigationContainer>
-      <MainStack />
+    <NavigationContainer theme={navigationTheme} linking={linking}>
+      {isAuthenticated ? <MainStack /> : <AuthStack />}
     </NavigationContainer>
   );
 }
@@ -517,11 +705,17 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
   },
-  loadingText: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+  loadingWordmark: {
+    fontSize: 44,
+    fontWeight: '800',
+    letterSpacing: -1.6,
+  },
+  loadingRule: {
+    width: 28,
+    height: 3,
+    borderRadius: 2,
+    marginTop: 14,
+    opacity: 0.35,
   },
 });

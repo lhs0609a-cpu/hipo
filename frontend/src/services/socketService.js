@@ -11,6 +11,8 @@ class SocketService {
     this.isConnected = false;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
+    /** 현재 구독 중인 종목 id. 재연결 시 복구하는 데 쓴다. */
+    this.subscribedStocks = new Set();
   }
 
   /**
@@ -57,6 +59,8 @@ class SocketService {
       console.log('Socket connected:', this.socket.id);
       this.isConnected = true;
       this.reconnectAttempts = 0;
+      // 끊겼다 붙으면 서버 쪽 room 이 사라지므로 구독을 다시 건다
+      this.resubscribeStocks();
       this.emit('connectionChange', true);
     });
 
@@ -80,9 +84,19 @@ class SocketService {
       this.emit('stockTickerUpdate', data);
     });
 
-    // 개별 주식 가격 업데이트
+    // 개별 주식 가격 업데이트 (구독 중인 종목 room)
     this.socket.on('stock:price_update', (data) => {
       this.emit('stockPriceUpdate', data);
+    });
+
+    // 호가창 변경 (구독 중인 종목 room)
+    this.socket.on('orderbook:update', (data) => {
+      this.emit('orderBookUpdate', data);
+    });
+
+    // 체결 한 건 (Time & Sales)
+    this.socket.on('trade:tick', (data) => {
+      this.emit('tradeTick', data);
     });
 
     // 거래 체결
@@ -130,6 +144,16 @@ class SocketService {
     this.socket.on('stock:new', (data) => {
       this.emit('stockNew', data);
     });
+
+    // 가상 셀럽 인수 완료
+    this.socket.on('stock:claimed', (data) => {
+      this.emit('stockClaimed', data);
+    });
+
+    // 포트폴리오 리포트
+    this.socket.on('portfolio:report', (data) => {
+      this.emit('portfolioReport', data);
+    });
   }
 
   /**
@@ -147,6 +171,34 @@ class SocketService {
   /**
    * 이벤트 리스너 등록
    */
+  /**
+   * 종목 구독. 종목 상세 화면이 마운트될 때 호출한다.
+   * 구독한 종목의 price_update / orderbook:update / trade:tick 만 받게 된다.
+   */
+  subscribeStock(stockId) {
+    if (!stockId) return;
+    this.subscribedStocks.add(stockId);
+    if (this.socket?.connected) {
+      this.socket.emit('stock:subscribe', stockId);
+    }
+  }
+
+  unsubscribeStock(stockId) {
+    if (!stockId) return;
+    this.subscribedStocks.delete(stockId);
+    if (this.socket?.connected) {
+      this.socket.emit('stock:unsubscribe', stockId);
+    }
+  }
+
+  /** 재연결 시 구독 복구 */
+  resubscribeStocks() {
+    if (!this.socket?.connected) return;
+    for (const stockId of this.subscribedStocks) {
+      this.socket.emit('stock:subscribe', stockId);
+    }
+  }
+
   on(event, callback) {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());

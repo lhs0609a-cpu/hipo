@@ -41,6 +41,17 @@ module.exports = (sequelize) => {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW,
       field: 'acquired_at'
+    },
+    dividendReinvest: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'dividend_reinvest'
+    },
+    reinvestPercentage: {
+      type: DataTypes.INTEGER,
+      defaultValue: 100,
+      validate: { min: 0, max: 100 },
+      field: 'reinvest_percentage'
     }
   }, {
     tableName: 'holdings',

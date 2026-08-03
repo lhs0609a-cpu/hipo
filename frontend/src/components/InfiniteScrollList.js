@@ -76,7 +76,7 @@ const InfiniteScrollList = ({
     if (isLoadingMore) {
       return (
         <View style={styles.footer}>
-          <ActivityIndicator size="small" color="#4caf50" />
+          <ActivityIndicator size="small" color="#00B368" />
         </View>
       );
     }
@@ -88,7 +88,7 @@ const InfiniteScrollList = ({
     if (loading) {
       return (
         <View style={styles.emptyContainer}>
-          <ActivityIndicator size="large" color="#4caf50" />
+          <ActivityIndicator size="large" color="#00B368" />
         </View>
       );
     }
@@ -114,8 +114,8 @@ const InfiniteScrollList = ({
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={['#4caf50']}
-            tintColor="#4caf50"
+            colors={['#00B368']}
+            tintColor="#00B368"
           />
         ) : undefined
       }

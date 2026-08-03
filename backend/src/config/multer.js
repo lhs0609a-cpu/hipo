@@ -1,5 +1,6 @@
 const multer = require('multer');
 const path = require('path');
+const crypto = require('crypto');
 
 // 저장소 설정
 const storage = multer.diskStorage({
@@ -14,9 +15,9 @@ const storage = multer.diskStorage({
     }
   },
   filename: (req, file, cb) => {
-    // 고유한 파일명 생성: timestamp-randomstring.extension
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+    // 고유한 파일명 생성: timestamp-randomhex.extension (암호학적으로 안전한 랜덤값)
+    const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(8).toString('hex');
+    cb(null, uniqueSuffix + path.extname(file.originalname).toLowerCase());
   }
 });
 

@@ -1,6 +1,10 @@
 const { User, Stock, Holding, StockOrder, StockTrade, Transaction, Wallet, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const { getIO } = require('../config/socket');
+const { broadcastOrderBook } = require('../services/orderBookService');
+const { isCircuitBreakerActive } = require('../utils/circuitBreaker');
+const { checkDailyTradeLimit } = require('../utils/dailyTradeLimit');
+const { checkTradable } = require('../utils/tradeGuard');
 
 /**
  * 지정가/손절/익절 주문 생성
@@ -32,9 +36,9 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ error: '유효하지 않은 주문 유형입니다' });
     }
 
-    if (!['limit', 'stop_loss', 'take_profit', 'stop_limit'].includes(orderMode)) {
+    if (!['market', 'limit', 'stop_loss', 'take_profit', 'stop_limit'].includes(orderMode)) {
       await t.rollback();
-      return res.status(400).json({ error: '유효하지 않은 주문 모드입니다. limit, stop_loss, take_profit, stop_limit 중 하나를 선택하세요' });
+      return res.status(400).json({ error: '유효하지 않은 주문 모드입니다. market, limit, stop_loss, take_profit, stop_limit 중 하나를 선택하세요' });
     }
 
     // 주식 정보 조회
@@ -46,6 +50,22 @@ exports.createOrder = async (req, res) => {
     if (!stock) {
       await t.rollback();
       return res.status(404).json({ error: '주식을 찾을 수 없습니다' });
+    }
+
+    // 본인 미인증(가상 사전상장) 종목 거래 차단 (초상권 보호)
+    const orderTradable = checkTradable(stock);
+    if (!orderTradable.ok) {
+      await t.rollback();
+      return res.status(403).json({ error: orderTradable.message });
+    }
+
+    // 서킷브레이커 확인
+    if (isCircuitBreakerActive(stock)) {
+      await t.rollback();
+      return res.status(403).json({
+        error: '서킷브레이커가 발동되어 주문을 등록할 수 없습니다',
+        circuitBreakerEndTime: stock.circuitBreakerEndTime
+      });
     }
 
     // 자기 주식 매수 방지
@@ -62,7 +82,26 @@ exports.createOrder = async (req, res) => {
     let finalStopPrice = stopPrice;
     let triggerCondition = null;
 
-    if (orderMode === 'limit') {
+    if (orderMode === 'market') {
+      /**
+       * 시장가: 가격을 지정하지 않고 최우선 호가로 즉시 체결한다.
+       *
+       * 매칭 엔진은 지정가 기준으로 비교하므로, 반대 방향으로 충분히 공격적인
+       * 가격을 넣어 대기 중인 최우선 호가와 바로 붙게 한다.
+       * 슬리피지 상한(MARKET_SLIPPAGE_PCT)을 둬서 호가가 비어 있을 때
+       * 터무니없는 가격에 체결되는 것을 막는다.
+       */
+      const MARKET_SLIPPAGE_PCT = 10;
+      const base = parseFloat(stock.sharePrice) || 0;
+      if (base <= 0) {
+        await t.rollback();
+        return res.status(400).json({ error: '현재가를 확인할 수 없어 시장가 주문을 낼 수 없습니다' });
+      }
+      finalLimitPrice = orderType === 'BUY'
+        ? Math.ceil(base * (1 + MARKET_SLIPPAGE_PCT / 100))
+        : Math.max(1, Math.floor(base * (1 - MARKET_SLIPPAGE_PCT / 100)));
+      finalStopPrice = null;
+    } else if (orderMode === 'limit') {
       if (!limitPrice || limitPrice <= 0) {
         await t.rollback();
         return res.status(400).json({ error: '지정가를 입력해주세요' });
@@ -105,6 +144,19 @@ exports.createOrder = async (req, res) => {
     }
 
     const totalAmount = quantity * (finalLimitPrice || stock.sharePrice);
+
+    // 일일 거래 한도 확인
+    const tradeCheck = await checkDailyTradeLimit(user, totalAmount, t);
+    if (!tradeCheck.allowed) {
+      await t.rollback();
+      return res.status(400).json({
+        error: '일일 거래 한도를 초과했습니다',
+        dailyLimit: tradeCheck.dailyLimit,
+        usedToday: tradeCheck.usedToday,
+        remaining: tradeCheck.remaining,
+        required: totalAmount
+      });
+    }
 
     // 매수 시 잔액 검증 및 예약
     if (orderType === 'BUY') {
@@ -155,7 +207,8 @@ exports.createOrder = async (req, res) => {
       limitPrice: finalLimitPrice,
       stopPrice: finalStopPrice,
       triggerCondition,
-      isTriggered: orderMode === 'limit', // 지정가는 즉시 활성화
+      // 지정가·시장가는 즉시 활성화. 스탑 계열은 트리거 도달 시 활성화된다.
+      isTriggered: orderMode === 'limit' || orderMode === 'market',
       status: 'PENDING',
       expiresAt
     }, { transaction: t });
@@ -179,6 +232,9 @@ exports.createOrder = async (req, res) => {
     } catch (err) {
       console.error('주문 생성 알림 오류:', err);
     }
+
+    // 새 주문이 호가에 쌓였으므로 구독자에게 호가창을 다시 보낸다
+    broadcastOrderBook(stockId);
 
     res.json({
       message: '주문이 등록되었습니다',
@@ -247,6 +303,9 @@ exports.cancelOrder = async (req, res) => {
     } catch (err) {
       console.error('주문 취소 알림 오류:', err);
     }
+
+    // 잔량이 빠졌으므로 호가창 갱신
+    broadcastOrderBook(order.stockId);
 
     res.json({
       message: '주문이 취소되었습니다',

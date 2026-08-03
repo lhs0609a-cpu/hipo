@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -13,6 +15,8 @@ import { COLORS } from '../constants/colors';
 import api from '../api/client';
 
 export default function VerificationRequestScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [currentStatus, setCurrentStatus] = useState(null);
@@ -170,7 +174,7 @@ export default function VerificationRequestScreen({ navigation }) {
   if (checking) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
       </View>
     );
   }
@@ -307,7 +311,7 @@ export default function VerificationRequestScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="예: 아이유, 손흥민"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             value={formData.realName}
             onChangeText={(text) => setFormData({ ...formData, realName: text })}
           />
@@ -318,7 +322,7 @@ export default function VerificationRequestScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="예: 가수, 배우, 축구선수"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             value={formData.occupation}
             onChangeText={(text) => setFormData({ ...formData, occupation: text })}
           />
@@ -329,7 +333,7 @@ export default function VerificationRequestScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="예: K-POP, 영화, 프리미어리그"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             value={formData.category}
             onChangeText={(text) => setFormData({ ...formData, category: text })}
           />
@@ -340,7 +344,7 @@ export default function VerificationRequestScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="예: 아이유 가수, IU, 이지은"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             value={formData.newsKeywords}
             onChangeText={(text) => setFormData({ ...formData, newsKeywords: text })}
           />
@@ -356,7 +360,7 @@ export default function VerificationRequestScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="예: 50000"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             keyboardType="numeric"
             value={formData.followerCount}
             onChangeText={(text) => setFormData({ ...formData, followerCount: text })}
@@ -370,7 +374,7 @@ export default function VerificationRequestScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="https://instagram.com/username"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             value={formData.socialLinks.instagram}
             onChangeText={(text) => setFormData({
               ...formData,
@@ -384,7 +388,7 @@ export default function VerificationRequestScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="https://youtube.com/@username"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             value={formData.socialLinks.youtube}
             onChangeText={(text) => setFormData({
               ...formData,
@@ -398,7 +402,7 @@ export default function VerificationRequestScreen({ navigation }) {
           <TextInput
             style={styles.input}
             placeholder="https://twitter.com/username"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             value={formData.socialLinks.twitter}
             onChangeText={(text) => setFormData({
               ...formData,
@@ -413,7 +417,7 @@ export default function VerificationRequestScreen({ navigation }) {
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="본인 인증이 필요한 이유나 추가 정보를 입력해주세요"
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             multiline
             numberOfLines={5}
             textAlignVertical="top"
@@ -448,23 +452,23 @@ export default function VerificationRequestScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   header: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 24,
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   headerIcon: {
     fontSize: 48,
@@ -473,12 +477,12 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
   },
   headerDescription: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -488,7 +492,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginTop: 24,
     marginBottom: 16,
   },
@@ -501,17 +505,17 @@ const styles = StyleSheet.create({
   typeCard: {
     width: '31%',
     aspectRatio: 1,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 12,
   },
   typeCardActive: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + '10',
+    borderColor: t.colors.primary,
+    backgroundColor: t.colors.primary + '10',
   },
   typeIcon: {
     fontSize: 32,
@@ -520,11 +524,11 @@ const styles = StyleSheet.create({
   typeLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
   },
   typeLabelActive: {
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   inputGroup: {
     marginBottom: 20,
@@ -532,17 +536,17 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     borderRadius: 12,
     padding: 14,
     fontSize: 15,
-    color: COLORS.text,
+    color: t.colors.text,
   },
   textArea: {
     height: 120,
@@ -550,31 +554,31 @@ const styles = StyleSheet.create({
   },
   inputHint: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 6,
   },
   noticeBox: {
-    backgroundColor: COLORS.primary + '15',
+    backgroundColor: t.colors.primary + '15',
     borderRadius: 12,
     padding: 16,
     marginTop: 24,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: COLORS.primary + '30',
+    borderColor: t.colors.primary + '30',
   },
   noticeTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 12,
   },
   noticeText: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     lineHeight: 20,
   },
   submitButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     borderRadius: 12,
     padding: 18,
     alignItems: 'center',
@@ -584,12 +588,12 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 17,
     fontWeight: '700',
   },
   statusCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     margin: 20,
     borderRadius: 16,
     padding: 24,
@@ -602,63 +606,63 @@ const styles = StyleSheet.create({
   statusTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
   },
   statusDescription: {
     fontSize: 15,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
   },
   infoSection: {
     width: '100%',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
   },
   infoLabel: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 6,
   },
   infoValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   rejectionBox: {
     width: '100%',
-    backgroundColor: COLORS.error + '15',
+    backgroundColor: t.colors.error + '15',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: COLORS.error + '30',
+    borderColor: t.colors.error + '30',
   },
   rejectionLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: COLORS.error,
+    color: t.colors.error,
     marginBottom: 8,
   },
   rejectionText: {
     fontSize: 14,
-    color: COLORS.text,
+    color: t.colors.text,
     lineHeight: 20,
   },
   cancelButton: {
     marginTop: 16,
     padding: 16,
     borderRadius: 12,
-    backgroundColor: COLORS.error + '15',
+    backgroundColor: t.colors.error + '15',
     borderWidth: 1,
-    borderColor: COLORS.error + '30',
+    borderColor: t.colors.error + '30',
   },
   cancelButtonText: {
-    color: COLORS.error,
+    color: t.colors.error,
     fontSize: 16,
     fontWeight: '700',
     textAlign: 'center',
@@ -667,10 +671,10 @@ const styles = StyleSheet.create({
     marginTop: 16,
     padding: 18,
     borderRadius: 12,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
   },
   primaryButtonText: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
     fontSize: 17,
     fontWeight: '700',
     textAlign: 'center',

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -16,6 +18,8 @@ import api from '../services/api';
 import { COLORS } from '../constants/colors';
 
 export default function UserProfileScreen({ route, navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const { userId } = route.params;
   const { user: currentUser } = useAuth();
 
@@ -82,13 +86,13 @@ export default function UserProfileScreen({ route, navigation }) {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+            <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>프로필</Text>
           <View style={{ width: 24 }} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       </SafeAreaView>
     );
@@ -99,13 +103,13 @@ export default function UserProfileScreen({ route, navigation }) {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+            <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>프로필</Text>
           <View style={{ width: 24 }} />
         </View>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={COLORS.error} />
+          <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchUserProfile}>
             <Text style={styles.retryText}>다시 시도</Text>
@@ -123,11 +127,11 @@ export default function UserProfileScreen({ route, navigation }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>@{user.username}</Text>
         <TouchableOpacity>
-          <Ionicons name="ellipsis-horizontal" size={24} color={COLORS.white} />
+          <Ionicons name="ellipsis-horizontal" size={24} color={theme.colors.white} />
         </TouchableOpacity>
       </View>
 
@@ -167,7 +171,7 @@ export default function UserProfileScreen({ route, navigation }) {
                 disabled={followLoading}
               >
                 {followLoading ? (
-                  <ActivityIndicator size="small" color={COLORS.white} />
+                  <ActivityIndicator size="small" color={theme.colors.white} />
                 ) : (
                   <Text style={styles.followButtonText}>
                     {isFollowing ? '팔로잉' : '팔로우'}
@@ -175,7 +179,7 @@ export default function UserProfileScreen({ route, navigation }) {
                 )}
               </TouchableOpacity>
               <TouchableOpacity style={styles.messageButton} onPress={handleMessage}>
-                <Ionicons name="chatbubble-outline" size={20} color={COLORS.white} />
+                <Ionicons name="chatbubble-outline" size={20} color={theme.colors.white} />
               </TouchableOpacity>
             </View>
           )}
@@ -199,7 +203,7 @@ export default function UserProfileScreen({ route, navigation }) {
                 <Text style={styles.stockLabel}>변동률</Text>
                 <Text style={[
                   styles.stockChange,
-                  { color: stock.priceChangePercent >= 0 ? COLORS.success : COLORS.error }
+                  { color: stock.priceChangePercent >= 0 ? theme.colors.success : theme.colors.error }
                 ]}>
                   {stock.priceChangePercent >= 0 ? '+' : ''}{stock.priceChangePercent?.toFixed(2)}%
                 </Text>
@@ -236,21 +240,21 @@ export default function UserProfileScreen({ route, navigation }) {
 
 function getTierColor(tier) {
   const colors = {
-    BRONZE: '#CD7F32',
-    SILVER: '#C0C0C0',
-    GOLD: '#FFD700',
-    PLATINUM: '#E5E4E2',
-    DIAMOND: '#B9F2FF',
-    MASTER: '#9966CC',
-    LEGEND: '#FF4500',
+    BRONZE: '#B87333',
+    SILVER: '#9BA3AF',
+    GOLD: '#D9A521',
+    PLATINUM: '#6E8CA0',
+    DIAMOND: '#3FB6C9',
+    MASTER: '#A78BFA',
+    LEGEND: '#E85D2A',
   };
-  return colors[tier] || COLORS.textSecondary;
+  return colors[tier] || theme.colors.textSecondary;
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -259,12 +263,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.white,
+    color: t.colors.white,
   },
   scrollView: {
     flex: 1,
@@ -282,7 +286,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 12,
     textAlign: 'center',
   },
@@ -290,11 +294,11 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     borderRadius: 8,
   },
   retryText: {
-    color: COLORS.white,
+    color: t.colors.white,
     fontWeight: '600',
   },
   profileHeader: {
@@ -306,22 +310,22 @@ const styles = StyleSheet.create({
     height: 100,
     borderRadius: 50,
     borderWidth: 3,
-    borderColor: COLORS.primary,
+    borderColor: t.colors.primary,
   },
   displayName: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: COLORS.white,
+    color: t.colors.white,
     marginTop: 12,
   },
   username: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 4,
   },
   bio: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     marginTop: 12,
     paddingHorizontal: 20,
@@ -338,11 +342,11 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: COLORS.white,
+    color: t.colors.white,
   },
   statLabel: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 4,
   },
   actionButtons: {
@@ -351,33 +355,33 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   followButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     paddingVertical: 10,
     paddingHorizontal: 40,
     borderRadius: 20,
   },
   followingButton: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   followButtonText: {
-    color: COLORS.white,
+    color: t.colors.white,
     fontWeight: '600',
   },
   messageButton: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     width: 44,
     height: 44,
     borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   stockCard: {
     margin: 16,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 16,
   },
@@ -390,7 +394,7 @@ const styles = StyleSheet.create({
   stockTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.white,
+    color: t.colors.white,
   },
   tierBadge: {
     paddingHorizontal: 10,
@@ -400,7 +404,7 @@ const styles = StyleSheet.create({
   tierText: {
     fontSize: 12,
     fontWeight: '600',
-    color: COLORS.background,
+    color: t.colors.background,
   },
   stockInfo: {
     flexDirection: 'row',
@@ -412,12 +416,12 @@ const styles = StyleSheet.create({
   },
   stockLabel: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   stockValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.white,
+    color: t.colors.white,
     marginTop: 4,
   },
   stockChange: {
@@ -426,13 +430,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   buyButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     paddingVertical: 12,
     borderRadius: 12,
     alignItems: 'center',
   },
   buyButtonText: {
-    color: COLORS.white,
+    color: t.colors.white,
     fontWeight: '600',
     fontSize: 16,
   },
@@ -442,13 +446,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.white,
+    color: t.colors.white,
     marginBottom: 12,
   },
   badgeItem: {
     alignItems: 'center',
     marginRight: 16,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 12,
     borderRadius: 12,
     minWidth: 80,
@@ -458,7 +462,7 @@ const styles = StyleSheet.create({
   },
   badgeName: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 6,
   },
 });

@@ -203,6 +203,55 @@ module.exports = (sequelize) => {
       type: DataTypes.DATE,
       field: 'identity_verified_at',
       comment: '본인인증 완료일'
+    },
+    // === 온보딩(첫 주주 되기 동선) ===
+    onboardedAt: {
+      type: DataTypes.DATE,
+      field: 'onboarded_at',
+      comment: '온보딩(첫 매수 동선) 완료 시각. null이면 미완료 → 온보딩 스택으로 분기'
+    },
+    bankInfo: {
+      type: DataTypes.JSON,
+      field: 'bank_info',
+      comment: '정산용 은행 계좌 정보 (bankName, accountNumber, accountHolder)'
+    },
+    // === 가상 셀럽 사전상장 관련 필드 ===
+    isVirtual: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'is_virtual',
+      comment: '가상 셀럽 계정 여부'
+    },
+    virtualStatus: {
+      type: DataTypes.ENUM('none', 'unclaimed', 'claim_pending', 'claimed'),
+      defaultValue: 'none',
+      field: 'virtual_status',
+      comment: '가상 계정 상태: 없음, 미인수, 인수심사중, 인수완료'
+    },
+    claimedBy: {
+      type: DataTypes.UUID,
+      field: 'claimed_by',
+      comment: '인수 요청한 실제 유저 ID'
+    },
+    claimedAt: {
+      type: DataTypes.DATE,
+      field: 'claimed_at',
+      comment: '인수 완료 일시'
+    },
+    virtualCreatedBy: {
+      type: DataTypes.UUID,
+      field: 'virtual_created_by',
+      comment: '가상 계정을 생성한 관리자 ID'
+    },
+    virtualCreatedAt: {
+      type: DataTypes.DATE,
+      field: 'virtual_created_at',
+      comment: '가상 계정 생성 일시'
+    },
+    externalLinks: {
+      type: DataTypes.JSON,
+      field: 'external_links',
+      comment: '외부 SNS 링크 (참고용, { instagram, youtube, twitter, tiktok 등 })'
     }
   }, {
     tableName: 'users',
@@ -210,7 +259,9 @@ module.exports = (sequelize) => {
       { fields: ['email'] },
       { fields: ['username'] },
       { fields: ['trust_level'] },
-      { fields: ['push_token'] }
+      { fields: ['push_token'] },
+      { fields: ['is_virtual'] },
+      { fields: ['virtual_status'] }
     ]
   });
 

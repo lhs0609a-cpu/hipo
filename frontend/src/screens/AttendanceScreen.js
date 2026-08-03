@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -14,6 +16,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { attendanceAPI } from '../services/api';
 
 const AttendanceScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [status, setStatus] = useState(null);
@@ -178,7 +182,7 @@ const AttendanceScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
@@ -187,7 +191,7 @@ const AttendanceScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -263,7 +267,7 @@ const AttendanceScreen = ({ navigation }) => {
             {renderWeekProgress()}
           </View>
           <View style={styles.weekRewardInfo}>
-            <Ionicons name="gift" size={20} color="#FFB800" />
+            <Ionicons name="gift" size={20} color="#F59B00" />
             <Text style={styles.weekRewardText}>7일 연속 출석 시 보상 2배!</Text>
           </View>
         </View>
@@ -348,15 +352,15 @@ const AttendanceScreen = ({ navigation }) => {
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>출석 체크 안내</Text>
           <View style={styles.infoItem}>
-            <Ionicons name="checkmark-circle" size={16} color="#00C471" />
+            <Ionicons name="checkmark-circle" size={16} color="#00B368" />
             <Text style={styles.infoText}>매일 출석하면 100 PO 지급</Text>
           </View>
           <View style={styles.infoItem}>
-            <Ionicons name="star" size={16} color="#FFB800" />
+            <Ionicons name="star" size={16} color="#F59B00" />
             <Text style={styles.infoText}>7일 연속 출석 시 보상 2배 (200 PO)</Text>
           </View>
           <View style={styles.infoItem}>
-            <Ionicons name="time" size={16} color="#3182F6" />
+            <Ionicons name="time" size={16} color="#2B5FE3" />
             <Text style={styles.infoText}>출석 체크는 매일 자정에 초기화됩니다</Text>
           </View>
         </View>
@@ -365,10 +369,10 @@ const AttendanceScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -380,7 +384,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -392,7 +396,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   checkInCard: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     borderRadius: 20,
     padding: 32,
     alignItems: 'center',
@@ -420,8 +424,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
   checkedButton: {
-    backgroundColor: '#00C471',
-    borderColor: '#00C471',
+    backgroundColor: t.colors.success,
+    borderColor: t.colors.success,
   },
   checkInButtonText: {
     fontSize: 16,
@@ -432,7 +436,7 @@ const styles = StyleSheet.create({
   rewardPopup: {
     position: 'absolute',
     bottom: 100,
-    backgroundColor: '#FFB800',
+    backgroundColor: t.colors.warning,
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 20,
@@ -469,16 +473,16 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 4,
   },
   weekDayComplete: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
   },
   weekDayMilestone: {
-    backgroundColor: '#FFB800',
+    backgroundColor: t.colors.warning,
   },
   weekDayNumber: {
     fontSize: 14,
@@ -498,7 +502,7 @@ const styles = StyleSheet.create({
   },
   weekRewardText: {
     fontSize: 13,
-    color: '#B8860B',
+    color: '#A57C18',
     fontWeight: '600',
   },
   statsCard: {
@@ -519,7 +523,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#3182F6',
+    color: t.colors.primary,
     marginBottom: 4,
   },
   statLabel: {
@@ -563,7 +567,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   checkedDay: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
   },
   checkedDayText: {
     color: '#fff',
@@ -571,17 +575,17 @@ const styles = StyleSheet.create({
   },
   todayDay: {
     borderWidth: 2,
-    borderColor: '#3182F6',
+    borderColor: t.colors.primary,
   },
   todayDayText: {
-    color: '#3182F6',
+    color: t.colors.primary,
     fontWeight: '600',
   },
   saturdayText: {
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   sundayText: {
-    color: '#F04452',
+    color: t.colors.error,
   },
   checkMark: {
     position: 'absolute',

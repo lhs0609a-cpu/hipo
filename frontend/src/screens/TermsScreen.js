@@ -1,8 +1,10 @@
 import React from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { COLORS } from '../constants/colors';
 
 export default function TermsScreen() {
+  const styles = useThemedStyles(makeStyles);
   return (
     <ScrollView style={styles.container}>
       <View style={styles.content}>
@@ -62,7 +64,29 @@ export default function TermsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>제6조 (서비스 이용시간)</Text>
+          <Text style={styles.sectionTitle}>제6조 (PO 충전 및 환불 정책)</Text>
+          <Text style={styles.sectionContent}>
+            1. PO 충전:{'\n'}
+            • PO는 원화(KRW)를 결제하여 충전할 수 있습니다.{'\n'}
+            • 충전 금액에 따라 보너스 PO가 지급될 수 있으며, 보너스 정책은 별도 공지합니다.{'\n'}
+            • 결제는 토스페이먼츠를 통해 처리되며, 카드, 계좌이체, 간편결제 등을 지원합니다.{'\n\n'}
+            2. 환불 정책:{'\n'}
+            • PO는 원칙적으로 환불되지 않습니다.{'\n'}
+            • 단, 다음 경우에 한하여 환불을 요청할 수 있습니다:{'\n'}
+              - 충전 후 PO를 전혀 사용하지 않은 경우 (7일 이내){'\n'}
+              - 시스템 오류로 인한 중복 결제{'\n'}
+              - 미성년자의 법정대리인 동의 없는 결제{'\n'}
+            • 보너스로 지급된 PO는 환불 대상에서 제외됩니다.{'\n'}
+            • 환불 신청 시 결제 수수료(3%)가 차감될 수 있습니다.{'\n'}
+            • 환불은 고객센터(support@hipo.app)를 통해 접수하며, 처리까지 영업일 기준 7일이 소요됩니다.{'\n\n'}
+            3. 투자 손실:{'\n'}
+            • 크리에이터 주식 거래로 인한 손실은 환불 대상이 아닙니다.{'\n'}
+            • 서비스는 투자 손실에 대해 어떠한 보상도 제공하지 않습니다.
+          </Text>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>제7조 (서비스 이용시간)</Text>
           <Text style={styles.sectionContent}>
             1. 서비스의 이용은 연중무휴 1일 24시간을 원칙으로 합니다.{'\n'}
             2. 서비스는 시스템 정기점검, 증설 및 교체를 위해 서비스를 일시적으로 중단할 수 있으며, 예정된 작업의 경우 사전에 공지합니다.
@@ -70,7 +94,7 @@ export default function TermsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>제7조 (회원의 의무)</Text>
+          <Text style={styles.sectionTitle}>제8조 (회원의 의무)</Text>
           <Text style={styles.sectionContent}>
             1. 회원은 다음 행위를 하여서는 안 됩니다:{'\n'}
             • 타인의 정보 도용{'\n'}
@@ -85,7 +109,7 @@ export default function TermsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>제8조 (개인정보보호)</Text>
+          <Text style={styles.sectionTitle}>제9조 (개인정보보호)</Text>
           <Text style={styles.sectionContent}>
             1. 서비스는 관련 법령이 정하는 바에 따라 회원의 개인정보를 보호하기 위해 노력합니다.{'\n'}
             2. 개인정보의 보호 및 사용에 대해서는 관련 법령 및 서비스의 개인정보처리방침이 적용됩니다.{'\n'}
@@ -94,7 +118,7 @@ export default function TermsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>제9조 (서비스의 중단)</Text>
+          <Text style={styles.sectionTitle}>제10조 (서비스의 중단)</Text>
           <Text style={styles.sectionContent}>
             1. 서비스는 다음 각 호의 경우 서비스 제공을 중단할 수 있습니다:{'\n'}
             • 설비의 보수 등 공사로 인한 부득이한 경우{'\n'}
@@ -105,7 +129,7 @@ export default function TermsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>제10조 (면책조항)</Text>
+          <Text style={styles.sectionTitle}>제11조 (면책조항)</Text>
           <Text style={styles.sectionContent}>
             1. 서비스는 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다.{'\n'}
             2. 서비스는 회원의 귀책사유로 인한 서비스 이용의 장애에 대하여 책임을 지지 않습니다.{'\n'}
@@ -116,7 +140,7 @@ export default function TermsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>제11조 (준거법 및 재판관할)</Text>
+          <Text style={styles.sectionTitle}>제12조 (준거법 및 재판관할)</Text>
           <Text style={styles.sectionContent}>
             1. 서비스와 회원 간 제기된 소송은 대한민국 법을 준거법으로 합니다.{'\n'}
             2. 서비스와 회원 간 발생한 분쟁에 관한 소송은 서비스 본사 소재지를 관할하는 법원을 관할법원으로 합니다.
@@ -124,7 +148,7 @@ export default function TermsScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>제12조 (기타)</Text>
+          <Text style={styles.sectionTitle}>제13조 (기타)</Text>
           <Text style={styles.sectionContent}>
             1. 본 약관에 명시되지 않은 사항은 관련 법령 및 상관례에 따릅니다.{'\n'}
             2. 본 약관의 일부 조항이 무효로 판명되더라도 나머지 조항의 효력은 유지됩니다.
@@ -141,10 +165,10 @@ export default function TermsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   content: {
     padding: 20,
@@ -152,12 +176,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
   },
   date: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 24,
   },
   section: {
@@ -166,26 +190,26 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 12,
   },
   sectionContent: {
     fontSize: 14,
     lineHeight: 22,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   footer: {
     marginTop: 12,
     marginBottom: 40,
     padding: 16,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   footerText: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     fontWeight: '600',
   },

@@ -3,14 +3,19 @@ const {
   getCreatorDividendStats,
   calculateExpectedDividend
 } = require('../utils/dividendCalculator');
-const { Holding, Stock, User } = require('../models');
+const { Holding, Stock, User, Dividend, sequelize } = require('../models');
+const { Op } = require('sequelize');
+const { validatePagination, validatePositiveInt, validatePeriod } = require('../utils/validation');
+const { updateBalance } = require('../utils/balanceService');
 
 // 내 배당 히스토리 조회
 exports.getMyDividendHistory = async (req, res) => {
   try {
-    const { period = 'month', limit = 50 } = req.query;
+    // 입력 검증 (DoS 방지)
+    const period = validatePeriod(req.query.period, ['day', 'week', 'month', 'year', 'all']);
+    const { limit } = validatePagination({ limit: req.query.limit });
 
-    const result = await getDividendHistory(req.user.id, { period, limit: parseInt(limit) });
+    const result = await getDividendHistory(req.user.id, { period, limit });
 
     res.json({
       success: true,
@@ -60,7 +65,21 @@ exports.calculateExpectedDividend = async (req, res) => {
       });
     }
 
-    const result = await calculateExpectedDividend(creatorId, parseInt(shareholding));
+    // 입력 검증 (최소 1주, 최대 1억주)
+    const validatedShares = validatePositiveInt(shareholding, {
+      min: 1,
+      max: 100000000,
+      defaultValue: null
+    });
+
+    if (validatedShares === null) {
+      return res.status(400).json({
+        success: false,
+        message: '유효하지 않은 주식 수입니다'
+      });
+    }
+
+    const result = await calculateExpectedDividend(creatorId, validatedShares);
 
     if (!result.success) {
       return res.status(404).json(result);
@@ -90,7 +109,7 @@ exports.getMyExpectedDividends = async (req, res) => {
         as: 'stock',
         include: [{
           model: User,
-          as: 'creator',
+          as: 'issuer',
           attributes: ['id', 'username', 'displayName', 'profileImage', 'isCreator']
         }]
       }]
@@ -100,33 +119,33 @@ exports.getMyExpectedDividends = async (req, res) => {
       holdings.map(async (holding) => {
         const result = await calculateExpectedDividend(
           holding.stock.userId,
-          holding.quantity
+          holding.shares
         );
 
         return {
           stock: {
             id: holding.stock.id,
             userId: holding.stock.userId,
-            currentPrice: holding.stock.currentPrice
+            currentPrice: holding.stock.sharePrice
           },
           creator: {
-            id: holding.stock.creator.id,
-            username: holding.stock.creator.username,
-            displayName: holding.stock.creator.displayName,
-            profileImage: holding.stock.creator.profileImage,
+            id: holding.stock.issuer.id,
+            username: holding.stock.issuer.username,
+            displayName: holding.stock.issuer.displayName,
+            profileImage: holding.stock.issuer.profileImage,
             trustLevel: result.trustLevel
           },
-          quantity: holding.quantity,
+          quantity: holding.shares,
           creatorId: holding.stock.userId,
-          creatorName: holding.stock.creator.username,
-          displayName: holding.stock.creator.displayName,
-          profileImage: holding.stock.creator.profileImage,
-          shareholding: holding.quantity,
-          purchasePrice: holding.purchasePrice,
-          currentPrice: holding.stock.currentPrice,
-          totalInvestment: holding.quantity * holding.purchasePrice,
-          currentValue: holding.quantity * holding.stock.currentPrice,
-          profitLoss: (holding.stock.currentPrice - holding.purchasePrice) * holding.quantity,
+          creatorName: holding.stock.issuer.username,
+          displayName: holding.stock.issuer.displayName,
+          profileImage: holding.stock.issuer.profileImage,
+          shareholding: holding.shares,
+          purchasePrice: holding.averagePrice,
+          currentPrice: holding.stock.sharePrice,
+          totalInvestment: holding.shares * holding.averagePrice,
+          currentValue: holding.shares * holding.stock.sharePrice,
+          profitLoss: (holding.stock.sharePrice - holding.averagePrice) * holding.shares,
           expectedDividend: result.expectedDailyDividend,
           dividendRate: result.dividendRate,
           ...result
@@ -201,8 +220,6 @@ exports.getCreatorDividendDashboard = async (req, res) => {
 };
 
 // === 고급 배당 기능 ===
-const { Dividend, sequelize } = require('../models');
-const { Op } = require('sequelize');
 
 // 배당 일정 조회
 exports.getDividendSchedule = async (req, res) => {
@@ -363,14 +380,13 @@ exports.paySpecialDividend = async (req, res) => {
       });
     }
 
-    // 각 주주에게 배당 지급
+    // 각 주주에게 배당 지급 (User + Wallet 동시)
     for (const holding of holdings) {
       const dividendAmount = amount * holding.shares;
 
-      await User.increment('poBalance', {
-        by: dividendAmount,
-        where: { id: holding.holderId },
-        transaction: t
+      await updateBalance(holding.holderId, dividendAmount, {
+        transaction: t,
+        walletFields: { totalDividendReceived: dividendAmount }
       });
 
       await Dividend.create({
@@ -382,8 +398,11 @@ exports.paySpecialDividend = async (req, res) => {
       }, { transaction: t });
     }
 
-    // 발행자 잔액 차감
-    await user.update({ poBalance: user.poBalance - totalDividend }, { transaction: t });
+    // 발행자 잔액 차감 (User + Wallet 동시)
+    await updateBalance(userId, -totalDividend, {
+      transaction: t,
+      walletFields: { totalDividendPaid: totalDividend }
+    });
 
     await t.commit();
 
@@ -453,7 +472,7 @@ exports.getDetailedDividendStats = async (req, res) => {
         as: 'stock',
         include: [{ model: User, as: 'issuer', attributes: ['username'] }]
       }],
-      group: ['stockId']
+      group: ['Dividend.stock_id', 'stock.id', 'stock->issuer.id']
     });
 
     res.json({

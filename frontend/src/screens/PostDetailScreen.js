@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -19,6 +21,8 @@ import api from '../services/api';
 import { COLORS } from '../constants/colors';
 
 export default function PostDetailScreen({ route, navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const { theme } = useTheme();
   const { postId } = route.params;
   const { user } = useAuth();
 
@@ -94,13 +98,13 @@ export default function PostDetailScreen({ route, navigation }) {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+            <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>포스트</Text>
           <View style={{ width: 24 }} />
         </View>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={theme.colors.primary} />
         </View>
       </SafeAreaView>
     );
@@ -111,13 +115,13 @@ export default function PostDetailScreen({ route, navigation }) {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+            <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>포스트</Text>
           <View style={{ width: 24 }} />
         </View>
         <View style={styles.errorContainer}>
-          <Ionicons name="alert-circle-outline" size={48} color={COLORS.error} />
+          <Ionicons name="alert-circle-outline" size={48} color={theme.colors.error} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchPost}>
             <Text style={styles.retryText}>다시 시도</Text>
@@ -133,7 +137,7 @@ export default function PostDetailScreen({ route, navigation }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.white} />
+          <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>포스트</Text>
         <View style={{ width: 24 }} />
@@ -175,19 +179,19 @@ export default function PostDetailScreen({ route, navigation }) {
               <Ionicons
                 name={post.isLiked ? 'heart' : 'heart-outline'}
                 size={24}
-                color={post.isLiked ? COLORS.error : COLORS.textSecondary}
+                color={post.isLiked ? theme.colors.error : theme.colors.textSecondary}
               />
               <Text style={styles.actionText}>{post.likesCount || 0}</Text>
             </TouchableOpacity>
             <View style={styles.actionButton}>
-              <Ionicons name="chatbubble-outline" size={24} color={COLORS.textSecondary} />
+              <Ionicons name="chatbubble-outline" size={24} color={theme.colors.textSecondary} />
               <Text style={styles.actionText}>{post.commentsCount || 0}</Text>
             </View>
             <TouchableOpacity style={styles.actionButton}>
               <Ionicons
                 name={post.isBookmarked ? 'bookmark' : 'bookmark-outline'}
                 size={24}
-                color={post.isBookmarked ? COLORS.primary : COLORS.textSecondary}
+                color={post.isBookmarked ? theme.colors.primary : theme.colors.textSecondary}
               />
             </TouchableOpacity>
           </View>
@@ -216,7 +220,7 @@ export default function PostDetailScreen({ route, navigation }) {
           <TextInput
             style={styles.commentInput}
             placeholder="댓글을 입력하세요..."
-            placeholderTextColor={COLORS.textSecondary}
+            placeholderTextColor={theme.colors.textSecondary}
             value={comment}
             onChangeText={setComment}
             multiline
@@ -227,9 +231,9 @@ export default function PostDetailScreen({ route, navigation }) {
             disabled={!comment.trim() || submitting}
           >
             {submitting ? (
-              <ActivityIndicator size="small" color={COLORS.white} />
+              <ActivityIndicator size="small" color={theme.colors.white} />
             ) : (
-              <Ionicons name="send" size={20} color={COLORS.white} />
+              <Ionicons name="send" size={20} color={theme.colors.white} />
             )}
           </TouchableOpacity>
         </View>
@@ -238,10 +242,10 @@ export default function PostDetailScreen({ route, navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   header: {
     flexDirection: 'row',
@@ -250,12 +254,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: COLORS.white,
+    color: t.colors.white,
   },
   keyboardView: {
     flex: 1,
@@ -276,7 +280,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 12,
     textAlign: 'center',
   },
@@ -284,11 +288,11 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     borderRadius: 8,
   },
   retryText: {
-    color: COLORS.white,
+    color: t.colors.white,
     fontWeight: '600',
   },
   authorSection: {
@@ -307,11 +311,11 @@ const styles = StyleSheet.create({
   authorName: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.white,
+    color: t.colors.white,
   },
   postDate: {
     fontSize: 12,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 2,
   },
   contentSection: {
@@ -320,7 +324,7 @@ const styles = StyleSheet.create({
   },
   content: {
     fontSize: 16,
-    color: COLORS.white,
+    color: t.colors.white,
     lineHeight: 24,
   },
   postImage: {
@@ -336,7 +340,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   actionButton: {
     flexDirection: 'row',
@@ -346,7 +350,7 @@ const styles = StyleSheet.create({
   actionText: {
     marginLeft: 6,
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   commentsSection: {
     padding: 16,
@@ -354,7 +358,7 @@ const styles = StyleSheet.create({
   commentsTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: COLORS.white,
+    color: t.colors.white,
     marginBottom: 16,
   },
   commentItem: {
@@ -369,23 +373,23 @@ const styles = StyleSheet.create({
   commentContent: {
     flex: 1,
     marginLeft: 10,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 10,
     borderRadius: 12,
   },
   commentAuthor: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.white,
+    color: t.colors.white,
   },
   commentText: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginTop: 4,
   },
   commentDate: {
     fontSize: 11,
-    color: COLORS.textMuted,
+    color: t.colors.textMuted,
     marginTop: 4,
   },
   commentInputSection: {
@@ -393,21 +397,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    backgroundColor: COLORS.background,
+    borderTopColor: t.colors.border,
+    backgroundColor: t.colors.background,
   },
   commentInput: {
     flex: 1,
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    color: COLORS.white,
+    color: t.colors.white,
     maxHeight: 100,
   },
   sendButton: {
     marginLeft: 10,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     width: 40,
     height: 40,
     borderRadius: 20,

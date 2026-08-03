@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTheme } from '../contexts/ThemeContext';
+import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
   Text,
@@ -15,6 +18,9 @@ import { COLORS } from '../constants/colors';
 import api from '../api/client';
 
 export default function StrategyScreen({ navigation }) {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
+  const { theme } = useTheme();
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState('all'); // all, my, followed
   const [strategies, setStrategies] = useState([]);
@@ -140,24 +146,24 @@ export default function StrategyScreen({ navigation }) {
 
   const getRiskLevelColor = (level) => {
     const colors = {
-      low: COLORS.success,
-      medium: '#FFA500',
-      high: COLORS.danger,
+      low: theme.colors.success,
+      medium: '#F59B00',
+      high: theme.colors.danger,
     };
-    return colors[level] || COLORS.textSecondary;
+    return colors[level] || theme.colors.textSecondary;
   };
 
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
+        <ActivityIndicator size="large" color={theme.colors.primary} />
         <Text style={styles.loadingText}>로딩 중...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }, { paddingTop: insets.top }]}>
       {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -248,7 +254,7 @@ export default function StrategyScreen({ navigation }) {
                 <View style={styles.statDivider} />
                 <View style={styles.statItem}>
                   <Text style={styles.statLabel}>실제 수익률</Text>
-                  <Text style={[styles.statValue, { color: strategy.totalReturn >= 0 ? COLORS.success : COLORS.danger }]}>
+                  <Text style={[styles.statValue, { color: strategy.totalReturn >= 0 ? theme.colors.success : theme.colors.danger }]}>
                     {strategy.totalReturn?.toFixed(1)}%
                   </Text>
                 </View>
@@ -391,31 +397,31 @@ export default function StrategyScreen({ navigation }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   backButton: {
     width: 40,
@@ -425,12 +431,12 @@ const styles = StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
-    color: COLORS.text,
+    color: t.colors.text,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   addButton: {
     width: 40,
@@ -440,14 +446,14 @@ const styles = StyleSheet.create({
   },
   addIcon: {
     fontSize: 28,
-    color: COLORS.primary,
+    color: t.colors.primary,
     fontWeight: '600',
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   tab: {
     flex: 1,
@@ -457,25 +463,25 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: COLORS.primary,
+    borderBottomColor: t.colors.primary,
   },
   tabText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   tabTextActive: {
-    color: COLORS.primary,
+    color: t.colors.primary,
   },
   content: {
     flex: 1,
   },
   strategyCard: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     padding: 16,
     marginTop: 8,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   strategyHeader: {
     flexDirection: 'row',
@@ -489,12 +495,12 @@ const styles = StyleSheet.create({
   strategyName: {
     fontSize: 16,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 4,
   },
   strategyAuthor: {
     fontSize: 13,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   strategyBadges: {
     flexDirection: 'row',
@@ -504,22 +510,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
   },
   badgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   strategyDescription: {
     fontSize: 14,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     lineHeight: 20,
     marginBottom: 12,
   },
   strategyStats: {
     flexDirection: 'row',
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
@@ -530,17 +536,17 @@ const styles = StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: COLORS.border,
+    backgroundColor: t.colors.border,
   },
   statLabel: {
     fontSize: 11,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 4,
   },
   statValue: {
     fontSize: 14,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   strategyActions: {
     flexDirection: 'row',
@@ -551,35 +557,35 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     alignItems: 'center',
   },
   detailButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   followButton: {
     flex: 1,
     paddingVertical: 10,
     borderRadius: 8,
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     alignItems: 'center',
   },
   followButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   unfollowButton: {
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
   },
   unfollowButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   emptyContainer: {
     padding: 60,
@@ -591,11 +597,11 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
     marginBottom: 24,
   },
   emptyButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
@@ -603,7 +609,7 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   modalOverlay: {
     flex: 1,
@@ -611,7 +617,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: t.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
@@ -622,16 +628,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: t.colors.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: COLORS.text,
+    color: t.colors.text,
   },
   modalClose: {
     fontSize: 24,
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   modalBody: {
     padding: 20,
@@ -639,18 +645,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.text,
+    color: t.colors.text,
     marginBottom: 8,
     marginTop: 16,
   },
   input: {
-    backgroundColor: COLORS.background,
+    backgroundColor: t.colors.background,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: COLORS.text,
+    color: t.colors.text,
   },
   textarea: {
     height: 100,
@@ -667,20 +673,20 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: t.colors.border,
     alignItems: 'center',
   },
   typeButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
+    borderColor: t.colors.primary,
   },
   typeButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: COLORS.textSecondary,
+    color: t.colors.textSecondary,
   },
   typeButtonTextActive: {
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
   switchRow: {
     flexDirection: 'row',
@@ -692,23 +698,23 @@ const styles = StyleSheet.create({
     width: 50,
     height: 28,
     borderRadius: 14,
-    backgroundColor: COLORS.border,
+    backgroundColor: t.colors.border,
     padding: 2,
   },
   switchActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
   },
   switchThumb: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: t.colors.surface,
   },
   switchThumbActive: {
     transform: [{ translateX: 22 }],
   },
   createButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: t.colors.primary,
     paddingVertical: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -718,6 +724,6 @@ const styles = StyleSheet.create({
   createButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: t.colors.surface,
   },
 });

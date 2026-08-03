@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -16,6 +18,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { adminAPI } from '../services/api';
 
 const AdminDashboardScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [dashboard, setDashboard] = useState(null);
@@ -134,9 +138,9 @@ const AdminDashboardScreen = ({ navigation }) => {
 
   const getAlertSeverityColor = (severity) => {
     switch (severity) {
-      case 'HIGH': return '#F04452';
-      case 'MEDIUM': return '#FFB800';
-      case 'LOW': return '#00C471';
+      case 'HIGH': return '#F0344B';
+      case 'MEDIUM': return '#F59B00';
+      case 'LOW': return '#00B368';
       default: return '#999';
     }
   };
@@ -222,20 +226,20 @@ const AdminDashboardScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>관리자 대시보드</Text>
         <TouchableOpacity onPress={() => setAnnouncementModalVisible(true)}>
-          <Ionicons name="megaphone-outline" size={24} color="#3182F6" />
+          <Ionicons name="megaphone-outline" size={24} color="#2B5FE3" />
         </TouchableOpacity>
       </View>
 
@@ -283,10 +287,10 @@ const AdminDashboardScreen = ({ navigation }) => {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>핵심 지표</Text>
             <View style={styles.statsGrid}>
-              {renderStatCard('people', '총 사용자', formatNumber(dashboard?.totalUsers), '#3182F6')}
-              {renderStatCard('trending-up', '총 주식', formatNumber(dashboard?.totalStocks), '#00C471')}
-              {renderStatCard('swap-horizontal', '오늘 거래량', formatNumber(dashboard?.todayVolume), '#FFB800')}
-              {renderStatCard('wallet', '총 거래액', formatNumber(dashboard?.totalTradingValue), '#9B59B6')}
+              {renderStatCard('people', '총 사용자', formatNumber(dashboard?.totalUsers), '#2B5FE3')}
+              {renderStatCard('trending-up', '총 주식', formatNumber(dashboard?.totalStocks), '#00B368')}
+              {renderStatCard('swap-horizontal', '오늘 거래량', formatNumber(dashboard?.todayVolume), '#F59B00')}
+              {renderStatCard('wallet', '총 거래액', formatNumber(dashboard?.totalTradingValue), '#8B5CF6')}
             </View>
           </View>
 
@@ -318,7 +322,7 @@ const AdminDashboardScreen = ({ navigation }) => {
             <Text style={styles.sectionTitle}>관리 메뉴</Text>
             <TouchableOpacity style={styles.menuItem}>
               <View style={[styles.menuIcon, { backgroundColor: '#3182F620' }]}>
-                <Ionicons name="people" size={24} color="#3182F6" />
+                <Ionicons name="people" size={24} color="#2B5FE3" />
               </View>
               <View style={styles.menuContent}>
                 <Text style={styles.menuTitle}>사용자 관리</Text>
@@ -329,7 +333,7 @@ const AdminDashboardScreen = ({ navigation }) => {
 
             <TouchableOpacity style={styles.menuItem}>
               <View style={[styles.menuIcon, { backgroundColor: '#00C47120' }]}>
-                <Ionicons name="stats-chart" size={24} color="#00C471" />
+                <Ionicons name="stats-chart" size={24} color="#00B368" />
               </View>
               <View style={styles.menuContent}>
                 <Text style={styles.menuTitle}>주식 관리</Text>
@@ -340,7 +344,7 @@ const AdminDashboardScreen = ({ navigation }) => {
 
             <TouchableOpacity style={styles.menuItem}>
               <View style={[styles.menuIcon, { backgroundColor: '#FFB80020' }]}>
-                <Ionicons name="shield-checkmark" size={24} color="#FFB800" />
+                <Ionicons name="shield-checkmark" size={24} color="#F59B00" />
               </View>
               <View style={styles.menuContent}>
                 <Text style={styles.menuTitle}>시장 감시</Text>
@@ -354,7 +358,7 @@ const AdminDashboardScreen = ({ navigation }) => {
               onPress={() => setAnnouncementModalVisible(true)}
             >
               <View style={[styles.menuIcon, { backgroundColor: '#9B59B620' }]}>
-                <Ionicons name="megaphone" size={24} color="#9B59B6" />
+                <Ionicons name="megaphone" size={24} color="#8B5CF6" />
               </View>
               <View style={styles.menuContent}>
                 <Text style={styles.menuTitle}>공지사항 작성</Text>
@@ -418,7 +422,7 @@ const AdminDashboardScreen = ({ navigation }) => {
                 <Ionicons
                   name="checkmark-circle"
                   size={24}
-                  color={ipoDecision ? '#fff' : '#00C471'}
+                  color={ipoDecision ? '#fff' : '#00B368'}
                 />
                 <Text style={[
                   styles.decisionText,
@@ -435,7 +439,7 @@ const AdminDashboardScreen = ({ navigation }) => {
                 <Ionicons
                   name="close-circle"
                   size={24}
-                  color={!ipoDecision ? '#fff' : '#F04452'}
+                  color={!ipoDecision ? '#fff' : '#F0344B'}
                 />
                 <Text style={[
                   styles.decisionText,
@@ -489,7 +493,7 @@ const AdminDashboardScreen = ({ navigation }) => {
                 <Text style={styles.cancelButtonText}>취소</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.confirmButton, !ipoDecision && { backgroundColor: '#F04452' }]}
+                style={[styles.confirmButton, !ipoDecision && { backgroundColor: '#F0344B' }]}
                 onPress={submitIPOReview}
               >
                 <Text style={styles.confirmButtonText}>
@@ -575,10 +579,10 @@ const AdminDashboardScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -590,7 +594,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -603,7 +607,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   tab: {
     flex: 1,
@@ -615,7 +619,7 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#3182F6',
+    borderBottomColor: t.colors.primary,
   },
   tabText: {
     fontSize: 15,
@@ -623,10 +627,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   activeTabText: {
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   tabBadge: {
-    backgroundColor: '#F04452',
+    backgroundColor: t.colors.error,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 10,
@@ -744,19 +748,19 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   pendingBadge: {
-    backgroundColor: '#FFF5E0',
+    backgroundColor: t.colors.warningBackground,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
   },
   pendingText: {
     fontSize: 12,
-    color: '#FFB800',
+    color: t.colors.warning,
     fontWeight: '600',
   },
   ipoInfo: {
     flexDirection: 'row',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     borderRadius: 8,
     padding: 12,
     marginBottom: 12,
@@ -788,10 +792,10 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   approveButton: {
-    backgroundColor: '#00C471',
+    backgroundColor: t.colors.success,
   },
   rejectButton: {
-    backgroundColor: '#F04452',
+    backgroundColor: t.colors.error,
   },
   ipoActionText: {
     fontSize: 15,
@@ -875,14 +879,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 14,
     borderRadius: 8,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     gap: 8,
   },
   approveDecision: {
-    backgroundColor: '#00C471',
+    backgroundColor: t.colors.success,
   },
   rejectDecision: {
-    backgroundColor: '#F04452',
+    backgroundColor: t.colors.error,
   },
   decisionText: {
     fontSize: 16,
@@ -915,11 +919,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
     borderRadius: 6,
   },
   activeTypeButton: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
   },
   typeButtonText: {
     fontSize: 13,
@@ -935,7 +939,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
@@ -946,7 +950,7 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',

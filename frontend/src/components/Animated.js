@@ -240,7 +240,7 @@ export const Skeleton = ({ width, height, style }) => {
         {
           width,
           height,
-          backgroundColor: '#e0e0e0',
+          backgroundColor: '#DFE3EB',
           borderRadius: 8,
           opacity: pulseAnim,
         },

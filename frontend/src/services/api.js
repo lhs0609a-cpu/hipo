@@ -170,7 +170,7 @@ export const merchandiseAPI = {
 // Dividend APIs
 export const dividendAPI = {
   getHistory: () => api.get('/dividend/history'),
-  getUpcoming: () => api.get('/dividend/upcoming'),
+  getUpcoming: () => api.get('/dividend/expected'),
   getByStock: (stockId) => api.get(`/dividend/stock/${stockId}`),
 };
 
@@ -510,6 +510,30 @@ export const tierAPI = {
   requestTierUpdate: () => api.post('/tiers/my/update'),
 };
 
+// === 연속 로그인 보상 APIs ===
+export const loginStreakAPI = {
+  getStatus: () => api.get('/login-streak/status'),
+  claimReward: () => api.post('/login-streak/claim'),
+  getLeaderboard: (limit = 10) => api.get(`/login-streak/leaderboard?limit=${limit}`),
+};
+
+// === 장기 보유 보너스 APIs ===
+export const holdingBonusAPI = {
+  getMyStatus: () => api.get('/holding-bonus/status'),
+  getStockStatus: (stockId) => api.get(`/holding-bonus/stock/${stockId}`),
+  claimBonus: (stockId, milestoneDays) => api.post('/holding-bonus/claim', { stockId, milestoneDays }),
+  getLeaderboard: (limit = 10) => api.get(`/holding-bonus/leaderboard?limit=${limit}`),
+};
+
+// === 크리에이터 수익 정산 APIs ===
+export const settlementAPI = {
+  getDashboard: () => api.get('/settlement/dashboard'),
+  registerBankAccount: (data) => api.post('/settlement/bank-account', data),
+  requestSettlement: (amount) => api.post('/settlement/request', { amount }),
+  getHistory: (page = 1, limit = 20) => api.get(`/settlement/history?page=${page}&limit=${limit}`),
+  cancelSettlement: (id) => api.post(`/settlement/${id}/cancel`),
+};
+
 // === 주주 전용 커뮤니티 APIs ===
 export const shareholderCommunityAPI = {
   // 커뮤니티 관리
@@ -536,6 +560,61 @@ export const shareholderCommunityAPI = {
   // 공지사항
   createNotice: (communityId, data) => api.post(`/shareholder-community/${communityId}/notices`, data),
   getNotices: (communityId, params) => api.get(`/shareholder-community/${communityId}/notices`, { params }),
+};
+
+// === 가상 셀럽 사전상장 APIs ===
+export const virtualCelebrityAPI = {
+  // 공개 API
+  browse: (params) => api.get('/virtual-celebrity/browse', { params }),
+  getDetail: (id) => api.get(`/virtual-celebrity/${id}`),
+
+  // 유저 API - 인수
+  submitClaim: (virtualUserId, data) => api.post(`/virtual-celebrity/claim/${virtualUserId}`, data),
+  getMyClaims: () => api.get('/virtual-celebrity/claim/my-claims'),
+
+  // 유저 API - 상장 요청 / 기대 표시
+  submitSuggestion: (data) => api.post('/virtual-celebrity/suggest', data),
+  getSuggestions: (params) => api.get('/virtual-celebrity/suggestions', { params }),
+  /**
+   * "이 사람 상장되면 좋겠다" 표시.
+   * 취소 API 는 의도적으로 없다 — 기대지수는 내려가지 않는다.
+   * (내려가면 그 하락 자체가 해당 인물에 대한 부정적 평가의 공표가 된다)
+   */
+  expectListing: (id) => api.post(`/virtual-celebrity/suggest/${id}/upvote`),
+
+  // 관리자 API - 가상 셀럽 관리
+  create: (data) => api.post('/virtual-celebrity/admin/create', data),
+  createBulk: (celebrities) => api.post('/virtual-celebrity/admin/bulk-create', { celebrities }),
+  adminList: (params) => api.get('/virtual-celebrity/admin/list', { params }),
+
+  // 관리자 API - 인수 관리
+  adminListClaims: (params) => api.get('/virtual-celebrity/admin/claims', { params }),
+  approveClaim: (claimId, data) => api.post(`/virtual-celebrity/admin/claims/${claimId}/approve`, data),
+  rejectClaim: (claimId, data) => api.post(`/virtual-celebrity/admin/claims/${claimId}/reject`, data),
+
+  // 관리자 API - 추천 관리
+  adminListSuggestions: (params) => api.get('/virtual-celebrity/admin/suggestions', { params }),
+  approveSuggestion: (id, data) => api.post(`/virtual-celebrity/admin/suggestions/${id}/approve`, data),
+  rejectSuggestion: (id, data) => api.post(`/virtual-celebrity/admin/suggestions/${id}/reject`, data),
+};
+
+// === 푸시 알림 토큰 APIs ===
+export const pushNotificationAPI = {
+  registerToken: (token, platform) => api.post('/notifications/push-token', { token, platform }),
+  removeToken: (token) => api.delete('/notifications/push-token', { data: { token } }),
+};
+
+// === 카피 트레이딩 / 인기 투자자 APIs ===
+export const copyTradingAPI = {
+  getTopInvestors: (params) => api.get('/rankings/top-investors', { params }),
+  followInvestor: (userId) => api.post(`/users/${userId}/follow`),
+  unfollowInvestor: (userId) => api.delete(`/users/${userId}/follow`),
+  getInvestorPortfolio: (userId) => api.get(`/users/${userId}/portfolio`),
+};
+
+// === 실시간 거래 피드 APIs ===
+export const tradeFeedAPI = {
+  getRecent: (limit = 20) => api.get(`/trades/recent?limit=${limit}`),
 };
 
 export default api;

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -12,6 +14,8 @@ import {
 import { nftAPI } from '../services/api';
 
 const NFTScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [nfts, setNfts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -75,14 +79,14 @@ const NFTScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <Text style={styles.headerTitle}>NFT</Text>
         <Text style={styles.headerSubtitle}>디지털 컬렉션</Text>
       </View>
@@ -128,10 +132,10 @@ const NFTScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -139,8 +143,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   header: {
-    backgroundColor: '#9C27B0',
-    paddingTop: 50,
+    backgroundColor: '#8B5CF6',
+    paddingTop: 10,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
@@ -168,7 +172,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   activeTab: {
-    backgroundColor: '#9C27B0',
+    backgroundColor: '#8B5CF6',
   },
   tabText: {
     fontSize: 15,
@@ -204,7 +208,7 @@ const styles = StyleSheet.create({
   nftImagePlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -220,16 +224,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   rarityCommon: {
-    backgroundColor: '#9E9E9E',
+    backgroundColor: t.colors.textTertiary,
   },
   rarityRare: {
-    backgroundColor: '#2196F3',
+    backgroundColor: t.colors.primary,
   },
   rarityEpic: {
-    backgroundColor: '#9C27B0',
+    backgroundColor: '#8B5CF6',
   },
   rarityLegendary: {
-    backgroundColor: '#FF9800',
+    backgroundColor: t.colors.warning,
   },
   rarityText: {
     color: '#fff',
@@ -258,10 +262,10 @@ const styles = StyleSheet.create({
   nftPrice: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#9C27B0',
+    color: '#8B5CF6',
   },
   saleBadge: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: t.colors.success,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,

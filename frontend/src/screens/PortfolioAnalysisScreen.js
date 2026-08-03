@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { getAppWidth, getAppHeight } from '../utils/appWidth';
+import useThemedStyles from '../hooks/useThemedStyles';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   View,
   Text,
@@ -6,15 +9,16 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
-  Dimensions,
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { portfolioAPI } from '../services/api';
 
-const { width } = Dimensions.get('window');
+const width = getAppWidth();
 
 const PortfolioAnalysisScreen = ({ navigation }) => {
+  const styles = useThemedStyles(makeStyles);
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('summary');
@@ -66,7 +70,7 @@ const PortfolioAnalysisScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3182F6" />
+        <ActivityIndicator size="large" color="#2B5FE3" />
       </View>
     );
   }
@@ -303,13 +307,13 @@ const PortfolioAnalysisScreen = ({ navigation }) => {
   );
 
   const getSectorColor = (index) => {
-    const colors = ['#3182F6', '#FF6B6B', '#4CAF50', '#FFC107', '#9C27B0', '#00BCD4'];
+    const colors = ['#2B5FE3', '#F0344B', '#00B368', '#F59B00', '#8B5CF6', '#00B0A6'];
     return colors[index % colors.length];
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
@@ -352,10 +356,10 @@ const PortfolioAnalysisScreen = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: t.colors.background,
   },
   loadingContainer: {
     flex: 1,
@@ -367,7 +371,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingTop: 50,
+    paddingTop: 10,
     paddingBottom: 16,
     backgroundColor: '#fff',
   },
@@ -388,14 +392,14 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: '#3182F6',
+    borderBottomColor: t.colors.primary,
   },
   tabText: {
     fontSize: 15,
     color: '#666',
   },
   activeTabText: {
-    color: '#3182F6',
+    color: t.colors.primary,
     fontWeight: '600',
   },
   content: {
@@ -405,7 +409,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   totalAssetCard: {
-    backgroundColor: '#3182F6',
+    backgroundColor: t.colors.primary,
     borderRadius: 16,
     padding: 24,
     marginBottom: 16,
@@ -456,15 +460,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   profitUp: {
-    color: '#F04452',
+    color: t.colors.error,
   },
   profitDown: {
-    color: '#1261C4',
+    color: t.colors.primaryDark,
   },
   dividendValue: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#4CAF50',
+    color: t.colors.success,
   },
   holdingsSection: {
     backgroundColor: '#fff',
@@ -481,7 +485,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   holdingLeft: {},
   holdingName: {
@@ -523,7 +527,7 @@ const styles = StyleSheet.create({
   },
   sectorBarContainer: {
     height: 8,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: t.colors.backgroundSecondary,
     borderRadius: 4,
     marginBottom: 4,
   },
@@ -567,7 +571,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingLeft: 20,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: t.colors.backgroundSecondary,
   },
   sectorStockName: {
     fontSize: 14,
@@ -597,7 +601,7 @@ const styles = StyleSheet.create({
   dividendSummaryValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#4CAF50',
+    color: t.colors.success,
   },
   dividendByStock: {
     backgroundColor: '#fff',
@@ -609,7 +613,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   dividendStockName: {
     flex: 1,
@@ -649,10 +653,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   buyText: {
-    color: '#F04452',
+    color: t.colors.error,
   },
   sellText: {
-    color: '#1261C4',
+    color: t.colors.primaryDark,
   },
   volumeSection: {
     backgroundColor: '#fff',
@@ -665,7 +669,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   netFlowRow: {
     borderBottomWidth: 0,
@@ -689,13 +693,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: t.colors.backgroundSecondary,
   },
   topTradedRank: {
     width: 30,
     fontSize: 14,
     fontWeight: '600',
-    color: '#3182F6',
+    color: t.colors.primary,
   },
   topTradedName: {
     flex: 1,

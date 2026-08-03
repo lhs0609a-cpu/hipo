@@ -1,5 +1,7 @@
 const { Wallet, CoinTransaction, Withdrawal, User } = require('../models');
 const { sequelize } = require('../config/database');
+const { updateBalance } = require('../utils/balanceService');
+const { CASH_OUT_ENABLED, CASH_OUT_DISABLED_MESSAGE } = require('../config/featureFlags');
 
 /**
  * 코인 입금
@@ -122,6 +124,11 @@ exports.getTransactionHistory = async (req, res) => {
  * 출금 요청
  */
 exports.requestWithdrawal = async (req, res) => {
+  // 게임머니 모델: PO/코인→현금 출금 차단
+  if (!CASH_OUT_ENABLED) {
+    return res.status(403).json({ error: CASH_OUT_DISABLED_MESSAGE });
+  }
+
   const transaction = await sequelize.transaction();
 
   try {
@@ -342,18 +349,15 @@ exports.chargePO = async (req, res) => {
 
     const totalPO = amount + bonus;
 
-    // 사용자 PO 잔액 증가
-    const user = await User.findByPk(userId, { transaction });
-    await user.update({
-      poBalance: user.poBalance + totalPO
-    }, { transaction });
+    // 사용자 PO 잔액 증가 (User + Wallet 동시)
+    const { newBalance } = await updateBalance(userId, totalPO, { transaction });
 
     // 거래 내역 기록
     await CoinTransaction.create({
       userId,
       transactionType: 'DEPOSIT',
       amount: totalPO,
-      balanceAfter: user.poBalance + totalPO,
+      balanceAfter: newBalance,
       relatedId: paymentId,
       description: `PO 충전 (${paymentMethod || '결제'})`
     }, { transaction });
@@ -365,7 +369,7 @@ exports.chargePO = async (req, res) => {
       charged: amount,
       bonus,
       total: totalPO,
-      newBalance: user.poBalance + totalPO
+      newBalance
     });
   } catch (error) {
     await transaction.rollback();
@@ -438,10 +442,11 @@ exports.convertPOToCash = async (req, res) => {
     const fee = Math.floor(amount * feeRate);
     const netAmount = amount - fee;
 
-    // PO 차감
-    await user.update({
-      poBalance: user.poBalance - amount
-    }, { transaction });
+    // PO 차감 (User + Wallet 동시)
+    await updateBalance(userId, -amount, {
+      transaction,
+      walletFields: { totalPOWithdrawn: amount }
+    });
 
     // 출금 요청 생성
     await Withdrawal.create({
