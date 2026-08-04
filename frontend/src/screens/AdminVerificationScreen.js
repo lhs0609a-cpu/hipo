@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
@@ -444,7 +445,7 @@ export default function AdminVerificationScreen({ navigation }) {
           contentContainerStyle={styles.listContent}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>📋</Text>
+              <Ionicons name="clipboard-outline" style={styles.emptyIcon} />
               <Text style={styles.emptyText}>
                 {selectedStatus === 'pending' && '대기 중인 인증 요청이 없습니다'}
                 {selectedStatus === 'approved' && '승인된 인증 요청이 없습니다'}

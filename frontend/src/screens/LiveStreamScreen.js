@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -51,7 +52,7 @@ const LiveStreamScreen = ({ navigation }) => {
             <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
           ) : (
             <View style={styles.thumbnailPlaceholder}>
-              <Text style={styles.thumbnailEmoji}>🎥</Text>
+              <Ionicons name="videocam-outline" style={styles.thumbnailEmoji} />
             </View>
           )}
           <View style={styles.liveBadge}>
@@ -96,7 +97,7 @@ const LiveStreamScreen = ({ navigation }) => {
 
       {isAuthenticated && (
         <TouchableOpacity style={styles.startStreamButton}>
-          <Text style={styles.startStreamIcon}>📹</Text>
+          <Ionicons name="videocam-outline" style={styles.startStreamIcon} />
           <Text style={styles.startStreamText}>라이브 시작하기</Text>
         </TouchableOpacity>
       )}
@@ -112,7 +113,7 @@ const LiveStreamScreen = ({ navigation }) => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📺</Text>
+            <Ionicons name="tv-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>진행 중인 라이브가 없습니다</Text>
             <Text style={styles.emptySubtext}>나중에 다시 확인해주세요</Text>
           </View>

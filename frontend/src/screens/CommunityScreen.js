@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
@@ -118,7 +119,7 @@ export default function CommunityScreen({ navigation }) {
           </View>
 
           <View style={styles.lockedContent}>
-            <Text style={styles.lockIcon}>🔒</Text>
+            <Ionicons name="lock-closed-outline" style={styles.lockIcon} />
             <Text style={[styles.lockText, { color: theme.colors.textSecondary }]}>
               {item.content}
             </Text>
@@ -202,7 +203,7 @@ export default function CommunityScreen({ navigation }) {
             onPress={() => navigation.navigate('PostDetail', { postId: item.id })}
             activeOpacity={0.7}
           >
-            <Text style={styles.actionIcon}>💬</Text>
+            <Ionicons name="chatbubble-outline" style={styles.actionIcon} />
             <Text style={[styles.actionText, { color: theme.colors.textPrimary }]}>
               {item.commentsCount || 0}
             </Text>
@@ -299,7 +300,7 @@ export default function CommunityScreen({ navigation }) {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📝</Text>
+            <Ionicons name="create-outline" style={styles.emptyIcon} />
             <Text style={[styles.emptyText, { color: theme.colors.textPrimary }]}>
               아직 게시글이 없습니다
             </Text>

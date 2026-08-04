@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../contexts/ThemeContext';
 import useThemedStyles from '../../hooks/useThemedStyles';
@@ -138,7 +139,7 @@ export default function FirstBuyOnboardingScreen({ navigation }) {
           data={shareholderCard}
         />
         <View style={styles.doneBox}>
-          <Text style={styles.doneEmoji}>🎉</Text>
+          <Ionicons name="sparkles-outline" style={styles.doneEmoji} />
           <Text style={styles.title}>
             {boughtStock.displayName}의 주주가 되었어요!
           </Text>
@@ -185,7 +186,7 @@ export default function FirstBuyOnboardingScreen({ navigation }) {
                 navigation.navigate('Invite');
               }}
             >
-              <Text style={styles.optionEmoji}>🎫</Text>
+              <Ionicons name="ticket-outline" style={styles.optionEmoji} />
               <View style={styles.cardInfo}>
                 <Text style={styles.optionTitle}>내 종목에 첫 주주 초대하기</Text>
                 <Text style={styles.optionDesc}>
@@ -206,7 +207,7 @@ export default function FirstBuyOnboardingScreen({ navigation }) {
               navigation.navigate('CelebSuggestion');
             }}
           >
-            <Text style={styles.optionEmoji}>🙋</Text>
+            <Ionicons name="hand-left-outline" style={styles.optionEmoji} />
             <View style={styles.cardInfo}>
               <Text style={styles.optionTitle}>보고 싶은 사람 상장 요청하기</Text>
               <Text style={styles.optionDesc}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import useThemedStyles from '../hooks/useThemedStyles';
@@ -188,7 +189,7 @@ export default function CompetitionScreen({ navigation }) {
       <ScrollView style={styles.content}>
         {competitions.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🏆</Text>
+            <Ionicons name="trophy-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>
               {selectedTab === 'ongoing'
                 ? '진행중인 대회가 없습니다'

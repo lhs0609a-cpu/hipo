@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -160,12 +161,12 @@ const FeedScreen = ({ navigation }) => {
             style={styles.actionButton}
             onPress={() => navigation.navigate('PostDetail', { postId: item.id })}
           >
-            <Text style={styles.actionIcon}>💬</Text>
+            <Ionicons name="chatbubble-outline" style={styles.actionIcon} />
             <Text style={styles.actionText}>{item.commentCount || 0}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionButton}>
-            <Text style={styles.actionIcon}>🔗</Text>
+            <Ionicons name="link-outline" style={styles.actionIcon} />
             <Text style={styles.actionText}>공유</Text>
           </TouchableOpacity>
         </View>
@@ -201,7 +202,7 @@ const FeedScreen = ({ navigation }) => {
           <Text style={styles.headerTitle}>피드</Text>
         </View>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorIcon}>⚠️</Text>
+          <Ionicons name="warning-outline" style={styles.errorIcon} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchPosts}>
             <Text style={styles.retryButtonText}>다시 시도</Text>
@@ -253,7 +254,7 @@ const FeedScreen = ({ navigation }) => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📝</Text>
+            <Ionicons name="create-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>아직 게시물이 없습니다</Text>
             <Text style={styles.emptySubtext}>첫 번째 게시물을 작성해보세요!</Text>
           </View>

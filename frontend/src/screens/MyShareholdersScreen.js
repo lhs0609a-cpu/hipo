@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
@@ -150,7 +151,7 @@ export default function MyShareholdersScreen({ navigation }) {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>👥</Text>
+            <Ionicons name="people-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>아직 주주가 없습니다</Text>
             <Text style={styles.emptySubtext}>
               다른 사용자들이 내 주식을 구매하면 여기에 표시됩니다

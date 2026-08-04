@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
@@ -181,7 +182,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, styles.highlightMenuItem, { backgroundColor: isDark ? theme.colors.surfaceSecondary : '#FFF6E6', borderColor: isDark ? theme.colors.warning : '#FBBF4C' }]}
           onPress={() => navigation.navigate('Invite')}
         >
-          <Text style={styles.menuIcon}>🎁</Text>
+          <Ionicons name="gift-outline" style={styles.menuIcon} />
           <View style={styles.menuTextContainer}>
             <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>친구 초대</Text>
             <Text style={[styles.menuSubtext, { color: theme.colors.textSecondary }]}>친구 초대하고 1,500 PO 받기</Text>
@@ -194,7 +195,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('Attendance')}
         >
-          <Text style={styles.menuIcon}>📅</Text>
+          <Ionicons name="calendar-outline" style={styles.menuIcon} />
           <View style={styles.menuTextContainer}>
             <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>출석 체크</Text>
             <Text style={[styles.menuSubtext, { color: theme.colors.textSecondary }]}>매일 100 PO, 7일 연속 2배!</Text>
@@ -205,7 +206,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('FriendRanking')}
         >
-          <Text style={styles.menuIcon}>🏆</Text>
+          <Ionicons name="trophy-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>친구 랭킹</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -213,7 +214,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('CopyTrading')}
         >
-          <Text style={styles.menuIcon}>👑</Text>
+          <Ionicons name="ribbon-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>인기 투자자</Text>
           <View style={{ backgroundColor: '#EEF4FF', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8, marginLeft: 8 }}>
             <Text style={{ fontSize: 11, color: '#2B5FE3', fontWeight: '700' }}>NEW</Text>
@@ -230,7 +231,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('News')}
         >
-          <Text style={styles.menuIcon}>📰</Text>
+          <Ionicons name="newspaper-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>투자 뉴스</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -243,7 +244,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('StockMarket')}
         >
-          <Text style={styles.menuIcon}>📊</Text>
+          <Ionicons name="bar-chart-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>실시간 크리에이터 시장</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -254,7 +255,7 @@ export default function MenuScreen({ navigation }) {
               style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
               onPress={() => navigation.navigate('Watchlist')}
             >
-              <Text style={styles.menuIcon}>⭐</Text>
+              <Ionicons name="star-outline" style={styles.menuIcon} />
               <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>관심종목</Text>
               <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
             </TouchableOpacity>
@@ -262,7 +263,7 @@ export default function MenuScreen({ navigation }) {
               style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
               onPress={() => navigation.navigate('PortfolioAnalysis')}
             >
-              <Text style={styles.menuIcon}>📈</Text>
+              <Ionicons name="trending-up-outline" style={styles.menuIcon} />
               <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>포트폴리오 분석</Text>
               <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
             </TouchableOpacity>
@@ -270,7 +271,7 @@ export default function MenuScreen({ navigation }) {
               style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
               onPress={() => navigation.navigate('StockAlert')}
             >
-              <Text style={styles.menuIcon}>🎯</Text>
+              <Ionicons name="locate-outline" style={styles.menuIcon} />
               <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>크리에이터 알림 설정</Text>
               <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
             </TouchableOpacity>
@@ -278,7 +279,7 @@ export default function MenuScreen({ navigation }) {
               style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
               onPress={() => navigation.navigate('Strategy')}
             >
-              <Text style={styles.menuIcon}>💡</Text>
+              <Ionicons name="bulb-outline" style={styles.menuIcon} />
               <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>투자 전략</Text>
               <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
             </TouchableOpacity>
@@ -286,7 +287,7 @@ export default function MenuScreen({ navigation }) {
               style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
               onPress={() => navigation.navigate('Competition')}
             >
-              <Text style={styles.menuIcon}>🏅</Text>
+              <Ionicons name="medal-outline" style={styles.menuIcon} />
               <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>트레이딩 대회</Text>
               <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
             </TouchableOpacity>
@@ -310,7 +311,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('Portfolio')}
         >
-          <Text style={styles.menuIcon}>💼</Text>
+          <Ionicons name="briefcase-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>보유 크리에이터</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -318,7 +319,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('TransactionHistory')}
         >
-          <Text style={styles.menuIcon}>📋</Text>
+          <Ionicons name="clipboard-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>거래 내역</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -326,7 +327,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('MyInvestments')}
         >
-          <Text style={styles.menuIcon}>📊</Text>
+          <Ionicons name="bar-chart-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>내 투자 현황</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -334,17 +335,17 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('MyShareholders')}
         >
-          <Text style={styles.menuIcon}>👥</Text>
+          <Ionicons name="people-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>내 주주 목록</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}>
-          <Text style={styles.menuIcon}>⏳</Text>
+          <Ionicons name="hourglass-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>미체결 주문</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}>
-          <Text style={styles.menuIcon}>💰</Text>
+          <Ionicons name="wallet-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>배당금 내역</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -357,17 +358,17 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('Messages')}
         >
-          <Text style={styles.menuIcon}>💬</Text>
+          <Ionicons name="chatbubble-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>메시지</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}>
-          <Text style={styles.menuIcon}>📢</Text>
+          <Ionicons name="megaphone-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>알림</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}>
-          <Text style={styles.menuIcon}>⭐</Text>
+          <Ionicons name="star-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>북마크</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -379,7 +380,7 @@ export default function MenuScreen({ navigation }) {
 
         {/* 다크 모드 토글 */}
         <View style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}>
-          <Text style={styles.menuIcon}>🌙</Text>
+          <Ionicons name="moon-outline" style={styles.menuIcon} />
           <View style={styles.menuTextContainer}>
             <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>다크 모드</Text>
             <Text style={[styles.menuSubtext, { color: theme.colors.textSecondary }]}>
@@ -439,7 +440,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('SecuritySettings')}
         >
-          <Text style={styles.menuIcon}>🔐</Text>
+          <Ionicons name="lock-closed-outline" style={styles.menuIcon} />
           <View style={styles.menuTextContainer}>
             <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>보안 설정</Text>
             <Text style={[styles.menuSubtext, { color: theme.colors.textSecondary }]}>2FA, 거래 PIN, 일일 한도</Text>
@@ -450,7 +451,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('NotificationSettings')}
         >
-          <Text style={styles.menuIcon}>🔔</Text>
+          <Ionicons name="notifications-outline" style={styles.menuIcon} />
           <View style={styles.menuTextContainer}>
             <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>알림 설정</Text>
             <Text style={[styles.menuSubtext, { color: theme.colors.textSecondary }]}>거래, 가격, 소셜 알림 관리</Text>
@@ -461,7 +462,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('PrivacySettings')}
         >
-          <Text style={styles.menuIcon}>🔒</Text>
+          <Ionicons name="lock-closed-outline" style={styles.menuIcon} />
           <View style={styles.menuTextContainer}>
             <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>개인정보 설정</Text>
             <Text style={[styles.menuSubtext, { color: theme.colors.textSecondary }]}>프로필 공개, 데이터 관리</Text>
@@ -472,7 +473,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('Terms')}
         >
-          <Text style={styles.menuIcon}>📋</Text>
+          <Ionicons name="clipboard-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>이용약관</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -480,7 +481,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('PrivacyPolicy')}
         >
-          <Text style={styles.menuIcon}>📄</Text>
+          <Ionicons name="document-text-outline" style={styles.menuIcon} />
           <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>개인정보 처리방침</Text>
           <Text style={[styles.chevron, { color: theme.colors.textTertiary }]}>›</Text>
         </TouchableOpacity>
@@ -488,7 +489,7 @@ export default function MenuScreen({ navigation }) {
           style={[styles.menuItem, { backgroundColor: theme.colors.surface }]}
           onPress={() => navigation.navigate('About')}
         >
-          <Text style={styles.menuIcon}>❓</Text>
+          <Ionicons name="help-circle-outline" style={styles.menuIcon} />
           <View style={styles.menuTextContainer}>
             <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>고객 지원 & 앱 정보</Text>
             <Text style={[styles.menuSubtext, { color: theme.colors.textSecondary }]}>FAQ, 문의, 버전 정보</Text>
@@ -505,7 +506,7 @@ export default function MenuScreen({ navigation }) {
             style={[styles.menuItem, styles.creatorMenuItem, { backgroundColor: isDark ? 'rgba(0, 179, 104, 0.15)' : '#E7F8F0', borderColor: isDark ? 'rgba(129, 199, 132, 0.5)' : '#5FD3A0' }]}
             onPress={() => navigation.navigate('IPOManagement')}
           >
-            <Text style={styles.menuIcon}>👑</Text>
+            <Ionicons name="ribbon-outline" style={styles.menuIcon} />
             <View style={styles.menuTextContainer}>
               <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>IPO 관리</Text>
               <Text style={[styles.menuSubtext, { color: theme.colors.textSecondary }]}>티어, 유상증자, 자사주 관리</Text>
@@ -542,7 +543,7 @@ export default function MenuScreen({ navigation }) {
             style={[styles.adminMenuItem, { backgroundColor: isDark ? 'rgba(255, 145, 0, 0.15)' : 'rgba(255, 145, 0, 0.1)', borderColor: isDark ? 'rgba(255, 145, 0, 0.5)' : 'rgba(255, 145, 0, 0.3)' }]}
             onPress={() => navigation.navigate('AdminDashboard')}
           >
-            <Text style={styles.menuIcon}>📊</Text>
+            <Ionicons name="bar-chart-outline" style={styles.menuIcon} />
             <View style={styles.menuTextContainer}>
               <Text style={[styles.menuText, { color: theme.colors.textPrimary }]}>관리자 대시보드</Text>
               <Text style={[styles.menuSubtext, { color: theme.colors.textSecondary }]}>통계, IPO 심사, 이상 탐지</Text>

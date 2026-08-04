@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
@@ -171,7 +172,7 @@ const PaymentHistoryScreen = () => {
 
   const renderEmptyList = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>📭</Text>
+      <Ionicons name="file-tray-outline" style={styles.emptyIcon} />
       <Text style={styles.emptyText}>
         {tab === 'payments' ? '결제 내역이 없습니다' : '거래 내역이 없습니다'}
       </Text>

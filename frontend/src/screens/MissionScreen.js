@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -139,7 +140,7 @@ const MissionScreen = ({ navigation }) => {
           <Text style={styles.headerTitle}>데일리 미션</Text>
         </View>
         <View style={styles.loginRequiredContainer}>
-          <Text style={styles.loginRequiredIcon}>🎯</Text>
+          <Ionicons name="locate-outline" style={styles.loginRequiredIcon} />
           <Text style={styles.loginRequiredTitle}>로그인이 필요합니다</Text>
           <Text style={styles.loginRequiredText}>
             미션을 확인하려면{'\n'}로그인해주세요.
@@ -186,7 +187,7 @@ const MissionScreen = ({ navigation }) => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🎯</Text>
+            <Ionicons name="locate-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>오늘의 미션이 없습니다</Text>
           </View>
         }

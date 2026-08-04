@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
@@ -126,7 +127,7 @@ export default function TierInfoScreen({ navigation, route }) {
     if (!myTierInfo) {
       return (
         <View style={styles.noTierCard}>
-          <Text style={styles.noTierIcon}>📊</Text>
+          <Ionicons name="bar-chart-outline" style={styles.noTierIcon} />
           <Text style={styles.noTierTitle}>상장 후 확인 가능</Text>
           <Text style={styles.noTierDesc}>상장하면 티어 정보를 확인할 수 있습니다</Text>
           <TouchableOpacity

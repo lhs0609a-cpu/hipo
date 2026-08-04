@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -49,7 +50,7 @@ const NFTScreen = ({ navigation }) => {
           <Image source={{ uri: item.image }} style={styles.nftImage} />
         ) : (
           <View style={styles.nftImagePlaceholder}>
-            <Text style={styles.nftEmoji}>🎨</Text>
+            <Ionicons name="color-palette-outline" style={styles.nftEmoji} />
           </View>
         )}
         {item.rarity && (
@@ -121,7 +122,7 @@ const NFTScreen = ({ navigation }) => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🖼️</Text>
+            <Ionicons name="image-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>
               {activeTab === 'my' ? '보유한 NFT가 없습니다' : 'NFT가 없습니다'}
             </Text>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import useThemedStyles from '../hooks/useThemedStyles';
@@ -134,7 +135,7 @@ export default function CreatePostScreen({ navigation }) {
             <Image source={{ uri: image.uri }} style={styles.selectedImage} />
           ) : (
             <View style={styles.imagePlaceholder}>
-              <Text style={styles.imagePlaceholderIcon}>📷</Text>
+              <Ionicons name="camera-outline" style={styles.imagePlaceholderIcon} />
               <Text style={styles.imagePlaceholderText}>사진 추가</Text>
             </View>
           )}

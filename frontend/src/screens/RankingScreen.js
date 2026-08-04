@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -148,7 +149,7 @@ const RankingScreen = ({ navigation }) => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🏆</Text>
+            <Ionicons name="trophy-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>랭킹 데이터가 없습니다</Text>
           </View>
         }

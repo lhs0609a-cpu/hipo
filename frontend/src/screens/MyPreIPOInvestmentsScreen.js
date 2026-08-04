@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
@@ -187,7 +188,7 @@ export default function MyPreIPOInvestmentsScreen({ navigation }) {
 
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
-      <Text style={styles.emptyIcon}>💎</Text>
+      <Ionicons name="diamond-outline" style={styles.emptyIcon} />
       <Text style={styles.emptyTitle}>Pre-IPO 투자 내역이 없습니다</Text>
       <Text style={styles.emptySubtitle}>상장 전 투자 기회를 확인해보세요</Text>
       <TouchableOpacity

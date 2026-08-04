@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
@@ -290,14 +291,14 @@ export default function NewsScreen({ navigation }) {
             <Text style={styles.actionText}>{item.likesCount || 0}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} disabled={isLocked}>
-            <Text style={styles.actionIcon}>💬</Text>
+            <Ionicons name="chatbubble-outline" style={styles.actionIcon} />
             <Text style={styles.actionText}>{item.commentsCount || 0}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => navigation.navigate('Profile', { userId: author.id })}
           >
-            <Text style={styles.actionIcon}>👤</Text>
+            <Ionicons name="person-outline" style={styles.actionIcon} />
             <Text style={styles.actionText}>프로필</Text>
           </TouchableOpacity>
         </View>
@@ -377,7 +378,7 @@ export default function NewsScreen({ navigation }) {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📰</Text>
+            <Ionicons name="newspaper-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>
               {selectedTab === 'following' && '팔로우한 사람이 없습니다'}
               {selectedTab === 'popular' && '인기 크리에이터 소식이 없습니다'}

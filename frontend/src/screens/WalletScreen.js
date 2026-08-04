@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -168,7 +169,7 @@ const WalletScreen = ({ navigation }) => {
           <Text style={styles.headerTitle}>지갑</Text>
         </View>
         <View style={styles.loginRequiredContainer}>
-          <Text style={styles.loginRequiredIcon}>💰</Text>
+          <Ionicons name="wallet-outline" style={styles.loginRequiredIcon} />
           <Text style={styles.loginRequiredTitle}>로그인이 필요합니다</Text>
           <Text style={styles.loginRequiredText}>
             지갑을 확인하려면{'\n'}로그인해주세요.
@@ -191,7 +192,7 @@ const WalletScreen = ({ navigation }) => {
           <Text style={styles.headerTitle}>지갑</Text>
         </View>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorIcon}>⚠️</Text>
+          <Ionicons name="warning-outline" style={styles.errorIcon} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchWalletData}>
             <Text style={styles.retryButtonText}>다시 시도</Text>
@@ -232,7 +233,7 @@ const WalletScreen = ({ navigation }) => {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>📋</Text>
+              <Ionicons name="clipboard-outline" style={styles.emptyIcon} />
               <Text style={styles.emptyText}>거래 내역이 없습니다</Text>
             </View>
           }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
@@ -184,7 +185,7 @@ export default function VerificationRequestScreen({ navigation }) {
     return (
       <ScrollView style={styles.container}>
         <View style={styles.statusCard}>
-          <Text style={styles.statusIcon}>⏳</Text>
+          <Ionicons name="hourglass-outline" style={styles.statusIcon} />
           <Text style={styles.statusTitle}>인증 요청 대기 중</Text>
           <Text style={styles.statusDescription}>
             검토가 진행 중입니다. 3-5일 이내에 결과를 알려드립니다.
@@ -231,7 +232,7 @@ export default function VerificationRequestScreen({ navigation }) {
     return (
       <ScrollView style={styles.container}>
         <View style={styles.statusCard}>
-          <Text style={styles.statusIcon}>❌</Text>
+          <Ionicons name="close-circle-outline" style={styles.statusIcon} />
           <Text style={styles.statusTitle}>인증 요청 거부됨</Text>
           <Text style={styles.statusDescription}>
             귀하의 인증 요청이 거부되었습니다.

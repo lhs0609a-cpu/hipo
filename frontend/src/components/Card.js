@@ -1,4 +1,5 @@
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import theme from '../styles/theme';
 
@@ -400,7 +401,7 @@ export const PostCard = ({
           style={({ pressed }) => [styles.postActionButton, pressed && styles.postActionPressed]}
           onPress={onComment}
         >
-          <Text style={styles.postActionIcon}>💬</Text>
+          <Ionicons name="chatbubble-outline" style={styles.postActionIcon} />
           <Text style={styles.postActionText}>{comments || 0}</Text>
         </Pressable>
 
@@ -409,7 +410,7 @@ export const PostCard = ({
             style={({ pressed }) => [styles.postActionButton, pressed && styles.postActionPressed]}
             onPress={onShare}
           >
-            <Text style={styles.postActionIcon}>↗️</Text>
+            <Ionicons name="arrow-up-outline" style={styles.postActionIcon} />
             <Text style={styles.postActionText}>{shares || '공유'}</Text>
           </Pressable>
         )}

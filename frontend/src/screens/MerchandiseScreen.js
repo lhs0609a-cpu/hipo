@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -46,7 +47,7 @@ const MerchandiseScreen = ({ navigation }) => {
           <Image source={{ uri: item.image }} style={styles.productImage} />
         ) : (
           <View style={styles.productImagePlaceholder}>
-            <Text style={styles.productEmoji}>🛍️</Text>
+            <Ionicons name="bag-handle-outline" style={styles.productEmoji} />
           </View>
         )}
         {item.discount > 0 && (
@@ -76,7 +77,7 @@ const MerchandiseScreen = ({ navigation }) => {
         </View>
         {item.reviewCount > 0 && (
           <View style={styles.ratingContainer}>
-            <Text style={styles.ratingStar}>⭐</Text>
+            <Ionicons name="star-outline" style={styles.ratingStar} />
             <Text style={styles.ratingText}>
               {item.rating?.toFixed(1)} ({item.reviewCount})
             </Text>
@@ -112,7 +113,7 @@ const MerchandiseScreen = ({ navigation }) => {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🛒</Text>
+            <Ionicons name="cart-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>등록된 상품이 없습니다</Text>
           </View>
         }

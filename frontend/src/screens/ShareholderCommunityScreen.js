@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
@@ -366,7 +367,7 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
         )}
         {item.isPinned && (
           <View style={styles.pinnedBadge}>
-            <Text style={styles.pinnedText}>📌</Text>
+            <Ionicons name="bookmark-outline" style={styles.pinnedText} />
           </View>
         )}
       </View>
@@ -376,7 +377,7 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
   const renderNotice = ({ item }) => (
     <TouchableOpacity style={styles.noticeCard}>
       <View style={styles.noticeHeader}>
-        {item.isPinned && <Text style={styles.pinnedIcon}>📌</Text>}
+        {item.isPinned && <Ionicons name="bookmark-outline" style={styles.pinnedIcon} />}
         <Text style={styles.noticeTitle}>{item.title}</Text>
       </View>
       <Text style={styles.noticeContent} numberOfLines={2}>{item.content}</Text>
@@ -448,7 +449,7 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>🏠</Text>
+          <Ionicons name="home-outline" style={styles.emptyIcon} />
           <Text style={styles.emptyTitle}>커뮤니티 없음</Text>
           <Text style={styles.emptyText}>아직 이 크리에이터의 주주 커뮤니티가 없습니다</Text>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -463,7 +464,7 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
     return (
       <SafeAreaView style={styles.container}>
         <LinearGradient colors={['#0E1219', '#182F68']} style={styles.accessDenied}>
-          <Text style={styles.accessDeniedIcon}>🔒</Text>
+          <Ionicons name="lock-closed-outline" style={styles.accessDeniedIcon} />
           <Text style={styles.accessDeniedTitle}>주주 전용 커뮤니티</Text>
           <Text style={styles.accessDeniedText}>
             이 커뮤니티에 입장하려면 최소 {community.minSharesRequired}주를 보유해야 합니다
@@ -582,7 +583,7 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
               }
               ListEmptyComponent={
                 <View style={styles.emptyMessages}>
-                  <Text style={styles.emptyMessagesIcon}>💬</Text>
+                  <Ionicons name="chatbubble-outline" style={styles.emptyMessagesIcon} />
                   <Text style={styles.emptyMessagesText}>
                     {activeTab === 'vip' ? 'VIP 채팅방에 첫 메시지를 남겨보세요!' : '첫 메시지를 남겨보세요!'}
                   </Text>
@@ -634,7 +635,7 @@ export default function ShareholderCommunityScreen({ route, navigation }) {
             }
             ListEmptyComponent={
               <View style={styles.emptyNotices}>
-                <Text style={styles.emptyNoticesIcon}>📢</Text>
+                <Ionicons name="megaphone-outline" style={styles.emptyNoticesIcon} />
                 <Text style={styles.emptyNoticesText}>아직 공지사항이 없습니다</Text>
               </View>
             }

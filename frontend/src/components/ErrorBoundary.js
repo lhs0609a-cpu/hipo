@@ -1,4 +1,5 @@
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 
 /**
@@ -67,7 +68,7 @@ class ErrorBoundary extends React.Component {
       return (
         <View style={styles.container}>
           <View style={styles.content}>
-            <Text style={styles.emoji}>😢</Text>
+            <Ionicons name="sad-outline" style={styles.emoji} />
             <Text style={styles.title}>앗, 문제가 발생했어요</Text>
             <Text style={styles.message}>
               {this.props.customMessage ||

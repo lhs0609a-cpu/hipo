@@ -73,7 +73,7 @@ const EventScreen = ({ navigation }) => {
   const renderEventItem = ({ item }) => (
     <TouchableOpacity style={styles.eventCard}>
       <View style={styles.eventImagePlaceholder}>
-        <Text style={styles.eventEmoji}>🎉</Text>
+        <Ionicons name="sparkles-outline" style={styles.eventEmoji} />
       </View>
       <View style={styles.eventContent}>
         <View style={styles.eventHeader}>
@@ -166,7 +166,7 @@ const EventScreen = ({ navigation }) => {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>🎈</Text>
+              <Ionicons name="balloon-outline" style={styles.emptyIcon} />
               <Text style={styles.emptyText}>진행 중인 이벤트가 없습니다</Text>
             </View>
           }
@@ -182,7 +182,7 @@ const EventScreen = ({ navigation }) => {
           }
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>📰</Text>
+              <Ionicons name="newspaper-outline" style={styles.emptyIcon} />
               <Text style={styles.emptyText}>뉴스가 없습니다</Text>
             </View>
           }

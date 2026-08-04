@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
   View,
@@ -179,7 +180,7 @@ const CommunityDetailScreen = ({ route, navigation }) => {
     return (
       <View style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorIcon}>⚠️</Text>
+          <Ionicons name="warning-outline" style={styles.errorIcon} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchCommunityData}>
             <Text style={styles.retryButtonText}>다시 시도</Text>
@@ -224,7 +225,7 @@ const CommunityDetailScreen = ({ route, navigation }) => {
         contentContainerStyle={styles.messagesList}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>💬</Text>
+            <Ionicons name="chatbubble-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>아직 메시지가 없습니다</Text>
             <Text style={styles.emptySubtext}>첫 번째 메시지를 보내보세요!</Text>
           </View>

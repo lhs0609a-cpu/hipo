@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import useThemedStyles from '../hooks/useThemedStyles';
@@ -210,7 +211,7 @@ export default function StockAlertScreen({ navigation }) {
         {selectedTab === 'alerts' ? (
           alerts.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>🔔</Text>
+              <Ionicons name="notifications-outline" style={styles.emptyIcon} />
               <Text style={styles.emptyText}>설정된 알림이 없습니다</Text>
               <TouchableOpacity style={styles.emptyButton} onPress={() => setShowCreateModal(true)}>
                 <Text style={styles.emptyButtonText}>알림 추가하기</Text>
@@ -233,7 +234,7 @@ export default function StockAlertScreen({ navigation }) {
                   style={styles.deleteButton}
                   onPress={() => deleteAlert(alert.id)}
                 >
-                  <Text style={styles.deleteIcon}>🗑️</Text>
+                  <Ionicons name="trash-outline" style={styles.deleteIcon} />
                 </TouchableOpacity>
               </View>
             ))
@@ -241,7 +242,7 @@ export default function StockAlertScreen({ navigation }) {
         ) : (
           watchlist.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Text style={styles.emptyIcon}>⭐</Text>
+              <Ionicons name="star-outline" style={styles.emptyIcon} />
               <Text style={styles.emptyText}>워치리스트가 비어있습니다</Text>
             </View>
           ) : (
@@ -262,7 +263,7 @@ export default function StockAlertScreen({ navigation }) {
                   style={styles.deleteButton}
                   onPress={() => removeFromWatchlist(item.stockId)}
                 >
-                  <Text style={styles.deleteIcon}>🗑️</Text>
+                  <Ionicons name="trash-outline" style={styles.deleteIcon} />
                 </TouchableOpacity>
               </TouchableOpacity>
             ))

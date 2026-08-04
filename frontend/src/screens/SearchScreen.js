@@ -170,7 +170,7 @@ const SearchScreen = ({ navigation }) => {
       onPress={() => navigation.navigate('PostDetail', { postId: item.id })}
     >
       <View style={[styles.userAvatar, { backgroundColor: '#F59B00' }]}>
-        <Text style={styles.avatarText}>📝</Text>
+        <Ionicons name="create-outline" style={styles.avatarText} />
       </View>
       <View style={styles.resultInfo}>
         <Text style={styles.resultTitle} numberOfLines={1}>{item.content}</Text>

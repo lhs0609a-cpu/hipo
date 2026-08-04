@@ -1,4 +1,5 @@
 import React from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import Button from './Button';
 import theme from '../styles/theme';
@@ -124,7 +125,7 @@ export const ErrorState = ({
   return (
     <View style={[styles.container, style]}>
       <View style={styles.content}>
-        <Text style={styles.emoji}>😢</Text>
+        <Ionicons name="sad-outline" style={styles.emoji} />
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.description}>{description}</Text>
 
@@ -155,7 +156,7 @@ export const LoadingState = ({
   return (
     <View style={[styles.container, style]}>
       <View style={styles.content}>
-        <Text style={styles.emoji}>⏳</Text>
+        <Ionicons name="hourglass-outline" style={styles.emoji} />
         <Text style={styles.title}>{message}</Text>
       </View>
     </View>
@@ -175,7 +176,7 @@ export const MaintenanceState = ({
   return (
     <View style={[styles.container, style]}>
       <View style={styles.content}>
-        <Text style={styles.emoji}>🔧</Text>
+        <Ionicons name="construct-outline" style={styles.emoji} />
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.description}>{description}</Text>
       </View>

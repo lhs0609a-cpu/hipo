@@ -465,7 +465,7 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.sectionHeader}>
           <View style={styles.sectionHeaderWithIcon}>
             <View style={[styles.sectionIconBg, { backgroundColor: '#FFF6E6' }]}>
-              <Text style={styles.sectionIconEmoji}>💰</Text>
+              <Ionicons name="wallet-outline" style={styles.sectionIconEmoji} />
             </View>
             <View>
               <Text style={styles.sectionTitle}>배당률 TOP</Text>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import useThemedStyles from '../hooks/useThemedStyles';
@@ -206,7 +207,7 @@ export default function StrategyScreen({ navigation }) {
       <ScrollView style={styles.content}>
         {strategies.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📊</Text>
+            <Ionicons name="bar-chart-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>
               {selectedTab === 'my'
                 ? '작성한 전략이 없습니다'

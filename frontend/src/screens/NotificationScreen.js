@@ -275,7 +275,7 @@ const NotificationScreen = ({ navigation }) => {
           <Text style={styles.headerTitle}>알림</Text>
         </View>
         <View style={styles.loginRequiredContainer}>
-          <Text style={styles.loginRequiredIcon}>🔔</Text>
+          <Ionicons name="notifications-outline" style={styles.loginRequiredIcon} />
           <Text style={styles.loginRequiredTitle}>로그인이 필요합니다</Text>
           <Text style={styles.loginRequiredText}>
             알림을 확인하려면{'\n'}로그인해주세요.
@@ -298,7 +298,7 @@ const NotificationScreen = ({ navigation }) => {
           <Text style={styles.headerTitle}>알림</Text>
         </View>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorIcon}>⚠️</Text>
+          <Ionicons name="warning-outline" style={styles.errorIcon} />
           <Text style={styles.errorText}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={fetchNotifications}>
             <Text style={styles.retryButtonText}>다시 시도</Text>

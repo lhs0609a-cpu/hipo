@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
@@ -159,7 +160,7 @@ export default function MyInvestmentsScreen({ navigation }) {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📊</Text>
+            <Ionicons name="bar-chart-outline" style={styles.emptyIcon} />
             <Text style={styles.emptyText}>보유 중인 주식이 없습니다</Text>
             <Text style={styles.emptySubtext}>
               홈 화면에서 마음에 드는 주식을 구매해보세요
