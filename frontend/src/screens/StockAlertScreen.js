@@ -382,6 +382,7 @@ const makeStyles = (t) => StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   header: {
@@ -402,10 +403,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -417,6 +420,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   addIcon: {
     fontSize: 28,
+    fontFamily: t.fonts.semibold,
     color: t.colors.primary,
     fontWeight: '600',
   },
@@ -438,6 +442,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -459,24 +464,28 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   alertStock: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 4,
   },
   alertType: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 4,
   },
   alertTarget: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.primary,
     marginBottom: 4,
   },
   alertStatus: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   watchlistItem: {
@@ -491,19 +500,22 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   watchlistStock: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 4,
   },
   watchlistPrice: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     color: t.colors.primary,
     fontWeight: '600',
     marginBottom: 4,
   },
   watchlistNote: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   deleteButton: {
@@ -513,6 +525,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   deleteIcon: {
     fontSize: 20,
+    fontFamily: t.fonts.regular,
   },
   emptyContainer: {
     padding: 60,
@@ -520,10 +533,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 60,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 24,
   },
@@ -535,6 +550,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyButtonText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.surface,
   },
@@ -558,12 +574,14 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: t.colors.border,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
   modalClose: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   modalBody: {
@@ -571,6 +589,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   label: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 8,
@@ -583,6 +602,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   searchResults: {
@@ -600,6 +620,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   searchResultText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   typeButtons: {
@@ -619,7 +640,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.primary,
   },
   typeButtonText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -634,7 +656,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginTop: 24,
   },
   createButtonText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.surface,
   },

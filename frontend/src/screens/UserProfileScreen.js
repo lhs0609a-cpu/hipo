@@ -266,7 +266,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: t.colors.border,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.white,
   },
@@ -285,7 +286,8 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 12,
     textAlign: 'center',
@@ -313,18 +315,21 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.primary,
   },
   displayName: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.white,
     marginTop: 12,
   },
   username: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 4,
   },
   bio: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     marginTop: 12,
@@ -341,11 +346,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statNumber: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.white,
   },
   statLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 4,
   },
@@ -392,7 +399,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 16,
   },
   stockTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.white,
   },
@@ -403,6 +411,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tierText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.background,
   },
@@ -416,16 +425,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stockLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   stockValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.white,
     marginTop: 4,
   },
   stockChange: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginTop: 4,
   },
@@ -438,13 +450,15 @@ const makeStyles = (t) => StyleSheet.create({
   buyButtonText: {
     color: t.colors.white,
     fontWeight: '600',
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
   },
   badgesSection: {
     padding: 16,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.white,
     marginBottom: 12,
@@ -459,9 +473,11 @@ const makeStyles = (t) => StyleSheet.create({
   },
   badgeIcon: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
   },
   badgeName: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 6,
   },

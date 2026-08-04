@@ -189,6 +189,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.text,
   },
@@ -205,6 +206,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerSubtitle: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   listContent: {
@@ -235,8 +237,9 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 12,
   },
   avatarText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   conversationContent: {
@@ -248,7 +251,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 6,
   },
   username: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -257,6 +261,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   time: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   conversationBottom: {
@@ -266,6 +271,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   lastMessage: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     flex: 1,
   },
@@ -284,8 +290,9 @@ const makeStyles = (t) => StyleSheet.create({
     marginLeft: 8,
   },
   unreadText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 11,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   emptyContainer: {
@@ -294,13 +301,15 @@ const makeStyles = (t) => StyleSheet.create({
     paddingVertical: 80,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
 });

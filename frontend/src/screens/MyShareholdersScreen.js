@@ -190,7 +190,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.border,
   },
   summaryTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 16,
@@ -209,12 +210,14 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.border,
   },
   summaryLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 8,
   },
   summaryValue: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -244,6 +247,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   rankText: {
     fontSize: 20,
+    fontFamily: t.fonts.regular,
   },
   avatar: {
     width: 48,
@@ -256,13 +260,15 @@ const makeStyles = (t) => StyleSheet.create({
   avatarText: {
     color: t.colors.surface,
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   holderInfo: {
     gap: 4,
   },
   holderName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -274,11 +280,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   trustText: {
     color: t.colors.surface,
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   chevron: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginLeft: 8,
   },
@@ -292,15 +300,18 @@ const makeStyles = (t) => StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   detailValue: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
   percentageValue: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -312,11 +323,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   totalLabel: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
   totalValue: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -328,16 +341,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 40,

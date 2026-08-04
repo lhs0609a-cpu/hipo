@@ -132,7 +132,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
     marginBottom: 12,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -147,12 +147,14 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: t.colors.border,
   },
   stockName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.text,
   },
   date: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 4,
   },
@@ -162,8 +164,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 6,
   },
   typeText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   transactionDetails: {
@@ -175,15 +178,18 @@ const makeStyles = (t) => StyleSheet.create({
   },
   label: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   value: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
   totalAmount: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   emptyContainer: {
@@ -191,7 +197,8 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
 });

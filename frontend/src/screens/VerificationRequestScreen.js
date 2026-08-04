@@ -472,16 +472,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 12,
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 8,
   },
   headerDescription: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
@@ -490,7 +493,8 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginTop: 24,
@@ -518,11 +522,13 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.primary + '10',
   },
   typeIcon: {
-    fontSize: 32,
+    fontSize: 28,
+    fontFamily: t.fonts.regular,
     marginBottom: 8,
   },
   typeLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
     textAlign: 'center',
@@ -535,6 +541,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 8,
@@ -546,6 +553,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   textArea: {
@@ -554,6 +562,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   inputHint: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 6,
   },
@@ -568,12 +577,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   noticeTitle: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 12,
   },
   noticeText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     lineHeight: 20,
   },
@@ -590,6 +601,7 @@ const makeStyles = (t) => StyleSheet.create({
   submitButtonText: {
     color: t.colors.surface,
     fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   statusCard: {
@@ -601,16 +613,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statusIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   statusTitle: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 8,
   },
   statusDescription: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
@@ -624,12 +639,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 12,
   },
   infoLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 6,
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -643,13 +660,15 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.error + '30',
   },
   rejectionLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.error,
     marginBottom: 8,
   },
   rejectionText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
     lineHeight: 20,
   },
@@ -663,7 +682,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   cancelButtonText: {
     color: t.colors.error,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     textAlign: 'center',
   },
@@ -676,6 +696,7 @@ const makeStyles = (t) => StyleSheet.create({
   primaryButtonText: {
     color: t.colors.surface,
     fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     textAlign: 'center',
   },

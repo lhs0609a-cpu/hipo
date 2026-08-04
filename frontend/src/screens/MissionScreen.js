@@ -213,11 +213,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   headerSubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.9)',
     marginTop: 8,
   },
@@ -232,7 +234,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerProgressFill: {
     height: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 4,
   },
   listContainer: {
@@ -241,11 +243,11 @@ const makeStyles = (t) => StyleSheet.create({
   missionCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     padding: 16,
     borderRadius: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -265,19 +267,22 @@ const makeStyles = (t) => StyleSheet.create({
   },
   iconText: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
   },
   missionContent: {
     flex: 1,
   },
   missionTitle: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#333',
+    color: t.colors.textPrimary,
     marginBottom: 4,
   },
   missionDescription: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   progressContainer: {
@@ -288,7 +293,7 @@ const makeStyles = (t) => StyleSheet.create({
   progressBar: {
     flex: 1,
     height: 6,
-    backgroundColor: '#eee',
+    backgroundColor: t.colors.borderLight,
     borderRadius: 3,
     marginRight: 8,
     overflow: 'hidden',
@@ -300,14 +305,16 @@ const makeStyles = (t) => StyleSheet.create({
   },
   progressText: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     minWidth: 40,
   },
   rewardRow: {
     flexDirection: 'row',
   },
   rewardText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     color: t.colors.warning,
     fontWeight: '600',
   },
@@ -325,12 +332,13 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.success,
   },
   claimButtonText: {
-    color: '#fff',
-    fontSize: 13,
+    color: t.colors.surface,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   claimButtonTextDisabled: {
-    color: '#999',
+    color: t.colors.textTertiary,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -338,11 +346,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   loginRequiredContainer: {
     flex: 1,
@@ -352,17 +362,20 @@ const makeStyles = (t) => StyleSheet.create({
   },
   loginRequiredIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 20,
   },
   loginRequiredTitle: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#333',
+    color: t.colors.textPrimary,
     marginBottom: 12,
   },
   loginRequiredText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 30,
@@ -374,8 +387,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 10,
   },
   loginButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 });

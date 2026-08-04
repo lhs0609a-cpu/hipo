@@ -584,7 +584,8 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
   },
   header: {
     paddingHorizontal: 20,
@@ -593,6 +594,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   profileCard: {
@@ -613,6 +615,7 @@ const makeStyles = (t) => StyleSheet.create({
   avatarText: {
     color: t.colors.surface,
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   profileInfo: {
@@ -625,7 +628,8 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 8,
   },
   username: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   verifiedBadge: {
@@ -635,11 +639,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   verifiedText: {
     color: t.colors.surface,
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   email: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginBottom: 8,
   },
   trustBadge: {
@@ -651,10 +657,12 @@ const makeStyles = (t) => StyleSheet.create({
   trustText: {
     color: t.colors.surface,
     fontSize: 11,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   chevron: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     marginLeft: 8,
   },
   section: {
@@ -663,6 +671,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 12,
     textTransform: 'uppercase',
@@ -684,15 +693,17 @@ const makeStyles = (t) => StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   walletCard: {
     padding: 20,
     borderRadius: 16,
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
@@ -706,12 +717,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   walletLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     color: t.colors.surface,
     opacity: 0.9,
     fontWeight: '600',
   },
   walletBalance: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.surface,
   },
@@ -733,11 +746,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   chargeButtonText: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   secondaryButtonText: {
     color: t.colors.surface,
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   menuItem: {
@@ -749,6 +764,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   menuIcon: {
     fontSize: 20,
+    fontFamily: t.fonts.regular,
     marginRight: 12,
     width: 24,
     textAlign: 'center',
@@ -756,6 +772,7 @@ const makeStyles = (t) => StyleSheet.create({
   menuText: {
     flex: 1,
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   menuTextContainer: {
@@ -763,6 +780,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   menuSubtext: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
   verificationMenuItem: {
@@ -792,7 +810,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   newBadgeText: {
     color: t.colors.surface,
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   creatorMenuItem: {
@@ -812,6 +831,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   themeOptionText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   logoutButton: {
@@ -824,7 +844,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   logoutText: {
     color: t.colors.surface,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 });

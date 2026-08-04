@@ -10,12 +10,21 @@ import { StockProvider } from './src/contexts/StockContext';
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 import pushNotificationService from './src/services/pushNotificationService';
 import AppFrame from './src/components/ui/AppFrame';
+import useAppFonts from './src/hooks/useAppFonts';
 import { startReferralCapture } from './src/services/deepLinkService';
 import pendingReferral from './src/services/pendingReferral';
 
 function AppContent() {
   const { isDark } = useTheme();
   const { isAuthenticated } = useAuth();
+
+  /**
+   * 서체 로딩.
+   *
+   * 폰트가 앱을 막지 않는다. 파일이 없으면 기다리지 않고 바로 진행하며,
+   * 로딩에 실패해도 시스템 폰트로 폴백해 화면은 정상적으로 뜬다.
+   */
+  const { ready: fontsReady } = useAppFonts();
 
   /**
    * 초대 링크 추적.
@@ -44,6 +53,9 @@ function AppContent() {
     const cleanup = pushNotificationService.setupNotificationHandlers();
     return cleanup;
   }, [isAuthenticated]);
+
+  // 폰트가 준비되기 전 한 프레임 동안 시스템 폰트로 그렸다가 바뀌는 깜빡임을 막는다
+  if (!fontsReady) return null;
 
   return (
     <>

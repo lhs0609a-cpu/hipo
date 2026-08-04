@@ -443,25 +443,27 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: t.colors.borderLight,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   content: {
     flex: 1,
   },
   section: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     marginTop: 12,
     paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     paddingVertical: 12,
   },
   settingItem: {
@@ -481,13 +483,15 @@ const makeStyles = (t) => StyleSheet.create({
     marginLeft: 12,
   },
   settingTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
     marginBottom: 2,
   },
   settingDesc: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   verifiedText: {
     color: t.colors.success,
@@ -499,8 +503,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 4,
   },
   activeBadgeText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   modalOverlay: {
@@ -509,29 +514,32 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
   },
   modalTitle: {
     fontSize: 20,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 8,
   },
   modalDesc: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
   },
   pinInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: t.colors.border,
     borderRadius: 8,
     padding: 16,
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     textAlign: 'center',
     marginBottom: 12,
   },
@@ -543,7 +551,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   secretText: {
     fontSize: 12,
-    color: '#666',
+    color: t.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 16,
     fontFamily: 'monospace',
@@ -561,7 +569,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   limitOptionText: {
     fontSize: 14,
-    color: '#333',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textPrimary,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -575,8 +584,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   confirmButton: {
     flex: 1,
@@ -586,8 +596,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   confirmButtonText: {
-    fontSize: 16,
-    color: '#fff',
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
 });

@@ -334,7 +334,8 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   headerRight: {
@@ -356,17 +357,20 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 16,
   },
   appLogoText: {
-    fontSize: 36,
+    fontSize: 34,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: t.colors.surface,
   },
   appName: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 4,
   },
   appSlogan: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   versionBadge: {
@@ -375,7 +379,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 20,
   },
   versionText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   section: {
@@ -383,7 +388,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 12,
     textTransform: 'uppercase',
@@ -409,10 +415,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   menuLabel: {
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   menuDescription: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
   newBadge: {
@@ -422,9 +430,10 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 8,
   },
   newBadgeText: {
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: t.colors.surface,
   },
   businessInfo: {
     marginHorizontal: 16,
@@ -434,6 +443,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   businessTitle: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 12,
   },
@@ -441,7 +451,8 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 6,
   },
   businessText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     lineHeight: 18,
   },
   socialSection: {
@@ -449,7 +460,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 24,
   },
   socialTitle: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 16,
   },
@@ -473,11 +485,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   kakaoText: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: '#2A1418',
   },
   copyright: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     textAlign: 'center',
     marginBottom: 8,
   },

@@ -388,6 +388,7 @@ const makeStyles = (t) => StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
 
@@ -413,7 +414,8 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
   },
@@ -439,7 +441,8 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.primary,
   },
   tabText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -485,6 +488,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   rankBadgeText: {
     fontSize: 14,
+    fontFamily: t.fonts.extrabold,
     fontWeight: '800',
     color: t.colors.white,
   },
@@ -499,6 +503,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   rankPlainText: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textSecondary,
   },
@@ -514,7 +519,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 12,
   },
   avatarText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -529,13 +535,15 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 8,
   },
   username: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
     flexShrink: 1,
   },
   displayName: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginTop: 2,
   },
@@ -548,6 +556,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   trustBadgeText: {
     fontSize: 11,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.gray700,
   },
@@ -568,12 +577,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
+    fontFamily: t.fonts.medium,
     color: t.colors.textTertiary,
     marginBottom: 4,
     fontWeight: '500',
   },
   statValue: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
   },
@@ -598,6 +609,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   holdingPillText: {
     fontSize: 12,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
     color: t.colors.primary,
   },
@@ -620,6 +632,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   viewPortfolioText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.primary,
   },
@@ -642,6 +655,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   followButtonText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   followButtonTextActive: {
@@ -661,6 +675,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
     marginTop: 20,
@@ -668,6 +683,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptySubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     textAlign: 'center',
     lineHeight: 20,

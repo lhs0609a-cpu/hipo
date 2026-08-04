@@ -593,10 +593,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   backText: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     fontWeight: '300',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   headerRight: {
@@ -620,17 +622,20 @@ const makeStyles = (t) => StyleSheet.create({
   balanceLabel: {
     color: 'rgba(255,255,255,0.8)',
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   balanceValue: {
     color: t.colors.surface,
-    fontSize: 32,
+    fontSize: 28,
+    fontFamily: t.fonts.extrabold,
     fontWeight: '800',
     marginTop: 8,
   },
   balanceSubtext: {
     color: 'rgba(255,255,255,0.7)',
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 8,
   },
 
@@ -641,7 +646,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 16,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 12,
   },
@@ -655,9 +661,11 @@ const makeStyles = (t) => StyleSheet.create({
   },
   calcLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
   },
   calcValue: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   calcDivider: {
@@ -665,7 +673,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginVertical: 8,
   },
   calcNetAmount: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.extrabold,
     fontWeight: '800',
   },
 
@@ -679,12 +688,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   amountInput: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     paddingVertical: 14,
   },
   inputSuffix: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -701,11 +712,13 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   quickButtonText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   minAmountText: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 8,
   },
 
@@ -717,14 +730,17 @@ const makeStyles = (t) => StyleSheet.create({
   },
   bankName: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   bankAccount: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     marginTop: 4,
   },
   bankHolder: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
   changeBankButton: {
@@ -735,7 +751,8 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   changeBankText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   registerBankButton: {
@@ -747,6 +764,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   registerBankText: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 
@@ -759,7 +777,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   submitButtonText: {
     color: t.colors.surface,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 
@@ -768,7 +787,8 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 6,
   },
   infoItem: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     lineHeight: 20,
   },
 
@@ -777,6 +797,7 @@ const makeStyles = (t) => StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 20,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
   },
   historyItem: {
     flexDirection: 'row',
@@ -788,19 +809,23 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   historyAmount: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   historyNet: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
   historyDate: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 4,
   },
   historyReason: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
   historyRight: {
@@ -814,6 +839,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   cancelButton: {
@@ -824,6 +850,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   loadMoreButton: {
@@ -835,6 +862,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   loadMoreText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 
@@ -857,15 +885,18 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 20,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   modalClose: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     padding: 4,
   },
   fieldLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 6,
     marginTop: 12,
@@ -881,6 +912,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   bankSelectorText: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
   },
   bankList: {
     maxHeight: 200,
@@ -895,6 +927,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   bankOptionText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
   },
   modalInput: {
     borderWidth: 1,
@@ -902,6 +935,7 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
   },
   modalSubmitButton: {
     paddingVertical: 16,
@@ -911,7 +945,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   modalSubmitText: {
     color: t.colors.surface,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 });

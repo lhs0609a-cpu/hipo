@@ -601,7 +601,8 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   addHeaderButton: {
@@ -617,7 +618,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   loadingContainer: {
     flex: 1,
@@ -652,11 +654,13 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   stockAvatarText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   stockName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 4,
   },
@@ -668,6 +672,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   typeBadgeText: {
     fontSize: 11,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   alertDetails: {
@@ -684,10 +689,12 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 8,
   },
   conditionLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   conditionValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   deleteButton: {
@@ -712,13 +719,15 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 24,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 8,
     textAlign: 'center',
   },
   emptyDescription: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 24,
@@ -732,8 +741,9 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 8,
   },
   addButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   fab: {
@@ -745,7 +755,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -770,7 +780,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomWidth: 1,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   modalContent: {
@@ -782,6 +793,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyHoldingsText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -800,7 +812,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 12,
   },
   stockItemAvatarText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   stockItemInfo: {
@@ -808,11 +821,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stockItemName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 2,
   },
   stockItemPrice: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   typeOption: {
     flexDirection: 'row',
@@ -832,12 +847,14 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   typeLabel: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 2,
   },
   typeDescription: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   selectedStockInfo: {
     padding: 16,
@@ -845,25 +862,29 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 20,
   },
   selectedStockName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 4,
   },
   selectedStockPrice: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
   },
   inputSection: {
     marginBottom: 24,
   },
   inputLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     marginBottom: 10,
   },
   input: {
     borderWidth: 1,
     borderRadius: 12,
     padding: 16,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     marginBottom: 12,
   },
   quickValues: {
@@ -877,7 +898,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 20,
   },
   quickValueText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   submitButton: {
@@ -887,8 +909,9 @@ const makeStyles = (t) => StyleSheet.create({
     marginTop: 'auto',
   },
   submitButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 });

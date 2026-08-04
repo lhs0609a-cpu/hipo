@@ -308,6 +308,7 @@ const makeStyles = (t) => StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   header: {
@@ -328,10 +329,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -343,7 +346,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: t.colors.border,
   },
   myCompetitionsTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 16,
@@ -358,11 +362,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   myStatLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 8,
   },
   myStatValue: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -388,6 +394,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -414,13 +421,15 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   competitionName: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 4,
   },
   competitionType: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   statusBadge: {
@@ -430,10 +439,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   competitionDescription: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     lineHeight: 20,
     marginBottom: 16,
@@ -450,11 +461,13 @@ const makeStyles = (t) => StyleSheet.create({
     paddingVertical: 6,
   },
   infoLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   infoValue: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -475,6 +488,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   detailButtonText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -487,6 +501,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   joinButtonText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.surface,
   },
@@ -501,6 +516,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   joinedText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.success,
   },
@@ -517,11 +533,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   myRankLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 4,
   },
   myRankValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -531,10 +549,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 60,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
 });

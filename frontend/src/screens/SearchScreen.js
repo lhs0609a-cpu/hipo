@@ -404,7 +404,8 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: '#F2EEFE',
   },
   virtualFilterText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.gray600 || t.colors.textSecondary,
   },
@@ -419,6 +420,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.white,
   },
@@ -442,7 +444,8 @@ const makeStyles = (t) => StyleSheet.create({
   searchInput: {
     flex: 1,
     paddingVertical: 14,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textPrimary,
   },
   tabContainer: {
@@ -463,6 +466,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   activeTabText: {
@@ -495,7 +499,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 14,
   },
   avatarText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.white,
   },
@@ -504,16 +509,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   resultTitle: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
   },
   resultSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 2,
   },
   resultType: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     backgroundColor: t.colors.gray100,
     paddingHorizontal: 10,
@@ -524,7 +532,8 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 20,
   },
   recentTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginBottom: 12,
@@ -543,10 +552,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   recentTagText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.primary,
   },
   trendingTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginBottom: 12,
@@ -564,7 +575,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: t.colors.divider,
   },
   trendingRank: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textSecondary,
     width: 24,
@@ -572,12 +584,14 @@ const makeStyles = (t) => StyleSheet.create({
   trendingText: {
     flex: 1,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.textPrimary,
     marginLeft: 8,
   },
   // Category grid
   categoryTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginTop: 24,
@@ -604,7 +618,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 8,
   },
   categoryLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
     color: t.colors.textSecondary,
   },
@@ -640,11 +655,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stockName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
   },
   stockCategory: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 2,
   },
@@ -653,6 +670,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stockPrice: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginBottom: 4,
@@ -667,6 +685,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   priceChangeText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 });

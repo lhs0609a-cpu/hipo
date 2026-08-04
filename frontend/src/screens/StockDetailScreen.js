@@ -895,11 +895,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   virtualBannerTitle: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.warningText,
   },
   virtualBannerText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: '#8A5626',
     lineHeight: 20,
   },
@@ -914,6 +916,7 @@ const makeStyles = (t) => StyleSheet.create({
   claimButtonText: {
     color: t.colors.surface,
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   scrollView: {
@@ -945,7 +948,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.text,
   },
   chartTypeText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -963,10 +967,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   infoLabel: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   infoValue: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -980,13 +986,15 @@ const makeStyles = (t) => StyleSheet.create({
     marginTop: 8,
   },
   bioTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 12,
   },
   bioText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
     lineHeight: 22,
   },
@@ -996,7 +1004,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginTop: 8,
   },
   tradesTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 12,
@@ -1011,10 +1020,12 @@ const makeStyles = (t) => StyleSheet.create({
   tradeUser: {
     flex: 1,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   tradeType: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -1030,7 +1041,8 @@ const makeStyles = (t) => StyleSheet.create({
     color: t.colors.down,
   },
   tradeAmount: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   tradeSection: {
@@ -1061,6 +1073,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tradeTabText: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -1083,18 +1096,21 @@ const makeStyles = (t) => StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginRight: 12,
   },
   input: {
     flex: 1,
     fontSize: 20,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     textAlign: 'right',
   },
   inputUnit: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginLeft: 8,
   },
@@ -1113,7 +1129,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.border,
   },
   quickButtonText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -1124,10 +1141,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   totalLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   totalValue: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -1151,17 +1170,20 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   routeBannerTitle: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
   },
   routeBannerReason: {
     fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginTop: 2,
   },
   routeBannerAdvantage: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.success,
   },
@@ -1182,8 +1204,9 @@ const makeStyles = (t) => StyleSheet.create({
     opacity: 0.6,
   },
   tradeButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   advancedOrderButton: {
@@ -1212,6 +1235,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   advancedOrderBannerText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     color: t.colors.primary,
     fontWeight: '600',
   },
@@ -1219,7 +1243,8 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   balanceText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   balanceValue: {
@@ -1228,6 +1253,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   maxBuyableText: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.primary,
     marginTop: 4,
   },
@@ -1237,7 +1263,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.primary,
   },
   quickButtonMaxText: {
-    color: '#fff',
+    color: t.colors.surface,
   },
   // 잔액 부족 카드 스타일
   insufficientBalanceCard: {
@@ -1255,6 +1281,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   insufficientBalanceTitle: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.error,
   },
@@ -1265,7 +1292,7 @@ const makeStyles = (t) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
@@ -1275,11 +1302,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   balanceCompareLabel: {
     fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginBottom: 4,
   },
   balanceCompareValue: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -1287,7 +1316,8 @@ const makeStyles = (t) => StyleSheet.create({
     color: t.colors.error,
   },
   insufficientAmount: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.error,
     textAlign: 'center',
@@ -1303,8 +1333,9 @@ const makeStyles = (t) => StyleSheet.create({
   },
   chargeButtonText: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#fff',
+    color: t.colors.surface,
   },
   // 투자 리스크 고지 모달 스타일
   riskModalOverlay: {
@@ -1315,7 +1346,7 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 20,
   },
   riskModalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 20,
     padding: 24,
     width: '100%',
@@ -1327,7 +1358,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 20,
   },
   riskModalTitle: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
     marginTop: 12,
@@ -1337,6 +1369,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   riskModalSubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 20,
@@ -1354,6 +1387,7 @@ const makeStyles = (t) => StyleSheet.create({
   riskItemText: {
     flex: 1,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.gray700,
     lineHeight: 20,
   },
@@ -1376,7 +1410,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 6,
     borderWidth: 2,
     borderColor: t.colors.borderDark,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1387,6 +1421,7 @@ const makeStyles = (t) => StyleSheet.create({
   riskCheckboxText: {
     flex: 1,
     fontSize: 14,
+    fontFamily: t.fonts.medium,
     color: t.colors.gray700,
     fontWeight: '500',
     lineHeight: 20,
@@ -1403,7 +1438,8 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   riskCancelButtonText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -1418,8 +1454,9 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.borderDark,
   },
   riskAgreeButtonText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#fff',
+    color: t.colors.surface,
   },
 });

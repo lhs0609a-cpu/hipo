@@ -669,7 +669,7 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#aaa',
+    color: t.colors.textDisabled,
     marginTop: 12,
   },
   emptyContainer: {
@@ -680,27 +680,29 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyTitle: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
     marginBottom: 8,
   },
   emptyText: {
-    color: '#999',
+    color: t.colors.textTertiary,
     textAlign: 'center',
     marginBottom: 24,
   },
   backButton: {
-    backgroundColor: '#333',
+    backgroundColor: t.colors.textPrimary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,
   },
   backButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontWeight: '600',
   },
   accessDenied: {
@@ -711,19 +713,22 @@ const makeStyles = (t) => StyleSheet.create({
   },
   accessDeniedIcon: {
     fontSize: 80,
+    fontFamily: t.fonts.regular,
     marginBottom: 20,
   },
   accessDeniedTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
     marginBottom: 12,
   },
   accessDeniedText: {
-    color: '#aaa',
+    color: t.colors.textDisabled,
     textAlign: 'center',
     marginBottom: 24,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
   },
   userSharesBox: {
     backgroundColor: 'rgba(255,255,255,0.1)',
@@ -733,13 +738,15 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 24,
   },
   userSharesLabel: {
-    color: '#aaa',
+    color: t.colors.textDisabled,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     textAlign: 'center',
   },
   userSharesValue: {
     color: t.colors.success,
     fontSize: 28,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     textAlign: 'center',
   },
@@ -751,8 +758,9 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 24,
   },
   tierReqTitle: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 12,
     textAlign: 'center',
@@ -765,12 +773,14 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: 'rgba(255,255,255,0.1)',
   },
   tierReqLabel: {
-    color: '#ccc',
+    color: t.colors.borderDark,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
   },
   tierReqValue: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   buyStockButton: {
@@ -780,8 +790,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
   },
   buyStockButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   header: {
@@ -790,22 +801,24 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 16,
     backgroundColor: t.colors.textPrimary,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: t.colors.textPrimary,
   },
   backBtn: {
     padding: 8,
     marginRight: 12,
   },
   backBtnText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 24,
+    fontFamily: t.fonts.regular,
   },
   headerInfo: {
     flex: 1,
   },
   headerTitle: {
-    color: '#fff',
-    fontSize: 18,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   headerStats: {
@@ -821,13 +834,15 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 8,
   },
   tierBadgeText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   headerMemberCount: {
-    color: '#888',
+    color: t.colors.textTertiary,
     fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   onlineIndicator: {
     flexDirection: 'row',
@@ -844,6 +859,7 @@ const makeStyles = (t) => StyleSheet.create({
   onlineCount: {
     color: t.colors.success,
     fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   joinBtn: {
     backgroundColor: t.colors.success,
@@ -852,17 +868,17 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 8,
   },
   joinBtnText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontWeight: '600',
   },
   leaveBtn: {
-    backgroundColor: '#333',
+    backgroundColor: t.colors.textPrimary,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
   },
   leaveBtnText: {
-    color: '#999',
+    color: t.colors.textTertiary,
   },
   connectionWarning: {
     backgroundColor: t.colors.warning,
@@ -870,15 +886,16 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   connectionWarningText: {
-    color: '#000',
+    color: t.colors.textPrimary,
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   tabs: {
     flexDirection: 'row',
     backgroundColor: t.colors.textPrimary,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: t.colors.textPrimary,
   },
   tab: {
     flex: 1,
@@ -890,8 +907,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: t.colors.success,
   },
   tabText: {
-    color: '#888',
+    color: t.colors.textTertiary,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
   },
   activeTabText: {
     color: t.colors.success,
@@ -936,16 +954,18 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 8,
   },
   messageShares: {
-    color: '#666',
+    color: t.colors.textSecondary,
     fontSize: 11,
+    fontFamily: t.fonts.regular,
   },
   messageText: {
-    color: '#ddd',
+    color: t.colors.border,
     lineHeight: 20,
   },
   messageTime: {
-    color: '#666',
+    color: t.colors.textSecondary,
     fontSize: 11,
+    fontFamily: t.fonts.regular,
     marginTop: 4,
   },
   pinnedBadge: {
@@ -954,7 +974,8 @@ const makeStyles = (t) => StyleSheet.create({
     right: 8,
   },
   pinnedText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
   },
   emptyMessages: {
     alignItems: 'center',
@@ -962,11 +983,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyMessagesIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 12,
   },
   emptyMessagesText: {
-    color: '#888',
+    color: t.colors.textTertiary,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
   },
   typingContainer: {
     flexDirection: 'row',
@@ -976,8 +999,9 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.textPrimary,
   },
   typingText: {
-    color: '#888',
+    color: t.colors.textTertiary,
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginRight: 8,
   },
   typingDots: {
@@ -1004,7 +1028,7 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 12,
     backgroundColor: t.colors.textPrimary,
     borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderTopColor: t.colors.textPrimary,
   },
   messageInput: {
     flex: 1,
@@ -1012,7 +1036,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 16,
     paddingVertical: 10,
-    color: '#fff',
+    color: t.colors.surface,
     maxHeight: 100,
     marginRight: 8,
   },
@@ -1023,10 +1047,10 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 20,
   },
   sendButtonDisabled: {
-    backgroundColor: '#333',
+    backgroundColor: t.colors.textPrimary,
   },
   sendButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontWeight: '600',
   },
   noticeList: {
@@ -1047,13 +1071,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 8,
   },
   noticeTitle: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     flex: 1,
   },
   noticeContent: {
-    color: '#aaa',
+    color: t.colors.textDisabled,
     lineHeight: 20,
     marginBottom: 12,
   },
@@ -1062,12 +1087,14 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'space-between',
   },
   noticeAuthor: {
-    color: '#666',
+    color: t.colors.textSecondary,
     fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   noticeDate: {
-    color: '#666',
+    color: t.colors.textSecondary,
     fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   emptyNotices: {
     alignItems: 'center',
@@ -1075,11 +1102,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyNoticesIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 12,
   },
   emptyNoticesText: {
-    color: '#888',
+    color: t.colors.textTertiary,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
   },
   memberList: {
     padding: 16,
@@ -1107,18 +1136,21 @@ const makeStyles = (t) => StyleSheet.create({
   },
   memberName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   memberShares: {
-    color: '#888',
-    fontSize: 13,
+    color: t.colors.textTertiary,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
   memberStats: {
     alignItems: 'flex-end',
   },
   memberStatText: {
-    color: '#666',
+    color: t.colors.textSecondary,
     fontSize: 11,
+    fontFamily: t.fonts.regular,
   },
 });

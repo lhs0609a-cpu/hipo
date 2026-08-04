@@ -507,10 +507,11 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   balanceCard: {
@@ -521,13 +522,15 @@ const makeStyles = (t) => StyleSheet.create({
   },
   balanceLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
     marginBottom: 8,
   },
   balanceAmount: {
-    fontSize: 32,
+    fontSize: 28,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: t.colors.surface,
     marginBottom: 20,
   },
   balanceActions: {
@@ -545,16 +548,17 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 8,
   },
   convertButton: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
   balanceButtonText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#fff',
+    color: t.colors.surface,
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     marginHorizontal: 16,
     borderRadius: 8,
     padding: 4,
@@ -571,18 +575,20 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 15,
-    color: '#666',
+    fontFamily: t.fonts.semibold,
+    color: t.colors.textSecondary,
     fontWeight: '600',
   },
   activeTabText: {
-    color: '#fff',
+    color: t.colors.surface,
   },
   content: {
     paddingHorizontal: 16,
     paddingBottom: 32,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 12,
   },
@@ -592,7 +598,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   productCard: {
     width: '48%',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
@@ -612,24 +618,28 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 10,
   },
   popularText: {
-    fontSize: 10,
-    color: '#fff',
+    fontSize: 11,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
   productAmount: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 4,
   },
   bonusText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     color: t.colors.primary,
     fontWeight: '600',
     marginBottom: 8,
   },
   productPrice: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   customSection: {
     marginTop: 24,
@@ -640,10 +650,11 @@ const makeStyles = (t) => StyleSheet.create({
   },
   customInput: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 8,
     padding: 14,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
   },
   customButton: {
     backgroundColor: t.colors.primary,
@@ -652,13 +663,14 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'center',
   },
   customButtonText: {
-    fontSize: 16,
-    color: '#fff',
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
   infoBox: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginTop: 24,
@@ -666,8 +678,9 @@ const makeStyles = (t) => StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     lineHeight: 20,
   },
   historyList: {
@@ -676,7 +689,7 @@ const makeStyles = (t) => StyleSheet.create({
   historyItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -694,15 +707,18 @@ const makeStyles = (t) => StyleSheet.create({
   },
   historyTitle: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 4,
   },
   historyDate: {
-    fontSize: 13,
-    color: '#999',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   historyAmount: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   positive: {
@@ -716,8 +732,9 @@ const makeStyles = (t) => StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#999',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginTop: 16,
   },
   modalOverlay: {
@@ -726,20 +743,22 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
   },
   modalTitle: {
     fontSize: 20,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 8,
   },
   modalDesc: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 20,
@@ -757,25 +776,29 @@ const makeStyles = (t) => StyleSheet.create({
   },
   chargeLabel: {
     fontSize: 15,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   chargeValue: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   totalRow: {
     borderTopWidth: 1,
-    borderTopColor: '#ddd',
+    borderTopColor: t.colors.border,
     paddingTop: 12,
     marginTop: 4,
     marginBottom: 0,
   },
   totalLabel: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   totalValue: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -784,6 +807,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   paymentTitle: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 12,
   },
@@ -798,24 +822,28 @@ const makeStyles = (t) => StyleSheet.create({
   paymentText: {
     flex: 1,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
   },
   inputGroup: {
     marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: t.colors.border,
     borderRadius: 8,
     padding: 14,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
   },
   convertPreview: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     color: t.colors.primary,
     marginTop: 8,
     fontWeight: '600',
@@ -832,8 +860,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   confirmButton: {
     flex: 1,
@@ -843,8 +872,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   confirmButtonText: {
-    fontSize: 16,
-    color: '#fff',
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
 });

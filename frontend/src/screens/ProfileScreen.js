@@ -520,6 +520,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   avatarText: {
     fontSize: t.typography.fontSize.xl,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.bold,
     color: t.colors.white,
   },
@@ -537,7 +538,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.white,
   },
   verifiedIcon: {
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.white,
     fontWeight: t.typography.fontWeight.bold,
   },
@@ -546,12 +548,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   username: {
     fontSize: t.typography.fontSize.lg,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.bold,
     color: t.colors.textPrimary,
     marginBottom: 2,
   },
   email: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   followButton: {
@@ -572,12 +576,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statValue: {
     fontSize: t.typography.fontSize.lg,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.bold,
     color: t.colors.textPrimary,
     marginBottom: 2,
   },
   statLabel: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   statDivider: {
@@ -602,11 +608,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stockLabel: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: t.spacing.xs,
   },
   stockPrice: {
     fontSize: t.typography.fontSize['2xl'],
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.bold,
     color: t.colors.textPrimary,
   },
@@ -617,6 +625,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   changeText: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.semibold,
   },
   stockMetaRow: {
@@ -632,11 +641,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stockMetaLabel: {
     fontSize: t.typography.fontSize.xs,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginBottom: 4,
   },
   stockMetaValue: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.semibold,
     color: t.colors.textPrimary,
   },
@@ -648,6 +659,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   chartTitle: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.medium,
     color: t.colors.textSecondary,
     marginBottom: t.spacing.sm,
@@ -668,6 +680,7 @@ const makeStyles = (t) => StyleSheet.create({
   // Asset Value
   assetValue: {
     fontSize: t.typography.fontSize.base,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.semibold,
     color: t.colors.textPrimary,
   },
@@ -679,6 +692,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   trustBadgeText: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.semibold,
     color: t.colors.primary,
   },
@@ -690,6 +704,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   bioText: {
     fontSize: t.typography.fontSize.base,
+    fontFamily: t.fonts.regular,
     color: t.colors.textPrimary,
     lineHeight: t.typography.fontSize.base * t.typography.lineHeight.relaxed,
   },
@@ -736,11 +751,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   modalTitle: {
     fontSize: t.typography.fontSize.lg,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.bold,
     color: t.colors.textPrimary,
   },
   modalClose: {
     fontSize: 20,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     padding: t.spacing.xs,
   },
@@ -760,15 +777,18 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tradeInfoLabel: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   tradeInfoValue: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.semibold,
     color: t.colors.textPrimary,
   },
   inputLabel: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.semibold,
     color: t.colors.textPrimary,
     marginBottom: t.spacing.sm,
@@ -783,6 +803,7 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: t.spacing.base,
     paddingVertical: t.spacing.base,
     fontSize: t.typography.fontSize.base,
+    fontFamily: t.fonts.regular,
     color: t.colors.textPrimary,
   },
   totalCard: {
@@ -796,11 +817,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   totalLabel: {
     fontSize: t.typography.fontSize.base,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.medium,
     color: t.colors.textSecondary,
   },
   totalValue: {
     fontSize: t.typography.fontSize.lg,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.bold,
     color: t.colors.textPrimary,
   },
@@ -812,6 +835,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   noticeText: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     color: t.colors.primary,
     textAlign: 'center',
   },

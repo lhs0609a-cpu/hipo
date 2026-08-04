@@ -247,6 +247,7 @@ const makeStyles = (t) => StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   header: {
@@ -267,10 +268,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -285,7 +288,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: t.colors.border,
   },
   statsTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 16,
@@ -306,11 +310,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 8,
   },
   statValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -334,7 +340,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: t.colors.primary,
   },
   tabText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -363,6 +370,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   rankNumber: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -376,7 +384,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 12,
   },
   avatarText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.white,
   },
@@ -385,19 +394,22 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stockName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 4,
   },
   stockSymbol: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   stockPriceInfo: {
     alignItems: 'flex-end',
   },
   stockPrice: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 4,
@@ -410,6 +422,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   priceChangeText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   emptyContainer: {
@@ -418,6 +431,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
 });

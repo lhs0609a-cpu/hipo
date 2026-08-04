@@ -15,6 +15,7 @@ import {
   animations,
   zIndex,
 } from '../styles/tokens';
+import { fonts } from '../styles/fonts';
 import { createCommonStyles } from '../styles/theme';
 
 const THEME_STORAGE_KEY = '@hipo_theme_preference';
@@ -86,6 +87,11 @@ export const ThemeProvider = ({ children }) => {
 
     return {
       colors,
+      /**
+       * 서체 패밀리. 굵기별로 이름이 다르다 (RN 은 커스텀 폰트의 굵기를 합성하지 못함).
+       *   fontFamily: t.fonts.bold
+       */
+      fonts,
       typography,
       textStyles,
       tabularNums,

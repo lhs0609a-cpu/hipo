@@ -585,7 +585,8 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -616,6 +617,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textTertiary,
   },
@@ -638,6 +640,7 @@ const makeStyles = (t) => StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
 
@@ -669,17 +672,20 @@ const makeStyles = (t) => StyleSheet.create({
   noticeText: {
     flex: 1,
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     lineHeight: 17,
     color: t.colors.textTertiary,
   },
   formTitle: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginTop: 12,
   },
   formSubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
@@ -691,6 +697,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 8,
@@ -706,6 +713,7 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   textArea: {
@@ -718,12 +726,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   charCount: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     textAlign: 'right',
     marginTop: 4,
   },
   fieldHint: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginTop: 6,
   },
@@ -742,6 +752,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   selectButtonText: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   selectButtonPlaceholder: {
@@ -775,6 +786,7 @@ const makeStyles = (t) => StyleSheet.create({
   pickerOptionText: {
     flex: 1,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   pickerOptionTextSelected: {
@@ -797,7 +809,8 @@ const makeStyles = (t) => StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.white,
   },
@@ -835,6 +848,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   celebName: {
     fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -845,6 +859,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   categoryBadgeText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 
@@ -868,6 +883,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   upvoteCount: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -876,12 +892,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
 
   occupationText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 8,
   },
   reasonText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
     lineHeight: 20,
     marginBottom: 12,
@@ -901,7 +919,8 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 4,
   },
   suggesterName: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
   },
 
@@ -914,13 +933,15 @@ const makeStyles = (t) => StyleSheet.create({
     paddingBottom: 40,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginTop: 16,
   },
   emptySubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     marginTop: 8,
@@ -935,6 +956,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   goSuggestButtonText: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.white,
   },

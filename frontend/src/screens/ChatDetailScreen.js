@@ -319,20 +319,23 @@ const makeStyles = (t) => StyleSheet.create({
   },
   messageText: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     lineHeight: 20,
   },
   myMessageText: {
-    color: '#fff',
+    color: t.colors.surface,
   },
   otherMessageText: {
     color: t.colors.text,
   },
   messageTime: {
     fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   sendingText: {
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     fontStyle: 'italic',
   },
@@ -353,6 +356,7 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 8,
     maxHeight: 100,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
   },
   sendButton: {
     backgroundColor: t.colors.primary,
@@ -366,8 +370,9 @@ const makeStyles = (t) => StyleSheet.create({
     opacity: 0.5,
   },
   sendButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   emptyContainer: {
@@ -376,7 +381,8 @@ const makeStyles = (t) => StyleSheet.create({
     paddingVertical: 80,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
 });

@@ -318,15 +318,16 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: t.colors.backgroundSecondary,
@@ -345,7 +346,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 15,
-    color: '#999',
+    fontFamily: t.fonts.semibold,
+    color: t.colors.textTertiary,
     fontWeight: '600',
   },
   activeTabText: {
@@ -368,6 +370,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   myRankLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
   },
   myRankBadge: {
@@ -377,8 +380,9 @@ const makeStyles = (t) => StyleSheet.create({
   },
   myRankNumber: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: t.colors.surface,
   },
   myRankStats: {
     flexDirection: 'row',
@@ -389,16 +393,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   myRankStatLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.7)',
     marginBottom: 4,
   },
   myRankStatValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#fff',
+    color: t.colors.surface,
   },
   myRankProfitValue: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   profit: {
@@ -410,7 +417,7 @@ const makeStyles = (t) => StyleSheet.create({
   rankingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -426,9 +433,10 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 12,
   },
   rankNumber: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
-    color: '#666',
+    color: t.colors.textSecondary,
   },
   profileSection: {
     flex: 1,
@@ -447,9 +455,10 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   avatarText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: t.colors.surface,
   },
   profileInfo: {
     flex: 1,
@@ -461,7 +470,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 4,
   },
   username: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   meBadge: {
@@ -471,40 +481,46 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 10,
   },
   meBadgeText: {
-    fontSize: 10,
-    color: '#fff',
+    fontSize: 11,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
   investedAmount: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   profitSection: {
     alignItems: 'flex-end',
   },
   profitPercent: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 2,
   },
   profitAmount: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   badgeHeader: {
     marginBottom: 16,
   },
   badgeHeaderTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 4,
   },
   badgeHeaderDesc: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   badgeItem: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -522,32 +538,37 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'center',
   },
   badgeName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 4,
   },
   badgeDesc: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 4,
   },
   badgeDate: {
     fontSize: 12,
-    color: '#999',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#999',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginTop: 16,
     textAlign: 'center',
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#bbb',
+    fontFamily: t.fonts.regular,
+    color: t.colors.borderDark,
     marginTop: 8,
     textAlign: 'center',
     lineHeight: 20,
@@ -563,8 +584,9 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 8,
   },
   inviteButtonText: {
-    fontSize: 16,
-    color: '#fff',
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
 });

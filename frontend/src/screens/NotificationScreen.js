@@ -416,11 +416,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   headerSubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
     marginTop: 4,
   },
@@ -434,8 +436,9 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 4,
   },
   markAllText: {
-    fontSize: 13,
-    color: '#fff',
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
+    color: t.colors.surface,
     fontWeight: '500',
   },
   // Tab styles
@@ -461,7 +464,8 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.primaryBackground,
   },
   tabText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
     color: t.colors.textSecondary,
   },
@@ -482,12 +486,13 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.primary,
   },
   tabBadgeText: {
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
   activeTabBadgeText: {
-    color: '#fff',
+    color: t.colors.surface,
   },
   // Section styles
   sectionHeader: {
@@ -496,7 +501,8 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 4,
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -537,6 +543,7 @@ const makeStyles = (t) => StyleSheet.create({
   notificationTitle: {
     flex: 1,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
     marginRight: 8,
   },
@@ -545,11 +552,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   notificationMessage: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     lineHeight: 20,
   },
   notificationTime: {
     fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
   },
   amountBadge: {
@@ -562,6 +571,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   amountText: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   unreadDot: {
@@ -588,12 +598,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyText: {
     fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
   },
@@ -606,16 +618,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   loginRequiredIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 20,
   },
   loginRequiredTitle: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.text,
     marginBottom: 12,
   },
   loginRequiredText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
@@ -628,8 +643,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
   },
   loginButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   errorContainer: {
@@ -641,10 +657,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   errorIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   errorText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
@@ -657,8 +675,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 10,
   },
   retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 });

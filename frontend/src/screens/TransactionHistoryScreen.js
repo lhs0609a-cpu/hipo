@@ -207,6 +207,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   filterTabText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -245,19 +246,22 @@ const makeStyles = (t) => StyleSheet.create({
   },
   typeBadgeText: {
     color: t.colors.surface,
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   stockInfo: {
     gap: 4,
   },
   stockName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
   transactionDate: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   transactionDetails: {
@@ -270,10 +274,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   detailValue: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -285,11 +291,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   totalLabel: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
   totalValue: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   emptyContainer: {
@@ -300,16 +308,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
   },

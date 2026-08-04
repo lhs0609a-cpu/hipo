@@ -596,15 +596,16 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: t.colors.backgroundSecondary,
@@ -623,7 +624,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 15,
-    color: '#999',
+    fontFamily: t.fonts.semibold,
+    color: t.colors.textTertiary,
     fontWeight: '600',
   },
   activeTabText: {
@@ -637,7 +639,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabBadgeText: {
     fontSize: 11,
-    color: '#fff',
+    fontFamily: t.fonts.bold,
+    color: t.colors.surface,
     fontWeight: '700',
   },
   content: {
@@ -650,7 +653,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 12,
   },
@@ -661,7 +665,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statCard: {
     width: '48%',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
@@ -678,15 +682,17 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statValue: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   activityGrid: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
   },
@@ -695,18 +701,20 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   activityValue: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 4,
   },
   activityLabel: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -723,16 +731,18 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   menuTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 4,
   },
   menuDesc: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   ipoCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -744,7 +754,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 12,
   },
   ipoName: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   pendingBadge: {
@@ -755,6 +766,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   pendingText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     color: t.colors.warning,
     fontWeight: '600',
   },
@@ -771,11 +783,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   ipoInfoLabel: {
     fontSize: 11,
-    color: '#999',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginBottom: 4,
   },
   ipoInfoValue: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   ipoActions: {
@@ -799,12 +813,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   ipoActionText: {
     fontSize: 15,
-    color: '#fff',
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
   alertCard: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     marginBottom: 8,
     overflow: 'hidden',
@@ -818,17 +833,20 @@ const makeStyles = (t) => StyleSheet.create({
   },
   alertTitle: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 4,
   },
   alertDesc: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   alertTime: {
     fontSize: 12,
-    color: '#999',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   alertAction: {
     justifyContent: 'center',
@@ -839,8 +857,9 @@ const makeStyles = (t) => StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#999',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginTop: 16,
   },
   modalOverlay: {
@@ -849,7 +868,7 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
@@ -857,13 +876,15 @@ const makeStyles = (t) => StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 8,
   },
   modalDesc: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -889,27 +910,30 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.error,
   },
   decisionText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#666',
+    color: t.colors.textSecondary,
   },
   activeDecisionText: {
-    color: '#fff',
+    color: t.colors.surface,
   },
   inputGroup: {
     marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: t.colors.border,
     borderRadius: 8,
     padding: 14,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
   },
   typeButtons: {
     flexDirection: 'row',
@@ -926,12 +950,13 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.primary,
   },
   typeButtonText: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.textSecondary,
     fontWeight: '600',
   },
   activeTypeText: {
-    color: '#fff',
+    color: t.colors.surface,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -945,8 +970,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   confirmButton: {
     flex: 1,
@@ -956,8 +982,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   confirmButtonText: {
-    fontSize: 16,
-    color: '#fff',
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
 });

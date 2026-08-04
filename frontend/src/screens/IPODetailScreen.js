@@ -446,8 +446,9 @@ const makeStyles = (t) => StyleSheet.create({
   },
   errorText: {
     marginTop: 16,
-    fontSize: 16,
-    color: '#999',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   header: {
     flexDirection: 'row',
@@ -456,10 +457,11 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   content: {
@@ -467,7 +469,7 @@ const makeStyles = (t) => StyleSheet.create({
     paddingBottom: 100,
   },
   issuerCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
@@ -481,13 +483,15 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.backgroundSecondary,
   },
   issuerName: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 8,
   },
   issuerBio: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 16,
@@ -499,6 +503,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   phaseText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   countdownCard: {
@@ -510,16 +515,18 @@ const makeStyles = (t) => StyleSheet.create({
   },
   countdownLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
     marginBottom: 8,
   },
   countdownValue: {
-    fontSize: 32,
+    fontSize: 28,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: t.colors.surface,
   },
   competitionCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 12,
@@ -531,11 +538,13 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 16,
   },
   competitionLabel: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   competitionRate: {
-    fontSize: 36,
+    fontSize: 34,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   progressContainer: {
@@ -554,17 +563,19 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'space-between',
   },
   competitionStat: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   section: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 16,
   },
@@ -580,12 +591,14 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 10,
   },
   infoLabel: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 6,
   },
   infoValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   scheduleItem: {
@@ -608,15 +621,18 @@ const makeStyles = (t) => StyleSheet.create({
   },
   scheduleLabel: {
     fontSize: 15,
-    color: '#333',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textPrimary,
   },
   scheduleDate: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   descriptionText: {
     fontSize: 15,
-    color: '#333',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textPrimary,
     lineHeight: 24,
   },
   mySubscriptionCard: {
@@ -626,13 +642,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 12,
   },
   mySubscriptionTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.success,
     marginBottom: 16,
   },
   mySubscriptionInfo: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 10,
     padding: 14,
   },
@@ -643,14 +660,16 @@ const makeStyles = (t) => StyleSheet.create({
   },
   mySubscriptionLabel: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   mySubscriptionValue: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   cancelButton: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     padding: 14,
     borderRadius: 10,
     alignItems: 'center',
@@ -658,6 +677,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   cancelButtonText: {
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     color: t.colors.error,
     fontWeight: '500',
   },
@@ -667,7 +687,7 @@ const makeStyles = (t) => StyleSheet.create({
     left: 0,
     right: 0,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderTopWidth: 1,
     borderTopColor: t.colors.backgroundSecondary,
   },
@@ -679,7 +699,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   subscribeButtonText: {
     fontSize: 17,
-    color: '#fff',
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
   modalOverlay: {
@@ -688,13 +709,14 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
   },
   modalTitle: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: 20,
@@ -712,10 +734,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   modalInfoLabel: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   modalInfoValue: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   inputGroup: {
@@ -723,15 +747,17 @@ const makeStyles = (t) => StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: t.colors.border,
     borderRadius: 10,
     padding: 14,
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     textAlign: 'center',
   },
   depositBox: {
@@ -742,12 +768,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 20,
   },
   depositLabel: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 4,
   },
   depositValue: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -763,8 +791,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   modalCancelButtonText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   modalConfirmButton: {
     flex: 1,
@@ -774,8 +803,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   modalConfirmButtonText: {
-    fontSize: 16,
-    color: '#fff',
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
 });

@@ -282,16 +282,18 @@ const makeStyles = (t) => StyleSheet.create({
   },
   communityName: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   memberCount: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
     marginTop: 2,
   },
   joinButton: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderRadius: 20,
@@ -299,25 +301,27 @@ const makeStyles = (t) => StyleSheet.create({
   leaveButton: {
     backgroundColor: 'transparent',
     borderWidth: 1,
-    borderColor: '#fff',
+    borderColor: t.colors.surface,
   },
   joinButtonText: {
     color: t.colors.primary,
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   leaveButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
   },
   descriptionContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: t.colors.borderLight,
   },
   description: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     lineHeight: 20,
   },
   messagesList: {
@@ -342,17 +346,18 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 8,
   },
   avatarText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   messageBubble: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     borderBottomLeftRadius: 4,
     padding: 12,
     maxWidth: '75%',
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -365,21 +370,24 @@ const makeStyles = (t) => StyleSheet.create({
   },
   messageAuthor: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     color: t.colors.primary,
     fontWeight: '600',
     marginBottom: 4,
   },
   messageContent: {
     fontSize: 15,
-    color: '#333',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textPrimary,
     lineHeight: 20,
   },
   myMessageContent: {
-    color: '#fff',
+    color: t.colors.surface,
   },
   messageTime: {
     fontSize: 11,
-    color: '#999',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginTop: 4,
   },
   myMessageTime: {
@@ -388,9 +396,9 @@ const makeStyles = (t) => StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     padding: 12,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderTopWidth: 1,
-    borderTopColor: '#eee',
+    borderTopColor: t.colors.borderLight,
     alignItems: 'flex-end',
   },
   messageInput: {
@@ -400,6 +408,7 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     maxHeight: 100,
     marginRight: 8,
   },
@@ -415,8 +424,9 @@ const makeStyles = (t) => StyleSheet.create({
     opacity: 0.5,
   },
   sendButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   emptyContainer: {
@@ -427,16 +437,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   errorContainer: {
     flex: 1,
@@ -446,11 +459,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   errorIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   errorText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 20,
@@ -462,8 +477,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 });

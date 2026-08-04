@@ -150,17 +150,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   headerSubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
     marginTop: 4,
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     padding: 4,
     margin: 16,
     borderRadius: 12,
@@ -176,11 +178,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#666',
+    color: t.colors.textSecondary,
   },
   activeTabText: {
-    color: '#fff',
+    color: t.colors.surface,
   },
   nftList: {
     padding: 8,
@@ -188,10 +191,10 @@ const makeStyles = (t) => StyleSheet.create({
   nftCard: {
     flex: 1,
     margin: 8,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -214,6 +217,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   nftEmoji: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
   },
   rarityBadge: {
     position: 'absolute',
@@ -236,8 +240,9 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.warning,
   },
   rarityText: {
-    color: '#fff',
-    fontSize: 10,
+    color: t.colors.surface,
+    fontSize: 11,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   nftInfo: {
@@ -245,12 +250,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   nftName: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#333',
+    color: t.colors.textPrimary,
   },
   nftCreator: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginTop: 2,
   },
   nftPriceRow: {
@@ -261,6 +268,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   nftPrice: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: '#8B5CF6',
   },
@@ -271,8 +279,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 4,
   },
   saleText: {
-    color: '#fff',
-    fontSize: 10,
+    color: t.colors.surface,
+    fontSize: 11,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   emptyContainer: {
@@ -283,11 +292,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
 });
 

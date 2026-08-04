@@ -386,10 +386,11 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   content: {
@@ -404,13 +405,15 @@ const makeStyles = (t) => StyleSheet.create({
   },
   streakLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
     marginBottom: 4,
   },
   streakCount: {
     fontSize: 48,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: t.colors.surface,
     marginBottom: 24,
   },
   checkInButton: {
@@ -428,8 +431,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.success,
   },
   checkInButtonText: {
-    fontSize: 16,
-    color: '#fff',
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
     marginTop: 4,
   },
@@ -442,23 +446,26 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 20,
   },
   rewardPopupText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: t.colors.surface,
   },
   nextMilestone: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.7)',
     marginTop: 20,
   },
   weekProgressCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 16,
   },
@@ -486,12 +493,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   weekDayNumber: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#999',
+    color: t.colors.textTertiary,
   },
   weekDayLabel: {
     fontSize: 11,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   weekRewardInfo: {
     flexDirection: 'row',
@@ -501,13 +510,14 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 6,
   },
   weekRewardText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     color: '#A57C18',
     fontWeight: '600',
   },
   statsCard: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -518,20 +528,22 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statDivider: {
     width: 1,
-    backgroundColor: '#eee',
+    backgroundColor: t.colors.borderLight,
   },
   statValue: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   calendarCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -543,9 +555,10 @@ const makeStyles = (t) => StyleSheet.create({
   calendarDayHeader: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#666',
+    color: t.colors.textSecondary,
     paddingVertical: 8,
   },
   calendarWeek: {
@@ -564,13 +577,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   calendarDayText: {
     fontSize: 14,
-    color: '#333',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textPrimary,
   },
   checkedDay: {
     backgroundColor: t.colors.primary,
   },
   checkedDayText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontWeight: '600',
   },
   todayDay: {
@@ -592,12 +606,13 @@ const makeStyles = (t) => StyleSheet.create({
     bottom: 2,
   },
   infoCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
   },
   infoTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 16,
   },
@@ -609,7 +624,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
 });
 

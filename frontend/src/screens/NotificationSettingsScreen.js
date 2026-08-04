@@ -389,7 +389,8 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   headerRight: {
@@ -408,7 +409,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   infoText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     lineHeight: 18,
   },
   categoryContainer: {
@@ -432,7 +434,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   categoryTitle: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   subSettings: {
@@ -455,10 +458,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   settingLabel: {
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   settingDescription: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
   divider: {
@@ -472,6 +477,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   thresholdText: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   priceAlertLink: {

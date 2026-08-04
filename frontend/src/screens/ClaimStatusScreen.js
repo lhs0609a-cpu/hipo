@@ -440,10 +440,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   backText: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     fontWeight: '300',
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   headerRight: {
@@ -457,6 +459,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     marginTop: 8,
   },
   content: {
@@ -472,11 +475,13 @@ const makeStyles = (t) => StyleSheet.create({
   summaryTitle: {
     color: 'rgba(255,255,255,0.8)',
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   summaryCount: {
     color: t.colors.surface,
-    fontSize: 32,
+    fontSize: 28,
+    fontFamily: t.fonts.extrabold,
     fontWeight: '800',
     marginTop: 4,
   },
@@ -498,7 +503,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   summaryStatText: {
     color: 'rgba(255,255,255,0.9)',
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
 
@@ -530,6 +536,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   profileInitial: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   celebTextContainer: {
@@ -537,11 +544,13 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   celebName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   claimId: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
 
@@ -552,7 +561,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
   },
   statusBadgeText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 
@@ -563,7 +573,8 @@ const makeStyles = (t) => StyleSheet.create({
     paddingVertical: 14,
   },
   timelineSectionTitle: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 12,
   },
@@ -597,9 +608,11 @@ const makeStyles = (t) => StyleSheet.create({
   },
   timelineLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
   },
   timelineDate: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
 
@@ -611,12 +624,14 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
   },
   reasonLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 4,
   },
   reasonText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     lineHeight: 20,
     fontWeight: '400',
   },
@@ -630,12 +645,14 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   verificationLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 6,
   },
   verificationCode: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.extrabold,
     fontWeight: '800',
     letterSpacing: 3,
   },
@@ -655,15 +672,18 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 20,
   },
   emptyIcon: {
-    fontSize: 36,
+    fontSize: 34,
+    fontFamily: t.fonts.regular,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 8,
   },
   emptyDescription: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 28,
@@ -675,7 +695,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   browseButtonText: {
     color: t.colors.surface,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 });

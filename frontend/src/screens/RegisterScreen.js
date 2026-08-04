@@ -389,7 +389,8 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 20,
   },
   title: {
-    fontSize: 36,
+    fontSize: 34,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.text,
     textAlign: 'center',
@@ -397,6 +398,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 40,
@@ -411,16 +413,19 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.surface,
     padding: 15,
     borderRadius: 10,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
   },
   helperText: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.danger,
     marginTop: 6,
     marginLeft: 4,
   },
   helperTextSuccess: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.success,
     marginTop: 6,
     marginLeft: 4,
@@ -436,8 +441,9 @@ const makeStyles = (t) => StyleSheet.create({
     opacity: 0.6,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 18,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   linkButton: {
@@ -447,6 +453,7 @@ const makeStyles = (t) => StyleSheet.create({
   linkText: {
     color: t.colors.primary,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
   },
   divider: {
     flexDirection: 'row',
@@ -462,9 +469,10 @@ const makeStyles = (t) => StyleSheet.create({
     marginHorizontal: 10,
     color: t.colors.textSecondary,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
   },
   googleButton: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     padding: 18,
     borderRadius: 10,
     alignItems: 'center',
@@ -473,7 +481,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   googleButtonText: {
     color: t.colors.text,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   // 웰컴 보너스 배너 스타일
@@ -491,13 +500,15 @@ const makeStyles = (t) => StyleSheet.create({
     marginLeft: 12,
   },
   welcomeBannerTitle: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 14,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   welcomeBannerAmount: {
-    color: '#fff',
-    fontSize: 18,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   // 모달 스타일
@@ -509,7 +520,7 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 20,
     width: '100%',
     maxWidth: 340,
@@ -533,12 +544,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   modalTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 8,
   },
   modalSubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 20,
   },
@@ -552,16 +565,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   bonusLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.warningText,
     marginBottom: 4,
   },
   bonusAmount: {
-    fontSize: 32,
+    fontSize: 28,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.warning,
   },
   modalDescription: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
@@ -579,8 +595,9 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 16,
   },
   startButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginRight: 8,
   },

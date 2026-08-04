@@ -287,19 +287,21 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: t.colors.textPrimary,
   },
   backButton: {
     padding: 4,
   },
   backButtonText: {
     fontSize: 24,
-    color: '#fff',
+    fontFamily: t.fonts.regular,
+    color: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   statsBanner: {
     margin: 16,
@@ -321,16 +323,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statValue: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   statValueSmall: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   statLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: '#91B8FB',
     marginTop: 4,
   },
@@ -350,8 +355,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: t.colors.success,
   },
   tabText: {
-    fontSize: 13,
-    color: '#888',
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
+    color: t.colors.textTertiary,
     fontWeight: '500',
   },
   activeTabText: {
@@ -388,16 +394,18 @@ const makeStyles = (t) => StyleSheet.create({
     height: 40,
     borderRadius: 20,
     marginRight: 10,
-    backgroundColor: '#333',
+    backgroundColor: t.colors.textPrimary,
   },
   issuerName: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   roundName: {
     fontSize: 12,
-    color: '#888',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginTop: 2,
   },
   statusBadge: {
@@ -409,10 +417,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statusIcon: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginRight: 4,
   },
   statusText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   investmentInfo: {
@@ -427,24 +437,29 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 6,
   },
   infoLabel: {
-    fontSize: 13,
-    color: '#888',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   infoLabelBonus: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.warning,
   },
   infoValue: {
-    fontSize: 13,
-    color: '#fff',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.surface,
   },
   infoValueBonus: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
     color: t.colors.warning,
     fontWeight: '500',
   },
   infoValueHighlight: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     color: t.colors.success,
     fontWeight: 'bold',
   },
@@ -457,6 +472,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   discountText: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.warning,
     textAlign: 'center',
   },
@@ -465,15 +481,17 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderTopColor: t.colors.textPrimary,
     marginBottom: 8,
   },
   lockupLabel: {
-    fontSize: 13,
-    color: '#888',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   lockupValue: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   cardFooter: {
@@ -481,11 +499,12 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderTopColor: t.colors.textPrimary,
   },
   dateText: {
     fontSize: 11,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   emptyContainer: {
     flex: 1,
@@ -495,17 +514,20 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#fff',
+    color: t.colors.surface,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#888',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginBottom: 20,
   },
   exploreButton: {
@@ -515,8 +537,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 20,
   },
   exploreButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 });

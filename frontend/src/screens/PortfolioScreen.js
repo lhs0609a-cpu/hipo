@@ -398,12 +398,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginTop: 8,
   },
   listTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
   listCount: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   list: {
@@ -429,6 +431,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   holdingName: {
     fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -436,7 +439,8 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'flex-end',
   },
   currentPrice: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -446,7 +450,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginTop: 2,
   },
   priceChange: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
     marginLeft: 2,
   },
@@ -462,11 +467,13 @@ const makeStyles = (t) => StyleSheet.create({
   profitBannerLeft: {},
   profitBannerLabel: {
     fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 2,
   },
   profitBannerAmount: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   profitRateBadge: {
@@ -476,8 +483,9 @@ const makeStyles = (t) => StyleSheet.create({
   },
   profitRateText: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
-    color: '#fff',
+    color: t.colors.surface,
   },
   holdingDetails: {
     gap: 10,
@@ -489,10 +497,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   detailValue: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -509,12 +519,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 8,
   },
   chartSectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
   chartPointLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   chartPeriodRow: {
@@ -532,7 +544,8 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.primary,
   },
   periodButtonText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -546,6 +559,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   chartEmptyText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   profitShareSection: {
@@ -559,16 +573,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
   },

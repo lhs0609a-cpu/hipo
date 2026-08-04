@@ -902,6 +902,7 @@ const makeStyles = (t) => StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   scrollContent: {
@@ -1011,7 +1012,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 10,
   },
   sectionIconEmoji: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
   },
 
   // Dividend TOP Section
@@ -1034,6 +1036,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   dividendRankText: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.warning,
   },
@@ -1047,7 +1050,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 12,
   },
   dividendAvatarText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -1056,11 +1060,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   dividendName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
   },
   dividendPrice: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginTop: 2,
   },
@@ -1069,10 +1075,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   dividendRateLabel: {
     fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
   },
   dividendRateValue: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.warning,
   },
@@ -1102,7 +1110,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 14,
   },
   holdingAvatarText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.white,
   },
@@ -1110,26 +1119,30 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   holdingName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginBottom: 2,
   },
   holdingShares: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
   },
   holdingRight: {
     alignItems: 'flex-end',
   },
   holdingValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginBottom: 2,
   },
   holdingChange: {
     fontSize: 14,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
 
@@ -1163,11 +1176,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   marketStatLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginBottom: 4,
   },
   marketStatValue: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
   },
@@ -1209,6 +1224,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   rankText: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.white,
   },
@@ -1222,12 +1238,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 12,
   },
   trendingAvatarText: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textSecondary,
   },
   trendingName: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginBottom: 4,
@@ -1235,6 +1253,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   trendingPrice: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
     marginBottom: 6,
@@ -1246,6 +1265,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   trendingBadgeText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 
@@ -1324,11 +1344,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   popularAvatarText: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
   popularName: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginBottom: 2,
@@ -1336,12 +1358,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   popularPrice: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.gray700,
     marginBottom: 2,
   },
   popularChange: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
 
@@ -1362,7 +1386,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 10,
   },
   newestBadgeText: {
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.white,
   },
@@ -1376,7 +1401,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 12,
   },
   newestAvatarText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.warning,
   },
@@ -1385,12 +1411,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   newestName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginBottom: 2,
   },
   newestMeta: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
   },
   newestRight: {
@@ -1398,12 +1426,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   newestPrice: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginBottom: 2,
   },
   newestChange: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
 
@@ -1419,6 +1449,7 @@ const makeStyles = (t) => StyleSheet.create({
   stockRank: {
     width: 24,
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textTertiary,
   },
@@ -1432,7 +1463,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 12,
   },
   stockAvatarText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -1441,12 +1473,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stockName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginBottom: 2,
   },
   stockMeta: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
   },
   stockRight: {
@@ -1454,6 +1488,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stockPrice: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     marginBottom: 4,
@@ -1465,6 +1500,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stockBadgeText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 
@@ -1478,6 +1514,7 @@ const makeStyles = (t) => StyleSheet.create({
   postContent: {},
   postText: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     lineHeight: 22,
     color: t.colors.textPrimary,
     marginBottom: 8,
@@ -1488,12 +1525,14 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   postAuthor: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
     color: t.colors.primary,
     fontWeight: '500',
   },
   postStats: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
   },
 

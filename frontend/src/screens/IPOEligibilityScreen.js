@@ -516,10 +516,11 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   content: {
@@ -533,13 +534,15 @@ const makeStyles = (t) => StyleSheet.create({
   },
   alreadyListedTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginTop: 20,
     marginBottom: 12,
   },
   alreadyListedDesc: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 30,
   },
@@ -550,12 +553,13 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
   },
   manageButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   progressCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -567,11 +571,13 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 16,
   },
   progressTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   progressPercent: {
     fontSize: 28,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   progressBarContainer: {
@@ -596,22 +602,25 @@ const makeStyles = (t) => StyleSheet.create({
   },
   eligibleText: {
     color: t.colors.success,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   notEligibleText: {
-    color: '#666',
+    color: t.colors.textSecondary,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     textAlign: 'center',
   },
   section: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 16,
   },
@@ -627,7 +636,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 8,
   },
   requirementTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   requirementBody: {
@@ -637,20 +647,24 @@ const makeStyles = (t) => StyleSheet.create({
   },
   requirementCurrent: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
   requirementDivider: {
-    fontSize: 16,
-    color: '#999',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginHorizontal: 8,
   },
   requirementRequired: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   requirementStatus: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   requirementProgress: {
@@ -670,8 +684,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 3,
   },
   remainingText: {
-    fontSize: 13,
-    color: '#999',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   actionButton: {
     flexDirection: 'row',
@@ -681,6 +696,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 14,
+    fontFamily: t.fonts.medium,
     color: t.colors.primary,
     fontWeight: '500',
   },
@@ -695,7 +711,8 @@ const makeStyles = (t) => StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textPrimary,
     lineHeight: 20,
   },
   applyButton: {
@@ -709,8 +726,9 @@ const makeStyles = (t) => StyleSheet.create({
     marginTop: 8,
   },
   applyButtonText: {
-    color: '#fff',
-    fontSize: 18,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   modalOverlay: {
@@ -719,21 +737,23 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
     maxHeight: '80%',
   },
   modalTitle: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: 8,
   },
   modalDesc: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 20,
@@ -743,16 +763,18 @@ const makeStyles = (t) => StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
+    color: t.colors.textPrimary,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: t.colors.border,
     borderRadius: 10,
     padding: 14,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     backgroundColor: t.colors.surface,
   },
   categoryContainer: {
@@ -764,8 +786,8 @@ const makeStyles = (t) => StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#fff',
+    borderColor: t.colors.border,
+    backgroundColor: t.colors.surface,
   },
   categoryChipActive: {
     backgroundColor: t.colors.primary,
@@ -773,10 +795,11 @@ const makeStyles = (t) => StyleSheet.create({
   },
   categoryChipText: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   categoryChipTextActive: {
-    color: '#fff',
+    color: t.colors.surface,
     fontWeight: '600',
   },
   estimateBox: {
@@ -786,12 +809,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 20,
   },
   estimateLabel: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 4,
   },
   estimateValue: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -807,8 +832,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.medium,
+    color: t.colors.textSecondary,
     fontWeight: '500',
   },
   confirmButton: {
@@ -822,8 +848,9 @@ const makeStyles = (t) => StyleSheet.create({
     opacity: 0.7,
   },
   confirmButtonText: {
-    fontSize: 16,
-    color: '#fff',
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
 });

@@ -344,7 +344,7 @@ export default function VirtualClaimScreen({ route, navigation }) {
 }
 
 const makeStyles = (t) => StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
+  container: { flex: 1, backgroundColor: t.colors.surface },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -388,7 +388,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.borderDark,
     borderRadius: 12,
     padding: 14,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textPrimary,
     backgroundColor: t.colors.background,
   },
@@ -456,7 +457,7 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.primary,
     alignItems: 'center',
   },
-  nextButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+  nextButtonText: { fontSize: 16, fontWeight: '600', color: t.colors.surface },
   submitButton: {
     flex: 2,
     paddingVertical: 16,
@@ -464,6 +465,6 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.success,
     alignItems: 'center',
   },
-  submitButtonText: { fontSize: 16, fontWeight: '600', color: '#fff' },
+  submitButtonText: { fontSize: 16, fontWeight: '600', color: t.colors.surface },
   buttonDisabled: { opacity: 0.6 },
 });

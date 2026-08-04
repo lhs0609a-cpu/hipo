@@ -139,11 +139,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   headerSubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
     marginTop: 4,
   },
@@ -153,10 +155,10 @@ const makeStyles = (t) => StyleSheet.create({
   productCard: {
     flex: 1,
     margin: 8,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -179,6 +181,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   productEmoji: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
   },
   discountBadge: {
     position: 'absolute',
@@ -190,8 +193,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 4,
   },
   discountText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   soldOutOverlay: {
@@ -205,8 +209,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   soldOutText: {
-    color: '#fff',
-    fontSize: 18,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   productInfo: {
@@ -214,13 +219,15 @@ const makeStyles = (t) => StyleSheet.create({
   },
   creatorName: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 4,
   },
   productName: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#333',
+    color: t.colors.textPrimary,
     marginBottom: 8,
     lineHeight: 20,
   },
@@ -231,13 +238,15 @@ const makeStyles = (t) => StyleSheet.create({
   },
   originalPrice: {
     fontSize: 12,
-    color: '#999',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     textDecorationLine: 'line-through',
   },
   productPrice: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#333',
+    color: t.colors.textPrimary,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -246,10 +255,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   ratingStar: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   ratingText: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginLeft: 4,
   },
   emptyContainer: {
@@ -260,11 +271,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
 });
 

@@ -234,6 +234,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   logo: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.bold,
     color: t.colors.primary,
     letterSpacing: t.typography.letterSpacing.tight,
@@ -241,6 +242,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tagline: {
     fontSize: t.typography.fontSize.base,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     fontWeight: t.typography.fontWeight.medium,
   },
@@ -254,6 +256,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   inputLabel: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.semibold,
     color: t.colors.textPrimary,
     marginBottom: t.spacing.sm,
@@ -275,10 +278,12 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: t.spacing.base,
     paddingVertical: t.spacing.base,
     fontSize: t.typography.fontSize.base,
+    fontFamily: t.fonts.regular,
     color: t.colors.textPrimary,
   },
   errorText: {
     fontSize: t.typography.fontSize.xs,
+    fontFamily: t.fonts.regular,
     color: t.colors.error,
     marginTop: t.spacing.xs,
     marginLeft: t.spacing.xs,
@@ -302,12 +307,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginHorizontal: t.spacing.base,
     color: t.colors.textTertiary,
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.medium,
   },
 
   // Google Button
   googleIcon: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.bold,
     color: t.colors.textPrimary,
   },
@@ -321,10 +328,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   footerText: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   signupLink: {
     fontSize: t.typography.fontSize.sm,
+    fontFamily: t.fonts.regular,
     color: t.colors.primary,
     fontWeight: t.typography.fontWeight.semibold,
   },

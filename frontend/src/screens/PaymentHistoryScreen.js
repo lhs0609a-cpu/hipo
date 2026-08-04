@@ -228,7 +228,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#FFF',
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
     borderBottomColor: t.colors.border
   },
@@ -244,6 +244,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     color: t.colors.textTertiary,
     fontWeight: '500'
   },
@@ -261,11 +262,11 @@ const makeStyles = (t) => StyleSheet.create({
     paddingBottom: 32
   },
   itemCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -283,19 +284,22 @@ const makeStyles = (t) => StyleSheet.create({
   },
   itemIcon: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     marginRight: 12
   },
   itemTitleContainer: {
     flex: 1
   },
   itemTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#333',
+    color: t.colors.textPrimary,
     marginBottom: 4
   },
   itemDate: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary
   },
   statusBadge: {
@@ -305,6 +309,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold'
   },
   itemDetails: {
@@ -319,15 +324,18 @@ const makeStyles = (t) => StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: '#666'
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary
   },
   detailValue: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#333'
+    color: t.colors.textPrimary
   },
   detailBonus: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.warning
   },
@@ -340,11 +348,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   detailLabelTotal: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#333'
+    color: t.colors.textPrimary
   },
   detailValueTotal: {
     fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.primary
   },
@@ -354,7 +364,7 @@ const makeStyles = (t) => StyleSheet.create({
     fontFamily: 'monospace'
   },
   transactionCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12
@@ -371,6 +381,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   transactionIcon: {
     fontSize: 20,
+    fontFamily: t.fonts.regular,
     marginRight: 12
   },
   transactionTitleContainer: {
@@ -378,16 +389,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   transactionTitle: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#333',
+    color: t.colors.textPrimary,
     marginBottom: 4
   },
   transactionDate: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary
   },
   transactionAmount: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold'
   },
   transactionBalance: {
@@ -398,12 +412,13 @@ const makeStyles = (t) => StyleSheet.create({
     borderTopColor: t.colors.backgroundSecondary
   },
   balanceLabel: {
-    fontSize: 13,
-    color: '#666'
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary
   },
   balanceValue: {
     fontSize: 13,
-    color: '#666',
+    color: t.colors.textSecondary,
     fontFamily: 'monospace'
   },
   emptyContainer: {
@@ -413,6 +428,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 16
   },
   emptyText: {

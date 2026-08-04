@@ -411,6 +411,7 @@ const makeStyles = (t) => StyleSheet.create({
   loadingText: {
     marginTop: 12,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   header: {
@@ -431,10 +432,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   backIcon: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -446,6 +449,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   addIcon: {
     fontSize: 28,
+    fontFamily: t.fonts.semibold,
     color: t.colors.primary,
     fontWeight: '600',
   },
@@ -467,6 +471,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -493,13 +498,15 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   strategyName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 4,
   },
   strategyAuthor: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   strategyBadges: {
@@ -514,11 +521,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   badgeText: {
     fontSize: 11,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
   strategyDescription: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     lineHeight: 20,
     marginBottom: 12,
@@ -540,11 +549,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 4,
   },
   statValue: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -562,6 +573,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   detailButtonText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -574,6 +586,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   followButtonText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.surface,
   },
@@ -584,6 +597,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   unfollowButtonText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -593,10 +607,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 60,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 24,
   },
@@ -608,6 +624,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyButtonText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.surface,
   },
@@ -631,12 +648,14 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: t.colors.border,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
   modalClose: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   modalBody: {
@@ -644,6 +663,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   label: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 8,
@@ -656,6 +676,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   textarea: {
@@ -681,7 +702,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.primary,
   },
   typeButtonText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -722,7 +744,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 20,
   },
   createButtonText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.surface,
   },

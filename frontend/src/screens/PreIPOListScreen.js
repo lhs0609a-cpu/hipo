@@ -323,29 +323,32 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: t.colors.textPrimary,
   },
   backButton: {
     padding: 4,
   },
   backButtonText: {
     fontSize: 24,
-    color: '#fff',
+    fontFamily: t.fonts.regular,
+    color: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   myInvestButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#333',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 16,
   },
   myInvestButtonText: {
     color: t.colors.success,
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   infoBanner: {
@@ -354,13 +357,15 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
   },
   infoBannerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
     marginBottom: 4,
   },
   infoBannerDesc: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: '#91B8FB',
   },
   tabContainer: {
@@ -380,7 +385,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    color: '#888',
+    fontFamily: t.fonts.medium,
+    color: t.colors.textTertiary,
     fontWeight: '500',
   },
   activeTabText: {
@@ -419,16 +425,18 @@ const makeStyles = (t) => StyleSheet.create({
     height: 44,
     borderRadius: 22,
     marginRight: 12,
-    backgroundColor: '#333',
+    backgroundColor: t.colors.textPrimary,
   },
   issuerName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   roundName: {
-    fontSize: 13,
-    color: '#888',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginTop: 2,
   },
   eligibilityBadge: {
@@ -438,11 +446,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   eligibilityText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   description: {
     fontSize: 14,
-    color: '#aaa',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textDisabled,
     marginBottom: 12,
     lineHeight: 20,
   },
@@ -452,7 +462,7 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 16,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderTopColor: t.colors.textPrimary,
   },
   priceItem: {
     alignItems: 'center',
@@ -460,22 +470,26 @@ const makeStyles = (t) => StyleSheet.create({
   },
   priceLabel: {
     fontSize: 12,
-    color: '#888',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginBottom: 4,
   },
   priceValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   expectedPrice: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#888',
+    color: t.colors.textTertiary,
     textDecorationLine: 'line-through',
   },
   discountRate: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.error,
   },
@@ -488,17 +502,19 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 6,
   },
   progressLabel: {
-    fontSize: 13,
-    color: '#888',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   progressPercent: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.success,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#333',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -511,18 +527,20 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#333',
+    borderTopColor: t.colors.textPrimary,
   },
   footerItem: {
     marginRight: 16,
   },
   footerLabel: {
     fontSize: 11,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   footerValue: {
-    fontSize: 13,
-    color: '#fff',
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
+    color: t.colors.surface,
     fontWeight: '500',
   },
   timeRemaining: {
@@ -534,6 +552,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   timeRemainingText: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     color: t.colors.success,
     fontWeight: '600',
   },
@@ -548,8 +567,9 @@ const makeStyles = (t) => StyleSheet.create({
   },
   earlyBirdText: {
     fontSize: 11,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   emptyContainer: {
     flex: 1,
@@ -559,17 +579,20 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#fff',
+    color: t.colors.surface,
     marginBottom: 8,
   },
   emptySubtitle: {
     fontSize: 14,
-    color: '#888',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   footerLoader: {
     paddingVertical: 16,

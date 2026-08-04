@@ -98,7 +98,7 @@ export default function LanguageSelectionScreen({ navigation }) {
 const makeStyles = (t) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
   header: {
     padding: 20,
@@ -108,13 +108,15 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#000',
+    color: t.colors.textPrimary,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   languageList: {
     padding: 16,
@@ -139,13 +141,15 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   languageFlag: {
-    fontSize: 32,
+    fontSize: 28,
+    fontFamily: t.fonts.regular,
     marginRight: 16,
   },
   languageName: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
-    color: '#333',
+    color: t.colors.textPrimary,
   },
   languageNameActive: {
     color: t.colors.successText,
@@ -160,8 +164,9 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'center',
   },
   checkmarkIcon: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   footer: {
@@ -170,7 +175,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: '#999',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     textAlign: 'center',
     lineHeight: 18,
   },

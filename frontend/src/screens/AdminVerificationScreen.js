@@ -532,12 +532,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statValue: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   tabScrollView: {
@@ -561,6 +563,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -600,19 +603,22 @@ const makeStyles = (t) => StyleSheet.create({
   avatarText: {
     color: t.colors.surface,
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   userDetails: {
     flex: 1,
   },
   userName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 4,
   },
   userOccupation: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   statusBadge: {
@@ -622,6 +628,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statusText: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   verificationInfo: {
@@ -652,17 +659,20 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.error,
   },
   scoreLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
   scoreValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
   scoreDecision: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   scoreContainerModal: {
@@ -672,13 +682,15 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   scoreValueLarge: {
-    fontSize: 32,
+    fontSize: 28,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 4,
   },
   scoreDecisionText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -690,17 +702,20 @@ const makeStyles = (t) => StyleSheet.create({
   },
   breakdownTitle: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 8,
   },
   breakdownText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     lineHeight: 20,
   },
   infoText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   actionButtons: {
@@ -718,6 +733,7 @@ const makeStyles = (t) => StyleSheet.create({
   approveButtonText: {
     color: t.colors.surface,
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   rejectButton: {
@@ -730,6 +746,7 @@ const makeStyles = (t) => StyleSheet.create({
   rejectButtonText: {
     color: t.colors.surface,
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   rejectionBox: {
@@ -740,12 +757,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   rejectionLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.error,
     marginBottom: 4,
   },
   rejectionText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   emptyContainer: {
@@ -756,10 +775,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
   },
@@ -778,11 +799,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
   closeButton: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   modalContent: {
@@ -796,13 +819,15 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 12,
   },
   detailLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textSecondary,
     marginBottom: 8,
   },
   detailValue: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
     lineHeight: 22,
   },
@@ -811,6 +836,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   linkText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.primary,
   },
   modalActions: {
@@ -841,12 +867,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   rejectModalTitle: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 8,
   },
   rejectModalDescription: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 16,
   },
@@ -857,6 +885,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
     height: 120,
     textAlignVertical: 'top',
@@ -877,7 +906,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   rejectModalCancelText: {
     color: t.colors.textSecondary,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   rejectModalConfirmButton: {
@@ -889,7 +919,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   rejectModalConfirmText: {
     color: t.colors.surface,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 });

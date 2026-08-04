@@ -298,7 +298,7 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 14, overflow: 'hidden',
   },
   avatarImg: { width: 52, height: 52 },
-  avatarText: { fontSize: 22, fontWeight: '700', color: '#fff' },
+  avatarText: { fontSize: 22, fontWeight: '700', color: t.colors.surface },
   cardInfo: { flex: 1 },
   cardName: { fontSize: 16, fontWeight: '700', color: t.colors.text },
   cardMeta: { fontSize: 13, color: t.colors.textSecondary, marginTop: 2 },
@@ -330,7 +330,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 14, paddingVertical: 16, paddingHorizontal: 40,
     marginTop: 28, width: '100%', alignItems: 'center',
   },
-  primaryBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  primaryBtnText: { color: t.colors.surface, fontSize: 16, fontWeight: '700' },
   secondaryBtn: { marginTop: 14, padding: 12 },
   secondaryBtnText: { color: t.colors.textSecondary, fontSize: 15 },
 });

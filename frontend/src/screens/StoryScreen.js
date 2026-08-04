@@ -189,8 +189,9 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   addStoryButton: {
     alignItems: 'center',
@@ -206,12 +207,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 8,
   },
   plusIcon: {
-    fontSize: 32,
+    fontSize: 28,
+    fontFamily: t.fonts.regular,
     color: t.colors.primary,
   },
   addStoryText: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   storiesList: {
     paddingHorizontal: 16,
@@ -232,13 +235,13 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.primary,
   },
   viewedRing: {
-    backgroundColor: '#ccc',
+    backgroundColor: t.colors.borderDark,
   },
   storyAvatar: {
     width: '100%',
     height: '100%',
     borderRadius: 30,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -249,12 +252,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   avatarText: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.primary,
   },
   storyUsername: {
     fontSize: 12,
-    color: '#333',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textPrimary,
     textAlign: 'center',
   },
   emptyContainer: {
@@ -264,12 +269,13 @@ const makeStyles = (t) => StyleSheet.create({
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   storyModal: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: t.colors.textPrimary,
   },
   storyHeader: {
     flexDirection: 'row',
@@ -287,24 +293,27 @@ const makeStyles = (t) => StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
   storyUserAvatarText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.primary,
   },
   storyUserName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#fff',
+    color: t.colors.surface,
   },
   closeButton: {
     fontSize: 24,
-    color: '#fff',
+    fontFamily: t.fonts.regular,
+    color: t.colors.surface,
     padding: 8,
   },
   storyContent: {
@@ -322,7 +331,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   storyText: {
     fontSize: 24,
-    color: '#fff',
+    fontFamily: t.fonts.regular,
+    color: t.colors.surface,
     textAlign: 'center',
     lineHeight: 36,
   },
@@ -339,7 +349,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 2,
   },
   progressSegmentActive: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
 });
 

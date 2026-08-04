@@ -587,11 +587,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   backText: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     fontWeight: '300',
     color: t.colors.textPrimary,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
   },
@@ -622,6 +624,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   filterTabText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -638,6 +641,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   loadingText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
 
@@ -653,7 +657,7 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -666,7 +670,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 16,
   },
   cardHeaderTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
   },
@@ -679,6 +684,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 
@@ -688,6 +694,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textTertiary,
     textTransform: 'uppercase',
@@ -702,10 +709,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   infoValue: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
     flexShrink: 1,
@@ -721,7 +730,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 8,
   },
   categoryBadgeText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.primary,
   },
@@ -742,7 +752,8 @@ const makeStyles = (t) => StyleSheet.create({
     alignSelf: 'flex-start',
   },
   verificationMethodText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.gray700,
   },
@@ -779,13 +790,15 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 6,
   },
   socialLinkLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textSecondary,
     width: 80,
   },
   socialLinkUrl: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.primary,
     flex: 1,
   },
@@ -804,13 +817,15 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 6,
   },
   documentIcon: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
     marginRight: 8,
   },
   documentName: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.primary,
     flex: 1,
     textDecorationLine: 'underline',
@@ -819,6 +834,7 @@ const makeStyles = (t) => StyleSheet.create({
   // Message
   messageText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textPrimary,
     lineHeight: 20,
     backgroundColor: t.colors.gray50,
@@ -835,12 +851,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   rejectionLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.danger,
     marginBottom: 4,
   },
   rejectionText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.danger,
     lineHeight: 18,
   },
@@ -856,6 +874,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   timestampText: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginTop: 4,
   },
@@ -879,6 +898,7 @@ const makeStyles = (t) => StyleSheet.create({
   approveButtonText: {
     color: t.colors.white,
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   rejectButton: {
@@ -889,6 +909,7 @@ const makeStyles = (t) => StyleSheet.create({
   rejectButtonText: {
     color: t.colors.danger,
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 
@@ -900,17 +921,20 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     color: t.colors.gray300,
     marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
     marginBottom: 8,
   },
   emptyDescription: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 20,
@@ -936,17 +960,20 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
   },
   modalClose: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     padding: 4,
     color: t.colors.textSecondary,
   },
   modalDescription: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     lineHeight: 20,
     marginBottom: 16,
@@ -957,12 +984,14 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.textPrimary,
     backgroundColor: t.colors.gray50,
     minHeight: 120,
   },
   charCount: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     textAlign: 'right',
     marginTop: 6,
@@ -981,6 +1010,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   modalCancelButtonText: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textSecondary,
   },
@@ -996,6 +1026,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   modalRejectButtonText: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.white,
   },

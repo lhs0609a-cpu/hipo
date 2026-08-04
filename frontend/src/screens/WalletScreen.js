@@ -324,16 +324,17 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   balanceCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     margin: 16,
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -341,12 +342,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   balanceLabel: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   balanceAmount: {
-    fontSize: 36,
+    fontSize: 34,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#333',
+    color: t.colors.textPrimary,
     marginTop: 8,
     marginBottom: 20,
   },
@@ -368,8 +371,9 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: '#E85D2A',
   },
   actionButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   transactionsSection: {
@@ -377,13 +381,14 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#333',
+    color: t.colors.textPrimary,
     marginBottom: 12,
   },
   transactionItem: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
@@ -401,22 +406,26 @@ const makeStyles = (t) => StyleSheet.create({
   },
   iconText: {
     fontSize: 20,
+    fontFamily: t.fonts.regular,
   },
   transactionInfo: {
     flex: 1,
   },
   transactionType: {
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
-    color: '#333',
+    color: t.colors.textPrimary,
   },
   transactionDate: {
-    fontSize: 13,
-    color: '#999',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginTop: 2,
   },
   transactionAmount: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   positive: {
@@ -431,11 +440,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   loginRequiredContainer: {
     flex: 1,
@@ -445,17 +456,20 @@ const makeStyles = (t) => StyleSheet.create({
   },
   loginRequiredIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 20,
   },
   loginRequiredTitle: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#333',
+    color: t.colors.textPrimary,
     marginBottom: 12,
   },
   loginRequiredText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 30,
@@ -467,8 +481,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 10,
   },
   loginButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   errorContainer: {
@@ -479,11 +494,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   errorIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   errorText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 20,
@@ -495,8 +512,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   modalOverlay: {
@@ -505,7 +523,7 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
@@ -513,8 +531,9 @@ const makeStyles = (t) => StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#333',
+    color: t.colors.textPrimary,
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -522,7 +541,8 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.background,
     borderRadius: 12,
     padding: 16,
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     textAlign: 'center',
     marginBottom: 16,
   },
@@ -540,6 +560,7 @@ const makeStyles = (t) => StyleSheet.create({
   quickAmountText: {
     color: t.colors.primary,
     fontSize: 14,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   modalButtons: {
@@ -554,8 +575,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#666',
-    fontSize: 16,
+    color: t.colors.textSecondary,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   confirmButton: {
@@ -574,8 +596,9 @@ const makeStyles = (t) => StyleSheet.create({
     opacity: 0.7,
   },
   confirmButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 });

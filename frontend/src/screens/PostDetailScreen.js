@@ -257,7 +257,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderBottomColor: t.colors.border,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.white,
   },
@@ -279,7 +280,8 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 12,
     textAlign: 'center',
@@ -309,12 +311,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginLeft: 12,
   },
   authorName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.white,
   },
   postDate: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 2,
   },
@@ -323,7 +327,8 @@ const makeStyles = (t) => StyleSheet.create({
     paddingBottom: 16,
   },
   content: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.white,
     lineHeight: 24,
   },
@@ -350,13 +355,15 @@ const makeStyles = (t) => StyleSheet.create({
   actionText: {
     marginLeft: 6,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   commentsSection: {
     padding: 16,
   },
   commentsTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.white,
     marginBottom: 16,
@@ -378,17 +385,20 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
   },
   commentAuthor: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.white,
   },
   commentText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 4,
   },
   commentDate: {
     fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textMuted,
     marginTop: 4,
   },

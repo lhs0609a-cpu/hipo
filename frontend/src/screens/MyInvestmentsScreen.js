@@ -197,7 +197,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 16,
   },
   summaryTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.surface,
     marginBottom: 16,
@@ -213,11 +214,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   summaryLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.surface,
     opacity: 0.8,
   },
   summaryValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.surface,
   },
@@ -228,16 +231,19 @@ const makeStyles = (t) => StyleSheet.create({
     marginVertical: 8,
   },
   summaryProfitLabel: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.surface,
   },
   summaryProfitValue: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   summaryProfitPercent: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginLeft: 8,
   },
@@ -270,22 +276,26 @@ const makeStyles = (t) => StyleSheet.create({
   avatarText: {
     color: t.colors.surface,
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   stockInfo: {
     gap: 4,
   },
   stockName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
   stockMeta: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   chevron: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginLeft: 8,
   },
@@ -299,10 +309,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   detailValue: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -314,6 +326,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   profitLabel: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -322,11 +335,13 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   profitValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   profitPercent: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginLeft: 4,
   },
@@ -338,16 +353,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 40,

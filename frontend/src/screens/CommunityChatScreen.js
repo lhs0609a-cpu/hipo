@@ -274,11 +274,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
   typingText: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 4,
   },
@@ -300,11 +302,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   senderName: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.primary,
   },
   timestamp: {
     fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   replyContainer: {
@@ -317,21 +321,25 @@ const makeStyles = (t) => StyleSheet.create({
   },
   replyText: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   messageContent: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
     lineHeight: 20,
   },
   aiWarning: {
     fontSize: 11,
+    fontFamily: t.fonts.semibold,
     color: t.colors.danger,
     marginTop: 8,
     fontWeight: '600',
   },
   pinnedBadge: {
     fontSize: 11,
+    fontFamily: t.fonts.semibold,
     color: t.colors.warning,
     marginTop: 4,
     fontWeight: '600',
@@ -347,6 +355,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   actionText: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   inputContainer: {
@@ -366,6 +375,7 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 8,
     maxHeight: 100,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
   },
   sendButton: {
     backgroundColor: t.colors.primary,
@@ -379,8 +389,9 @@ const makeStyles = (t) => StyleSheet.create({
     opacity: 0.5,
   },
   sendButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   replyPreview: {
@@ -397,16 +408,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   replyPreviewTitle: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.primary,
     marginBottom: 2,
   },
   replyPreviewText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   replyPreviewClose: {
     fontSize: 20,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     paddingHorizontal: 12,
   },
@@ -416,12 +430,14 @@ const makeStyles = (t) => StyleSheet.create({
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
 });

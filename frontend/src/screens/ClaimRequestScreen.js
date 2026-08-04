@@ -740,7 +740,8 @@ const makeStyles = (t) => StyleSheet.create({
     width: 40,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -759,6 +760,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   targetBannerText: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   targetBannerName: {
@@ -806,6 +808,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stepNumber: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textTertiary,
   },
@@ -814,6 +817,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   stepLabel: {
     fontSize: 11,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
     color: t.colors.textTertiary,
     textAlign: 'center',
@@ -851,13 +855,15 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   stepTitle: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.extrabold,
     fontWeight: '800',
     color: t.colors.text,
     marginBottom: 10,
   },
   stepDescription: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     lineHeight: 22,
     marginBottom: 28,
@@ -869,6 +875,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 8,
@@ -880,7 +887,8 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
   textArea: {
@@ -889,11 +897,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   inputHint: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginTop: 8,
   },
   charCount: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     textAlign: 'right',
     marginTop: 4,
@@ -935,6 +945,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   methodLabel: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 3,
@@ -943,7 +954,8 @@ const makeStyles = (t) => StyleSheet.create({
     color: t.colors.primary,
   },
   methodDescription: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     lineHeight: 18,
   },
@@ -972,12 +984,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 4,
   },
   sectionHint: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginBottom: 12,
     lineHeight: 18,
@@ -1007,6 +1021,7 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.text,
   },
 
@@ -1026,12 +1041,14 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 8,
   },
   summaryHeaderText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
   summaryValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     lineHeight: 22,
@@ -1043,7 +1060,8 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 8,
   },
   summaryLinkLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textTertiary,
     width: 70,
@@ -1051,7 +1069,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   summaryLinkValue: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.primary,
   },
 
@@ -1070,11 +1089,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   noticeTitle: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.warning,
   },
   noticeText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.gray700,
     lineHeight: 20,
     marginBottom: 2,
@@ -1103,6 +1124,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   backButtonText: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -1123,7 +1145,8 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.gray300,
   },
   nextButtonText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.surface,
   },
@@ -1141,7 +1164,8 @@ const makeStyles = (t) => StyleSheet.create({
     opacity: 0.6,
   },
   submitButtonText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.surface,
   },
@@ -1160,12 +1184,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   successTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.extrabold,
     fontWeight: '800',
     color: t.colors.text,
     marginBottom: 12,
   },
   successMessage: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
@@ -1182,20 +1208,23 @@ const makeStyles = (t) => StyleSheet.create({
     borderColor: t.colors.border,
   },
   codeLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
     marginBottom: 12,
   },
   codeValue: {
-    fontSize: 32,
+    fontSize: 28,
+    fontFamily: t.fonts.extrabold,
     fontWeight: '800',
     color: t.colors.primary,
     letterSpacing: 4,
     marginBottom: 12,
   },
   codeHint: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     textAlign: 'center',
     lineHeight: 20,
@@ -1213,7 +1242,8 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   successButtonText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.surface,
   },
@@ -1225,7 +1255,8 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   successButtonOutlineText: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textSecondary,
   },

@@ -448,25 +448,27 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: t.colors.textPrimary,
   },
   backButton: {
     padding: 4,
   },
   backButtonText: {
     fontSize: 24,
-    color: '#fff',
+    fontFamily: t.fonts.regular,
+    color: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: t.colors.textPrimary,
   },
   tab: {
     flex: 1,
@@ -480,7 +482,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    color: '#888',
+    fontFamily: t.fonts.medium,
+    color: t.colors.textTertiary,
     fontWeight: '500',
   },
   activeTabText: {
@@ -501,6 +504,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tierIcon: {
     fontSize: 40,
+    fontFamily: t.fonts.regular,
     marginRight: 12,
   },
   tierTitleArea: {
@@ -508,11 +512,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   myTierName: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   myTierScore: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
     marginTop: 2,
   },
@@ -526,9 +532,10 @@ const makeStyles = (t) => StyleSheet.create({
     opacity: 0.5,
   },
   updateButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontWeight: '600',
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
   },
   progressSection: {
     marginTop: 16,
@@ -543,12 +550,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   progressLabel: {
     color: 'rgba(255,255,255,0.8)',
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   progressPercent: {
-    color: '#fff',
+    color: t.colors.surface,
     fontWeight: 'bold',
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.bold,
   },
   progressBar: {
     height: 8,
@@ -558,12 +567,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 4,
   },
   scoreNeeded: {
     color: 'rgba(255,255,255,0.7)',
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 6,
     textAlign: 'right',
   },
@@ -575,9 +585,10 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   maxTierText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontWeight: 'bold',
     fontSize: 14,
+    fontFamily: t.fonts.bold,
   },
   noTierCard: {
     margin: 16,
@@ -588,17 +599,20 @@ const makeStyles = (t) => StyleSheet.create({
   },
   noTierIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 12,
   },
   noTierTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
     marginBottom: 8,
   },
   noTierDesc: {
     fontSize: 14,
-    color: '#888',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginBottom: 16,
   },
   ipoButton: {
@@ -608,18 +622,20 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 20,
   },
   ipoButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontWeight: '600',
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
   },
   section: {
     margin: 16,
     marginTop: 0,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
     marginBottom: 12,
   },
   breakdownItem: {
@@ -634,16 +650,18 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 6,
   },
   breakdownLabel: {
-    fontSize: 13,
-    color: '#888',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   breakdownScore: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.success,
   },
   breakdownBar: {
     height: 6,
-    backgroundColor: '#333',
+    backgroundColor: t.colors.textPrimary,
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -654,7 +672,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   breakdownValue: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginTop: 4,
     textAlign: 'right',
   },
@@ -669,26 +688,30 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tierItemIcon: {
     fontSize: 28,
+    fontFamily: t.fonts.regular,
     marginRight: 12,
   },
   tierItemInfo: {
     flex: 1,
   },
   tierItemName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   tierItemReq: {
     fontSize: 12,
-    color: '#aaa',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textDisabled,
   },
   tierItemStats: {
     alignItems: 'flex-end',
   },
   tierItemCount: {
     fontSize: 14,
-    color: '#fff',
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
   tierItemBenefits: {
@@ -701,7 +724,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   benefitText: {
     fontSize: 11,
-    color: '#aaa',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textDisabled,
     marginRight: 12,
   },
   rankingList: {
@@ -719,30 +743,32 @@ const makeStyles = (t) => StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#333',
+    backgroundColor: t.colors.textPrimary,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 10,
   },
   rankText: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   rankingAvatar: {
     width: 44,
     height: 44,
     borderRadius: 22,
     marginRight: 12,
-    backgroundColor: '#333',
+    backgroundColor: t.colors.textPrimary,
   },
   rankingInfo: {
     flex: 1,
   },
   rankingName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#fff',
+    color: t.colors.surface,
     marginBottom: 4,
   },
   rankingMeta: {
@@ -757,22 +783,26 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tierBadgeText: {
     fontSize: 11,
-    color: '#fff',
+    fontFamily: t.fonts.regular,
+    color: t.colors.surface,
   },
   rankingScore: {
     fontSize: 12,
-    color: '#888',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   rankingStats: {
     alignItems: 'flex-end',
   },
   rankingPrice: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#fff',
+    color: t.colors.surface,
   },
   rankingChange: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
   benefitsContainer: {
@@ -791,13 +821,15 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 16,
   },
   benefitTierIcon: {
-    fontSize: 32,
+    fontSize: 28,
+    fontFamily: t.fonts.regular,
     marginRight: 12,
   },
   benefitTierName: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   benefitCardBody: {
     padding: 16,
@@ -808,29 +840,33 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: t.colors.textPrimary,
   },
   benefitLabel: {
     fontSize: 14,
-    color: '#888',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   benefitValue: {
     fontSize: 14,
-    color: '#fff',
+    fontFamily: t.fonts.medium,
+    color: t.colors.surface,
     fontWeight: '500',
   },
   benefitsList: {
     marginTop: 12,
   },
   benefitsListTitle: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#888',
+    color: t.colors.textTertiary,
     marginBottom: 8,
   },
   benefitItem: {
-    fontSize: 13,
-    color: '#aaa',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textDisabled,
     marginBottom: 4,
   },
 });

@@ -373,17 +373,18 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   tabs: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: t.colors.borderLight,
   },
   tab: {
     flex: 1,
@@ -396,7 +397,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 15,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   activeTabText: {
     color: t.colors.primary,
@@ -417,11 +419,13 @@ const makeStyles = (t) => StyleSheet.create({
   totalAssetLabel: {
     color: 'rgba(255,255,255,0.8)',
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     marginBottom: 8,
   },
   totalAssetValue: {
-    color: '#fff',
-    fontSize: 32,
+    color: t.colors.surface,
+    fontSize: 28,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 20,
   },
@@ -433,15 +437,17 @@ const makeStyles = (t) => StyleSheet.create({
   assetItemLabel: {
     color: 'rgba(255,255,255,0.7)',
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginBottom: 4,
   },
   assetItemValue: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   profitCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -453,10 +459,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   profitLabel: {
     fontSize: 15,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   profitValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   profitUp: {
@@ -466,17 +474,19 @@ const makeStyles = (t) => StyleSheet.create({
     color: t.colors.primaryDark,
   },
   dividendValue: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.success,
   },
   holdingsSection: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 12,
   },
@@ -490,23 +500,27 @@ const makeStyles = (t) => StyleSheet.create({
   holdingLeft: {},
   holdingName: {
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
     marginBottom: 4,
   },
   holdingShares: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   holdingRight: {
     alignItems: 'flex-end',
   },
   holdingValue: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 4,
   },
   holdingProfit: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   sectorBar: {
@@ -519,11 +533,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   sectorName: {
     fontSize: 14,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   sectorPercent: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   sectorBarContainer: {
     height: 8,
@@ -536,11 +552,12 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 4,
   },
   sectorValue: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   sectorDetail: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -557,13 +574,15 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 8,
   },
   sectorDetailName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     flex: 1,
   },
   sectorDetailCount: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   sectorStock: {
     flexDirection: 'row',
@@ -575,11 +594,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   sectorStockName: {
     fontSize: 14,
-    color: '#333',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textPrimary,
   },
   sectorStockValue: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   dividendSummary: {
     flexDirection: 'row',
@@ -588,23 +609,25 @@ const makeStyles = (t) => StyleSheet.create({
   },
   dividendSummaryItem: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
   },
   dividendSummaryLabel: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   dividendSummaryValue: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.success,
   },
   dividendByStock: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
   },
@@ -618,20 +641,23 @@ const makeStyles = (t) => StyleSheet.create({
   dividendStockName: {
     flex: 1,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
   },
   dividendStockRight: {
     alignItems: 'flex-end',
   },
   dividendStockValue: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   dividendStockCount: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   tradeSummary: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -644,12 +670,14 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   tradeLabel: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   tradeValue: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   buyText: {
@@ -659,7 +687,7 @@ const makeStyles = (t) => StyleSheet.create({
     color: t.colors.primaryDark,
   },
   volumeSection: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -677,14 +705,16 @@ const makeStyles = (t) => StyleSheet.create({
   },
   volumeLabel: {
     fontSize: 15,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   volumeValue: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   topTradedSection: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
   },
@@ -698,16 +728,19 @@ const makeStyles = (t) => StyleSheet.create({
   topTradedRank: {
     width: 30,
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.primary,
   },
   topTradedName: {
     flex: 1,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
   },
   topTradedCount: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
 });
 

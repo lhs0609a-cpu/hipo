@@ -584,11 +584,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   backText: {
     fontSize: 24,
+    fontFamily: t.fonts.regular,
     fontWeight: '300',
     color: t.colors.textPrimary,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
   },
@@ -615,6 +617,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textTertiary,
   },
@@ -633,12 +636,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
+    fontFamily: t.fonts.extrabold,
     fontWeight: '800',
     color: t.colors.textPrimary,
     marginBottom: 4,
   },
   cardSubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginBottom: 20,
   },
@@ -646,7 +651,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 16,
   },
   fieldLabel: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
     marginBottom: 6,
@@ -658,6 +664,7 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.textPrimary,
     backgroundColor: t.colors.gray50,
   },
@@ -674,6 +681,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   inputSuffix: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
     marginLeft: 10,
@@ -693,10 +701,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   dropdownText: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.textPrimary,
   },
   dropdownArrow: {
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
   },
   dropdownList: {
@@ -718,6 +728,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   dropdownOptionText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textPrimary,
   },
   dropdownOptionTextActive: {
@@ -731,7 +742,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 20,
   },
   previewTitle: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textTertiary,
     marginBottom: 10,
@@ -756,6 +768,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   previewAvatarText: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.white,
   },
@@ -763,17 +776,20 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   previewName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
   },
   previewUsername: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginTop: 1,
   },
   previewMeta: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginTop: 2,
   },
@@ -782,12 +798,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   previewPrice: {
     fontSize: 15,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
     marginBottom: 4,
   },
   previewPending: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textTertiary,
     marginBottom: 4,
@@ -806,6 +824,7 @@ const makeStyles = (t) => StyleSheet.create({
   policyNoticeText: {
     flex: 1,
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     lineHeight: 18,
     color: t.colors.textSecondary,
   },
@@ -816,6 +835,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   trustBadgeText: {
     fontSize: 11,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 
@@ -831,7 +851,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   submitButtonText: {
     color: t.colors.white,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 
@@ -860,7 +881,8 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.primary,
   },
   filterChipText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -868,7 +890,8 @@ const makeStyles = (t) => StyleSheet.create({
     color: t.colors.white,
   },
   listCount: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     paddingHorizontal: 20,
     paddingTop: 12,
@@ -897,7 +920,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 14,
   },
   listItemAvatarText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
@@ -911,14 +935,16 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 2,
   },
   listItemName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.textPrimary,
     flex: 1,
     marginRight: 8,
   },
   listItemUsername: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
     marginBottom: 4,
   },
@@ -929,6 +955,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   listItemCategory: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   metaDot: {
@@ -940,11 +967,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   listItemPrice: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textPrimary,
   },
   listItemShareholders: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   listItemBadgeRow: {
@@ -958,6 +987,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   trustBadgeSmallText: {
     fontSize: 11,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 
@@ -969,6 +999,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   statusBadgeText: {
     fontSize: 11,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
 
@@ -982,6 +1013,7 @@ const makeStyles = (t) => StyleSheet.create({
   loadingText: {
     marginTop: 10,
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
   },
   emptyContainer: {
@@ -992,6 +1024,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyText: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     color: t.colors.textTertiary,
   },
   footerLoading: {

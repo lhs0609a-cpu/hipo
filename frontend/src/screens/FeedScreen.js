@@ -281,25 +281,28 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   headerSubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
     marginTop: 4,
   },
   createPostContainer: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: t.colors.borderLight,
   },
   postInput: {
     backgroundColor: t.colors.background,
     borderRadius: 12,
     padding: 12,
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     minHeight: 60,
     textAlignVertical: 'top',
   },
@@ -314,19 +317,20 @@ const makeStyles = (t) => StyleSheet.create({
     opacity: 0.7,
   },
   postButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   listContainer: {
     padding: 16,
   },
   postItem: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -347,8 +351,9 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 12,
   },
   avatarText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   authorInfo: {
@@ -356,17 +361,20 @@ const makeStyles = (t) => StyleSheet.create({
   },
   authorName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#333',
+    color: t.colors.textPrimary,
   },
   postTime: {
     fontSize: 12,
-    color: '#999',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginTop: 2,
   },
   postContent: {
     fontSize: 15,
-    color: '#333',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textPrimary,
     lineHeight: 22,
   },
   postImage: {
@@ -388,12 +396,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 24,
   },
   actionIcon: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     marginRight: 6,
   },
   actionText: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -401,16 +411,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   errorContainer: {
     flex: 1,
@@ -420,11 +433,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   errorIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   errorText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 20,
@@ -436,8 +451,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 });

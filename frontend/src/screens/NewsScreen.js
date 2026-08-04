@@ -416,12 +416,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   tabScrollView: {
@@ -445,6 +447,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.textSecondary,
   },
@@ -478,11 +481,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   newsLabelText: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.primary,
   },
   newsSource: {
     fontSize: 11,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   creatorTag: {
@@ -492,7 +497,8 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 8,
   },
   creatorTagText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
   },
@@ -507,6 +513,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   searchKeywordText: {
     fontSize: 11,
+    fontFamily: t.fonts.semibold,
     color: t.colors.warning,
     fontWeight: '600',
   },
@@ -519,6 +526,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   newsTitle: {
     fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     lineHeight: 24,
@@ -526,6 +534,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   newsDescription: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     lineHeight: 20,
     marginBottom: 12,
@@ -537,10 +546,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   newsAuthor: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   newsTime: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   newsFooter: {
@@ -550,6 +561,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   newsLink: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.primary,
     textAlign: 'center',
@@ -563,6 +575,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   postLabelText: {
     fontSize: 12,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.success,
   },
@@ -583,6 +596,7 @@ const makeStyles = (t) => StyleSheet.create({
   avatarText: {
     color: t.colors.surface,
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   authorInfo: {
@@ -596,7 +610,8 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 6,
   },
   authorName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
   },
@@ -609,6 +624,7 @@ const makeStyles = (t) => StyleSheet.create({
   shareholdingText: {
     color: t.colors.surface,
     fontSize: 11,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   followingBadge: {
@@ -620,6 +636,7 @@ const makeStyles = (t) => StyleSheet.create({
   followingText: {
     color: t.colors.surface,
     fontSize: 11,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   metaRow: {
@@ -634,15 +651,18 @@ const makeStyles = (t) => StyleSheet.create({
   },
   trustText: {
     color: t.colors.surface,
-    fontSize: 10,
+    fontSize: 11,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   timestamp: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
   },
   category: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.semibold,
     color: t.colors.primary,
     fontWeight: '600',
   },
@@ -651,6 +671,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   content: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     lineHeight: 22,
     color: t.colors.text,
   },
@@ -679,10 +700,12 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 6,
   },
   actionIcon: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
   },
   actionText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     color: t.colors.textSecondary,
     fontWeight: '600',
   },
@@ -694,16 +717,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.text,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 40,

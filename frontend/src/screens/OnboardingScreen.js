@@ -257,6 +257,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   logo: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.primary,
     letterSpacing: -0.5,
@@ -266,6 +267,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   skipText: {
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     color: t.colors.textSecondary,
     fontWeight: '500',
   },
@@ -292,12 +294,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   icon: {
     fontSize: 72,
+    fontFamily: t.fonts.regular,
   },
   textContainer: {
     alignItems: 'center',
   },
   title: {
     fontSize: 28,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
     color: t.colors.textPrimary,
     textAlign: 'center',
@@ -306,6 +310,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   subtitle: {
     fontSize: 17,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 26,
@@ -319,6 +324,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   highlight: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.primary,
   },
@@ -352,6 +358,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   nextButtonText: {
     fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.surface,
   },
@@ -363,11 +370,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   termsText: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textDisabled,
     lineHeight: 18,
   },
   termsLink: {
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     color: t.colors.primary,
     fontWeight: '600',
     lineHeight: 18,

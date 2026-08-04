@@ -206,12 +206,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 8,
   },
   date: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
     color: t.colors.textSecondary,
     marginBottom: 16,
   },
@@ -223,6 +225,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   introText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     lineHeight: 22,
     color: t.colors.surface,
   },
@@ -230,13 +233,15 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     color: t.colors.text,
     marginBottom: 12,
   },
   sectionContent: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     lineHeight: 22,
     color: t.colors.textSecondary,
   },
@@ -251,6 +256,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   footerText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     color: t.colors.textSecondary,
     textAlign: 'center',
     fontWeight: '600',

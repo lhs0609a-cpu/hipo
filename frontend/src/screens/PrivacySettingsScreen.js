@@ -387,7 +387,8 @@ const makeStyles = (t) => StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   headerRight: {
@@ -416,7 +417,8 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 10,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   sectionContent: {
@@ -440,6 +442,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   visibilityLabel: {
     fontSize: 12,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   settingItem: {
@@ -455,10 +458,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   settingLabel: {
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   settingDescription: {
     fontSize: 12,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
   actionItem: {
@@ -470,10 +475,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   actionLabel: {
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   deleteLabel: {
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   divider: {

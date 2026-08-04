@@ -289,6 +289,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   sectionTitle: {
     fontSize: t.typography.fontSize.lg,
+    fontFamily: t.fonts.regular,
     fontWeight: t.typography.fontWeight.bold,
     color: t.colors.textPrimary,
   },

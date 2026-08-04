@@ -175,17 +175,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   headerSubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
     marginTop: 4,
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     padding: 4,
     margin: 16,
     borderRadius: 12,
@@ -201,11 +203,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#666',
+    color: t.colors.textSecondary,
   },
   activeTabText: {
-    color: '#fff',
+    color: t.colors.surface,
   },
   listContainer: {
     paddingHorizontal: 16,
@@ -213,7 +216,7 @@ const makeStyles = (t) => StyleSheet.create({
   rankingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     padding: 14,
     borderRadius: 12,
     marginBottom: 10,
@@ -231,12 +234,14 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 12,
   },
   rankEmoji: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
   },
   rankNumber: {
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#666',
+    color: t.colors.textSecondary,
   },
   userAvatar: {
     width: 44,
@@ -248,8 +253,9 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 12,
   },
   avatarText: {
-    color: '#fff',
-    fontSize: 18,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   userInfo: {
@@ -257,12 +263,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   userName: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#333',
+    color: t.colors.textPrimary,
   },
   userStats: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginTop: 2,
   },
   rankValue: {
@@ -270,11 +278,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   valueText: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#333',
+    color: t.colors.textPrimary,
   },
   changeText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     marginTop: 2,
   },
   positive: {
@@ -289,11 +299,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
 });
 

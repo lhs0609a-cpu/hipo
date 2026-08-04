@@ -719,17 +719,18 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   content: {
     padding: 16,
   },
   tierCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
@@ -751,12 +752,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tierLabel: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 4,
   },
   stockPrice: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   upgradeButton: {
     flexDirection: 'row',
@@ -769,8 +772,9 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 8,
   },
   upgradeButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   requirementsBox: {
@@ -781,6 +785,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   requirementsTitle: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 12,
   },
@@ -791,10 +796,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   requirementLabel: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   requirementValue: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   lockupCard: {
@@ -810,28 +817,32 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   lockupTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.error,
     marginBottom: 4,
   },
   lockupDesc: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   lockupAmount: {
     fontSize: 12,
-    color: '#999',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
     marginTop: 4,
   },
   section: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 16,
   },
@@ -847,12 +858,14 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 12,
   },
   statLabel: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   statValue: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   menuItem: {
@@ -877,13 +890,15 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   menuTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 4,
   },
   menuDesc: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   modalOverlay: {
     flex: 1,
@@ -891,20 +906,22 @@ const makeStyles = (t) => StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 24,
   },
   modalTitle: {
     fontSize: 20,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 8,
   },
   modalDesc: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
     lineHeight: 20,
@@ -914,18 +931,21 @@ const makeStyles = (t) => StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: t.colors.border,
     borderRadius: 8,
     padding: 14,
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
   },
   estimatedAmount: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     color: t.colors.primary,
     textAlign: 'center',
@@ -944,8 +964,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   confirmButton: {
     flex: 1,
@@ -955,13 +976,14 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   confirmButtonText: {
-    fontSize: 16,
-    color: '#fff',
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
+    color: t.colors.surface,
     fontWeight: '600',
   },
   // 미상장 화면 스타일
   notListedCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 20,
     padding: 32,
     alignItems: 'center',
@@ -977,14 +999,16 @@ const makeStyles = (t) => StyleSheet.create({
     marginBottom: 20,
   },
   notListedTitle: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     marginBottom: 12,
     textAlign: 'center',
   },
   notListedDesc: {
     fontSize: 15,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -1004,11 +1028,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   eligibilityLabel: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#333',
+    color: t.colors.textPrimary,
   },
   eligibilityPercent: {
     fontSize: 20,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   progressBarContainer: {
@@ -1024,13 +1050,15 @@ const makeStyles = (t) => StyleSheet.create({
   },
   eligibleText: {
     fontSize: 14,
+    fontFamily: t.fonts.medium,
     color: t.colors.success,
     fontWeight: '500',
     textAlign: 'center',
   },
   notEligibleText: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     textAlign: 'center',
   },
   checkEligibilityButton: {
@@ -1045,17 +1073,19 @@ const makeStyles = (t) => StyleSheet.create({
     width: '100%',
   },
   checkEligibilityButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   benefitsSection: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
   },
   benefitsSectionTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 16,
   },
@@ -1078,13 +1108,15 @@ const makeStyles = (t) => StyleSheet.create({
     flex: 1,
   },
   benefitTitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 4,
   },
   benefitDesc: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     lineHeight: 18,
   },
 });

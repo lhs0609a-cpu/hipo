@@ -140,11 +140,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
-    color: '#fff',
+    color: t.colors.surface,
   },
   headerSubtitle: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     color: 'rgba(255,255,255,0.8)',
     marginTop: 4,
   },
@@ -159,11 +161,13 @@ const makeStyles = (t) => StyleSheet.create({
   },
   startStreamIcon: {
     fontSize: 20,
+    fontFamily: t.fonts.regular,
     marginRight: 8,
   },
   startStreamText: {
-    color: '#fff',
-    fontSize: 16,
+    color: t.colors.surface,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   streamsList: {
@@ -172,10 +176,10 @@ const makeStyles = (t) => StyleSheet.create({
   streamCard: {
     flex: 1,
     margin: 8,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: t.colors.textPrimary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -192,12 +196,13 @@ const makeStyles = (t) => StyleSheet.create({
   thumbnailPlaceholder: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#333',
+    backgroundColor: t.colors.textPrimary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   thumbnailEmoji: {
     fontSize: 40,
+    fontFamily: t.fonts.regular,
   },
   liveBadge: {
     position: 'absolute',
@@ -209,8 +214,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 4,
   },
   liveBadgeText: {
-    color: '#fff',
-    fontSize: 10,
+    color: t.colors.surface,
+    fontSize: 11,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   viewerCount: {
@@ -223,8 +229,9 @@ const makeStyles = (t) => StyleSheet.create({
     borderRadius: 4,
   },
   viewerCountText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   streamInfo: {
     flexDirection: 'row',
@@ -240,8 +247,9 @@ const makeStyles = (t) => StyleSheet.create({
     marginRight: 10,
   },
   hostAvatarText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 14,
+    fontFamily: t.fonts.bold,
     fontWeight: 'bold',
   },
   streamDetails: {
@@ -249,13 +257,15 @@ const makeStyles = (t) => StyleSheet.create({
   },
   streamTitle: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
-    color: '#333',
+    color: t.colors.textPrimary,
     marginBottom: 2,
   },
   hostName: {
     fontSize: 12,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   emptyContainer: {
     flex: 1,
@@ -265,16 +275,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#999',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
 });
 

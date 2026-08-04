@@ -242,15 +242,16 @@ const makeStyles = (t) => StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 10,
     paddingBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: t.colors.backgroundSecondary,
@@ -266,7 +267,8 @@ const makeStyles = (t) => StyleSheet.create({
   },
   tabText: {
     fontSize: 15,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   tabTextActive: {
     color: t.colors.primary,
@@ -285,14 +287,15 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyText: {
     marginTop: 16,
-    fontSize: 16,
-    color: '#999',
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textTertiary,
   },
   listContent: {
     padding: 16,
   },
   offeringCard: {
-    backgroundColor: '#fff',
+    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     marginBottom: 12,
@@ -316,12 +319,14 @@ const makeStyles = (t) => StyleSheet.create({
   },
   issuerName: {
     fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 2,
   },
   issuerCategory: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -333,8 +338,9 @@ const makeStyles = (t) => StyleSheet.create({
     backgroundColor: t.colors.successBackground,
   },
   statusText: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.medium,
+    color: t.colors.textSecondary,
     fontWeight: '500',
   },
   statusTextActive: {
@@ -353,10 +359,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   infoLabel: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   infoValue: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   cardFooter: {
@@ -372,10 +380,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   competitionLabel: {
     fontSize: 14,
-    color: '#666',
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   competitionRate: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   timeSection: {
@@ -384,8 +394,9 @@ const makeStyles = (t) => StyleSheet.create({
     gap: 6,
   },
   timeText: {
-    fontSize: 13,
-    color: '#666',
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
+    color: t.colors.textSecondary,
   },
   progressContainer: {
     height: 4,

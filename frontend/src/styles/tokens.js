@@ -13,6 +13,7 @@
  */
 
 import { Platform } from 'react-native';
+import { fonts, familyForWeight } from './fonts';
 
 // ─────────────────────────────────────────────────────────────
 // Primitive palettes
@@ -366,14 +367,51 @@ export const tabularNums = Platform.select({
 });
 
 export const typography = {
+  /**
+   * 서체는 styles/fonts.js 가 관리한다.
+   * Pretendard 파일이 있으면 그것을, 없으면 각 OS 의 한글 UI 기본 서체를 쓴다.
+   *
+   * RN 은 커스텀 폰트에서 fontWeight 로 굵기를 합성하지 못하므로
+   * 굵기마다 별도 패밀리 이름을 지정해야 한다.
+   */
   fontFamily: {
-    light: Platform.select({ ios: 'System', android: 'sans-serif-light', default: 'System' }),
-    regular: Platform.select({ ios: 'System', android: 'sans-serif', default: 'System' }),
-    medium: Platform.select({ ios: 'System', android: 'sans-serif-medium', default: 'System' }),
-    bold: Platform.select({ ios: 'System', android: 'sans-serif', default: 'System' }),
+    get light() { return fonts.regular; },
+    get regular() { return fonts.regular; },
+    get medium() { return fonts.medium; },
+    get semibold() { return fonts.semibold; },
+    get bold() { return fonts.bold; },
+    get extrabold() { return fonts.extrabold; },
   },
 
+  /**
+   * 타입 스케일.
+   *
+   * 각 단계에 역할이 있고, 역할이 없는 크기는 두지 않는다.
+   * 이전에는 스케일이 11/13/15/17/20/24/28 이었는데 화면에서는 14·16·18·12·10 이
+   * 더 많이 쓰여 스케일이 사실상 무시되고 있었다. 실사용 빈도와 iOS HIG 를 반영해
+   * 12·14 를 정식 단계로 올리고, 16·18·10 은 인접 단계로 흡수한다.
+   */
   fontSize: {
+    /** 법적 고지, 타임스탬프 */
+    footnote: 11,
+    /** 보조 라벨, 배지 */
+    caption: 12,
+    /** 리스트 부제, 설명문 */
+    callout: 14,
+    /** 본문 기본 */
+    body: 15,
+    /** 섹션·카드 제목, 버튼 */
+    headline: 17,
+    /** 화면 내 큰 제목 */
+    title3: 20,
+    title2: 24,
+    title1: 28,
+    /** 금액 강조 */
+    display: 34,
+    /** 히어로 금액 */
+    displayLarge: 40,
+
+    // ── 구 별칭 (기존 코드 호환) ──
     xs: 11,
     sm: 13,
     base: 15,
@@ -388,7 +426,7 @@ export const typography = {
   },
 
   fontWeight: {
-    light: '300',
+    light: '400',
     regular: '400',
     medium: '500',
     semibold: '600',
@@ -396,24 +434,31 @@ export const typography = {
     extrabold: '800',
   },
 
+  /**
+   * 행간 배수.
+   *
+   * 한글은 라틴보다 글자 높이가 크고 받침이 있어 같은 배수면 답답해 보인다.
+   * 라틴 기준(1.2~1.4)보다 한 단계씩 높게 잡는다.
+   */
   lineHeight: {
-    tight: 1.2,
-    snug: 1.35,
-    normal: 1.5,
-    relaxed: 1.65,
-    loose: 1.8,
+    tight: 1.3,
+    snug: 1.4,
+    normal: 1.55,
+    relaxed: 1.7,
+    loose: 1.85,
   },
 
   /**
-   * 한글은 라틴보다 자간이 넓게 보이므로 큰 텍스트일수록 더 조인다.
-   * 값 단위는 pt (RN letterSpacing).
+   * 자간(pt). 한글은 글자폭이 일정해 큰 글씨에서 성기게 보이므로 조여 준다.
+   * 작은 글씨는 0 또는 살짝 벌려 가독성을 확보한다.
    */
   letterSpacing: {
-    tighter: -0.8,
-    tight: -0.4,
+    tighter: -1.2,
+    tight: -0.6,
+    snug: -0.3,
     normal: 0,
-    wide: 0.4,
-    wider: 0.8,
+    wide: 0.3,
+    wider: 0.6,
   },
 };
 
@@ -421,28 +466,49 @@ export const typography = {
  * 완성된 텍스트 스타일 프리셋.
  * 개별 화면에서 fontSize/fontWeight 를 조합하는 대신 이 쪽을 쓰면 리듬이 유지된다.
  */
-export const textStyles = {
-  // 금액·수치 전용 (tabular)
-  displayNumber: { fontSize: 40, fontWeight: '700', letterSpacing: -1.4, lineHeight: 46, ...tabularNums },
-  headlineNumber: { fontSize: 28, fontWeight: '700', letterSpacing: -0.8, lineHeight: 34, ...tabularNums },
-  titleNumber: { fontSize: 20, fontWeight: '700', letterSpacing: -0.5, lineHeight: 26, ...tabularNums },
-  bodyNumber: { fontSize: 15, fontWeight: '600', letterSpacing: -0.2, lineHeight: 20, ...tabularNums },
-  captionNumber: { fontSize: 13, fontWeight: '600', letterSpacing: -0.1, lineHeight: 18, ...tabularNums },
+/**
+ * 프리셋 하나를 만든다. 굵기에 맞는 서체 패밀리를 자동으로 붙인다.
+ *
+ * getter 로 두는 이유: 폰트 로딩이 끝나면 fonts 의 값이 바뀌는데,
+ * 모듈 로드 시점에 고정해 버리면 폴백 폰트가 박제된다.
+ */
+const preset = (fontSize, weight, letterSpacing, lineHeight, extra = {}) => ({
+  fontSize,
+  fontWeight: weight,
+  letterSpacing,
+  lineHeight,
+  get fontFamily() {
+    return fonts[familyForWeight(weight)];
+  },
+  ...extra,
+});
 
-  // 텍스트
-  display: { fontSize: 34, fontWeight: '700', letterSpacing: -1.0, lineHeight: 42 },
-  title1: { fontSize: 28, fontWeight: '700', letterSpacing: -0.7, lineHeight: 36 },
-  title2: { fontSize: 24, fontWeight: '700', letterSpacing: -0.6, lineHeight: 32 },
-  title3: { fontSize: 20, fontWeight: '700', letterSpacing: -0.4, lineHeight: 28 },
-  headline: { fontSize: 17, fontWeight: '600', letterSpacing: -0.3, lineHeight: 24 },
-  body: { fontSize: 15, fontWeight: '400', letterSpacing: -0.2, lineHeight: 22 },
-  bodyStrong: { fontSize: 15, fontWeight: '600', letterSpacing: -0.2, lineHeight: 22 },
-  callout: { fontSize: 14, fontWeight: '400', letterSpacing: -0.1, lineHeight: 20 },
-  caption: { fontSize: 13, fontWeight: '400', letterSpacing: 0, lineHeight: 18 },
-  captionStrong: { fontSize: 13, fontWeight: '600', letterSpacing: 0, lineHeight: 18 },
-  footnote: { fontSize: 11, fontWeight: '500', letterSpacing: 0.1, lineHeight: 15 },
-  overline: { fontSize: 11, fontWeight: '700', letterSpacing: 0.6, lineHeight: 14 },
-  button: { fontSize: 16, fontWeight: '600', letterSpacing: -0.2 },
+export const textStyles = {
+  // ── 금액·수치 전용 (tabular numerals) ──
+  // 자릿수 폭을 고정해 값이 갱신될 때 숫자가 흔들리지 않게 한다
+  displayNumber: preset(40, '700', -1.4, 46, tabularNums),
+  headlineNumber: preset(28, '700', -0.8, 34, tabularNums),
+  titleNumber: preset(20, '700', -0.5, 26, tabularNums),
+  bodyNumber: preset(15, '600', -0.2, 20, tabularNums),
+  captionNumber: preset(13, '600', -0.1, 18, tabularNums),
+
+  // ── 텍스트 ──
+  // 행간은 한글 기준으로 라틴보다 넉넉하게, 자간은 클수록 더 조인다
+  display: preset(34, '800', -1.1, 44),
+  title1: preset(28, '700', -0.8, 38),
+  title2: preset(24, '700', -0.6, 33),
+  title3: preset(20, '700', -0.5, 28),
+  headline: preset(17, '600', -0.4, 24),
+  body: preset(15, '400', -0.3, 23),
+  bodyStrong: preset(15, '600', -0.3, 23),
+  callout: preset(14, '400', -0.2, 21),
+  calloutStrong: preset(14, '600', -0.2, 21),
+  caption: preset(12, '400', -0.1, 17),
+  captionStrong: preset(12, '600', -0.1, 17),
+  footnote: preset(11, '500', 0, 15),
+  /** 섹션 구분용 대문자 라벨 */
+  overline: preset(11, '700', 0.8, 14),
+  button: preset(16, '600', -0.3, 20),
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -571,6 +637,7 @@ export const zIndex = {
 };
 
 export default {
+  fonts,
   brand,
   neutral,
   bull,

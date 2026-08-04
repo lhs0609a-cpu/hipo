@@ -334,6 +334,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   createButton: {
@@ -344,6 +345,7 @@ const makeStyles = (t) => StyleSheet.create({
   createButtonText: {
     color: t.colors.surface,
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   feedToggle: {
@@ -362,6 +364,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   toggleText: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   toggleTextActive: {
@@ -400,16 +403,19 @@ const makeStyles = (t) => StyleSheet.create({
   },
   avatarText: {
     color: t.colors.surface,
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
   },
   authorName: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 2,
   },
   postDate: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: t.fonts.regular,
   },
   visibilityBadge: {
     paddingHorizontal: 12,
@@ -419,6 +425,7 @@ const makeStyles = (t) => StyleSheet.create({
   visibilityText: {
     color: t.colors.surface,
     fontSize: 12,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   postImage: {
@@ -430,7 +437,8 @@ const makeStyles = (t) => StyleSheet.create({
     paddingTop: 12,
   },
   content: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.regular,
     lineHeight: 24,
   },
   actionsContainer: {
@@ -448,10 +456,12 @@ const makeStyles = (t) => StyleSheet.create({
     paddingVertical: 4,
   },
   actionIcon: {
-    fontSize: 22,
+    fontSize: 24,
+    fontFamily: t.fonts.regular,
   },
   actionText: {
     fontSize: 15,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   lockedContent: {
@@ -461,10 +471,12 @@ const makeStyles = (t) => StyleSheet.create({
   },
   lockIcon: {
     fontSize: 48,
+    fontFamily: t.fonts.regular,
     marginBottom: 12,
   },
   lockText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
     textAlign: 'center',
   },
   emptyContainer: {
@@ -473,14 +485,17 @@ const makeStyles = (t) => StyleSheet.create({
   },
   emptyIcon: {
     fontSize: 64,
+    fontFamily: t.fonts.regular,
     marginBottom: 16,
   },
   emptyText: {
-    fontSize: 18,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
   },
 });

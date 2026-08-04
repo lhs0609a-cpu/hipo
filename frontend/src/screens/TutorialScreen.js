@@ -288,6 +288,7 @@ const makeStyles = (t) => StyleSheet.create({
   },
   skipText: {
     fontSize: 15,
+    fontFamily: t.fonts.medium,
     fontWeight: '500',
   },
   slide: {
@@ -344,18 +345,21 @@ const makeStyles = (t) => StyleSheet.create({
   },
   title: {
     fontSize: 28,
+    fontFamily: t.fonts.bold,
     fontWeight: '700',
     textAlign: 'center',
     marginBottom: 12,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 20,
   },
   description: {
     fontSize: 15,
+    fontFamily: t.fonts.regular,
     lineHeight: 24,
     textAlign: 'center',
   },
@@ -384,8 +388,9 @@ const makeStyles = (t) => StyleSheet.create({
     alignItems: 'center',
   },
   nextButtonText: {
-    color: '#fff',
+    color: t.colors.surface,
     fontSize: 17,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
   authHint: {
@@ -396,9 +401,11 @@ const makeStyles = (t) => StyleSheet.create({
   },
   authHintText: {
     fontSize: 14,
+    fontFamily: t.fonts.regular,
   },
   authHintLink: {
     fontSize: 14,
+    fontFamily: t.fonts.semibold,
     fontWeight: '600',
   },
 });
