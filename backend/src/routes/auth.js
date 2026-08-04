@@ -118,11 +118,42 @@ router.post('/logout', authenticateToken, authController.logout);
 router.post('/logout-all', authenticateToken, authController.logoutAll);
 
 /**
+ * 클라이언트(웹) 주소. 배포 시 CLIENT_URL 로 주입한다.
+ * 예전에는 localhost:8081 이 네 군데에 하드코딩돼 있어 배포 환경에서
+ * 로그인에 성공해도 로컬 주소로 튕겼다.
+ */
+const CLIENT_URL = (process.env.CLIENT_URL || 'http://localhost:8081').replace(/\/+$/, '');
+
+/** 앱 딥링크 스킴. frontend/app.json 의 expo.scheme 과 같아야 한다. */
+const APP_SCHEME = process.env.APP_SCHEME || 'hipo';
+
+/**
+ * Google OAuth 가 설정돼 있는지 확인한다.
+ *
+ * passport 전략은 GOOGLE_CLIENT_ID/SECRET/CALLBACK_URL 이 모두 있을 때만 등록된다
+ * (config/passport.js). 없는 상태로 passport.authenticate('google') 을 부르면
+ * "Unknown authentication strategy" 로 500 이 나거나 라우트가 없는 것처럼 보인다.
+ * 원인을 알 수 있는 메시지를 돌려준다.
+ */
+const requireGoogleOAuth = (req, res, next) => {
+  if (!passport._strategy || !passport._strategy('google')) {
+    return res.status(503).json({
+      error: 'Google 로그인이 설정되지 않았습니다',
+      detail:
+        '서버에 GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL 환경변수가 필요합니다',
+      code: 'GOOGLE_OAUTH_NOT_CONFIGURED',
+    });
+  }
+  return next();
+};
+
+/**
  * GET /api/auth/google
  * Google OAuth 인증 시작
  */
 router.get(
   '/google',
+  requireGoogleOAuth,
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
@@ -132,7 +163,11 @@ router.get(
  */
 router.get(
   '/google/callback',
-  passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:8081?error=auth_failed' }),
+  requireGoogleOAuth,
+  passport.authenticate('google', {
+    session: false,
+    failureRedirect: `${CLIENT_URL}?error=auth_failed`,
+  }),
   async (req, res) => {
     try {
       // Access Token과 Refresh Token 생성
@@ -147,8 +182,9 @@ router.get(
       const isMobile = /mobile/i.test(userAgent) && !/web/i.test(userAgent);
 
       if (isMobile) {
-        // React Native 앱의 경우 딥링크 사용
-        res.redirect(`myapp://auth?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+        // 앱으로 딥링크. 스킴은 app.json 의 expo.scheme 과 같아야 열린다
+        // (예전에는 존재하지 않는 myapp:// 을 써서 앱이 열리지 않았다)
+        res.redirect(`${APP_SCHEME}://auth?accessToken=${accessToken}&refreshToken=${refreshToken}`);
       } else {
         // 웹의 경우 토큰을 localStorage에 저장하고 홈으로 리다이렉트
         res.send(`
@@ -166,7 +202,7 @@ router.get(
               localStorage.setItem('token', '${accessToken}');
               localStorage.setItem('user', JSON.stringify(${JSON.stringify(req.user)}));
               // 홈 페이지로 리다이렉트
-              window.location.href = 'http://localhost:8081';
+              window.location.href = '${CLIENT_URL}';
             </script>
             <p>로그인 중...</p>
           </body>
@@ -175,7 +211,7 @@ router.get(
       }
     } catch (error) {
       console.error('Google OAuth 콜백 오류:', error);
-      res.redirect('http://localhost:8081?error=auth_failed');
+      res.redirect(`${CLIENT_URL}?error=auth_failed`);
     }
   }
 );

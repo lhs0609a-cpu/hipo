@@ -1,9 +1,16 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_URL } from '../config';
 
-// Backend API URL - Fly.io deployment
-const API_URL = 'https://hipo-backend.fly.dev/api';
-
+/**
+ * 앱에는 axios 인스턴스가 둘 있다 (api/client.js, 이 파일).
+ *
+ * 예전에는 이 파일만 `https://hipo-backend.fly.dev/api` 를 하드코딩하고 있어서,
+ * 12개 파일은 config 의 주소를, 54개 파일은 fly.io 주소를 바라보는 상태였다.
+ * 두 백엔드가 서로 다르니 어떤 기능은 되고 어떤 기능은 안 되는 증상이 났다.
+ *
+ * 이제 둘 다 config 를 쓴다. 주소는 EXPO_PUBLIC_API_URL 로 주입한다.
+ */
 const api = axios.create({
   baseURL: API_URL,
   timeout: 15000,

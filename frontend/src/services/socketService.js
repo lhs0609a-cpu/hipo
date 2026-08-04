@@ -1,8 +1,9 @@
 import { io } from 'socket.io-client';
+import { SOCKET_URL } from '../config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Backend Socket.IO URL
-const SOCKET_URL = 'https://hipo-backend.fly.dev';
+// 주소는 config 한 곳에서 관리한다 (EXPO_PUBLIC_API_URL / EXPO_PUBLIC_SOCKET_URL)
 
 class SocketService {
   constructor() {

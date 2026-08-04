@@ -14,7 +14,7 @@ import {
   Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { API_URL } from '../config';
+import { API_BASE } from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/Button';
 
@@ -85,9 +85,28 @@ export default function LoginScreen({ navigation }) {
 
   const handleGoogleLogin = async () => {
     try {
-      // API_URL에서 /api를 제거하고 Google OAuth 경로 추가
-      const baseUrl = API_URL.replace('/api', '');
-      const googleAuthUrl = `${baseUrl}/api/auth/google`;
+      const googleAuthUrl = `${API_BASE}/api/auth/google`;
+
+      /**
+       * 브라우저를 백엔드로 통째로 보내는 방식이라, 백엔드가 죽어 있으면
+       * 사용자는 원인을 알 수 없는 404 페이지를 보게 된다.
+       * (실제로 config 의 주소가 사라진 Vercel 프리뷰를 가리키고 있었다)
+       * 이동하기 전에 서버가 살아 있는지, OAuth 가 설정돼 있는지 먼저 확인한다.
+       */
+      try {
+        const probe = await fetch(googleAuthUrl, { method: 'HEAD', redirect: 'manual' });
+        if (probe.status === 503) {
+          const msg = '서버에 Google 로그인이 설정되지 않았습니다. 관리자에게 문의해주세요.';
+          Platform.OS === 'web' ? alert(msg) : Alert.alert('알림', msg);
+          return;
+        }
+      } catch (probeError) {
+        const msg =
+          `서버에 연결할 수 없습니다.\n\n주소: ${API_BASE}\n\n` +
+          '백엔드가 실행 중인지 확인해주세요.';
+        Platform.OS === 'web' ? alert(msg) : Alert.alert('연결 실패', msg);
+        return;
+      }
 
       if (Platform.OS === 'web') {
         window.location.href = googleAuthUrl;

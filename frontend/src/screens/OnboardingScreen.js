@@ -49,12 +49,34 @@ export default function OnboardingScreen({ navigation }) {
   const flatListRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
 
+  /**
+   * 슬라이드 폭은 실제 렌더된 리스트를 재서 쓴다.
+   *
+   * 예전에는 Dimensions 로 계산한 값을 그대로 썼는데, 앱이 AppFrame 안에서
+   * 좌우 테두리만큼 좁게 렌더되기 때문에 슬라이드 폭이 컨테이너와 어긋나
+   * pagingEnabled 가 어긋났다. onLayout 으로 재면 프레임·패딩·안전영역이
+   * 무엇이든 항상 정확하다.
+   */
+  const [slideWidth, setSlideWidth] = useState(getAppWidth());
+
+  const handleListLayout = (e) => {
+    const w = Math.round(e.nativeEvent.layout.width);
+    if (w > 0 && w !== slideWidth) setSlideWidth(w);
+  };
+
+  const goToIndex = (index) => {
+    // getItemLayout 이 있으면 렌더되지 않은 항목으로도 정확히 이동한다.
+    // 그래도 실패할 수 있으므로 offset 이동을 폴백으로 둔다.
+    flatListRef.current?.scrollToOffset({
+      offset: index * slideWidth,
+      animated: true,
+    });
+    setCurrentIndex(index);
+  };
+
   const handleNext = async () => {
     if (currentIndex < onboardingData.length - 1) {
-      flatListRef.current?.scrollToIndex({
-        index: currentIndex + 1,
-        animated: true,
-      });
+      goToIndex(currentIndex + 1);
     } else {
       await completeOnboarding();
     }
@@ -80,11 +102,25 @@ export default function OnboardingScreen({ navigation }) {
     }
   }).current;
 
+  /**
+   * viewabilityConfig 는 반드시 고정 참조여야 한다.
+   * 인라인 객체로 두면 렌더마다 새 객체가 되어 VirtualizedList 가
+   * "Changing viewabilityConfig on the fly is not supported" 로 던진다.
+   */
+  const viewabilityConfig = useRef({ viewAreaCoveragePercentThreshold: 50 }).current;
+
+  /** scrollToIndex 가 정확히 동작하려면 항목 크기를 미리 알려줘야 한다 */
+  const getItemLayout = (_, index) => ({
+    length: slideWidth,
+    offset: slideWidth * index,
+    index,
+  });
+
   const renderItem = ({ item, index }) => {
     const inputRange = [
-      (index - 1) * width,
-      index * width,
-      (index + 1) * width,
+      (index - 1) * slideWidth,
+      index * slideWidth,
+      (index + 1) * slideWidth,
     ];
 
     const scale = scrollX.interpolate({
@@ -100,7 +136,7 @@ export default function OnboardingScreen({ navigation }) {
     });
 
     return (
-      <View style={styles.slide}>
+      <View style={[styles.slide, { width: slideWidth }]}>
         <Animated.View style={[styles.iconContainer, { transform: [{ scale }], opacity }]}>
           <Text style={styles.icon}>{item.icon}</Text>
         </Animated.View>
@@ -121,9 +157,9 @@ export default function OnboardingScreen({ navigation }) {
       <View style={styles.dotsContainer}>
         {onboardingData.map((_, index) => {
           const inputRange = [
-            (index - 1) * width,
-            index * width,
-            (index + 1) * width,
+            (index - 1) * slideWidth,
+            index * slideWidth,
+            (index + 1) * slideWidth,
           ];
 
           const dotWidth = scrollX.interpolate({
@@ -178,6 +214,8 @@ export default function OnboardingScreen({ navigation }) {
         {/* 슬라이드 */}
         <Animated.FlatList
           ref={flatListRef}
+          style={styles.list}
+          onLayout={handleListLayout}
           data={onboardingData}
           renderItem={renderItem}
           keyExtractor={(item) => item.id}
@@ -186,10 +224,20 @@ export default function OnboardingScreen({ navigation }) {
           showsHorizontalScrollIndicator={false}
           onScroll={Animated.event(
             [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            { useNativeDriver: true }
+            // 점 너비(width)를 애니메이션하므로 JS 드라이버가 필요하다.
+            // react-native-web 은 스크롤에 네이티브 드라이버를 지원하지도 않는다.
+            { useNativeDriver: false }
           )}
           onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={{ viewAreaCoveragePercentThreshold: 50 }}
+          viewabilityConfig={viewabilityConfig}
+          getItemLayout={getItemLayout}
+          onScrollToIndexFailed={({ index }) => {
+            // 렌더되지 않은 항목으로 점프할 때의 안전망
+            flatListRef.current?.scrollToOffset({
+              offset: index * slideWidth,
+              animated: true,
+            });
+          }}
           scrollEventThrottle={16}
         />
 
@@ -271,8 +319,10 @@ const makeStyles = (t) => StyleSheet.create({
     color: t.colors.textSecondary,
     fontWeight: '500',
   },
+  list: {
+    flex: 1,
+  },
   slide: {
-    width,
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
