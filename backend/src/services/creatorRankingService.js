@@ -1,4 +1,4 @@
-const { User, Stock, Holding, Follow, Post, sequelize } = require('../models');
+const { User, Stock, Holding, Follow, Post } = require('../models');
 const { Op } = require('sequelize');
 
 class CreatorRankingService {
@@ -83,15 +83,17 @@ class CreatorRankingService {
         where: { userId }
       });
 
-      // 게시글 좋아요 합계
-      const postLikesResult = await sequelize.query(
-        `SELECT SUM(likesCount) as totalLikes FROM posts WHERE userId = ?`,
-        {
-          replacements: [userId],
-          type: sequelize.QueryTypes.SELECT
-        }
-      );
-      const totalLikes = postLikesResult[0]?.totalLikes || 0;
+      /**
+       * 게시글 좋아요 합계.
+       *
+       * 예전에는 raw SQL 이었는데 두 가지가 잘못돼 있었다.
+       *  - underscored: true 라 실제 컬럼은 likes_count / user_id 인데
+       *    camelCase 로 조회해 PostgreSQL 에서 컬럼을 찾지 못했다
+       *  - 테이블을 스키마 없이 참조해, 전용 스키마로 옮기면 깨진다
+       *
+       * 모델 집계를 쓰면 컬럼 매핑과 스키마가 모두 자동으로 처리된다.
+       */
+      const totalLikes = (await Post.sum('likesCount', { where: { userId } })) || 0;
 
       // 시가총액
       const marketCap = parseFloat(stock.marketCapTotal || 0);

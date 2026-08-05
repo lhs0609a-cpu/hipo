@@ -240,20 +240,36 @@ function add404Handler() {
 // Start server
 async function startServer() {
   try {
-    const { testConnection, sequelize } = require('./src/config/database');
+    const {
+      testConnection,
+      sequelize,
+      ensureSchema,
+      DB_SCHEMA,
+      usePostgres,
+    } = require('./src/config/database');
 
     // 1. 데이터베이스 연결 테스트
     const dbConnected = await testConnection();
 
-    // 2. 테이블 동기화 (먼저!)
+    // 2. 테이블 동기화
     if (dbConnected) {
-      // 프로덕션에서는 alter 없이 동기화 (마이그레이션 사용 권장)
-      if (process.env.NODE_ENV === 'production') {
-        await sequelize.sync();
-      } else {
-        await sequelize.sync({ alter: true });
-      }
-      console.log('📊 Database synchronized');
+      // 스키마를 먼저 만든다. sync() 는 테이블만 만들고 스키마는 만들지 않는다.
+      await ensureSchema();
+
+      /**
+       * alter 는 기존 테이블 구조를 모델에 맞춰 바꾼다.
+       *
+       * HIPO 는 다른 앱과 같은 PostgreSQL 인스턴스를 공유할 수 있으므로
+       * (스키마로 격리하지만) 프로덕션에서는 절대 켜지 않는다.
+       * 개발에서도 명시적으로 끌 수 있게 DB_SYNC_ALTER=false 를 둔다.
+       */
+      const isProduction = process.env.NODE_ENV === 'production';
+      const allowAlter = !isProduction && process.env.DB_SYNC_ALTER !== 'false';
+
+      await sequelize.sync(allowAlter ? { alter: true } : undefined);
+
+      const where = usePostgres ? `스키마 ${DB_SCHEMA}` : 'SQLite';
+      console.log(`📊 Database synchronized (${where}${allowAlter ? ', alter' : ''})`);
     }
 
     // 3. Routes 로드 (DB 동기화 후)
