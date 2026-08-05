@@ -8,7 +8,9 @@ module.exports = (sequelize) => {
     autoIncrement: true
   },
   userId: {
-    type: DataTypes.INTEGER,
+    // users.id 가 UUID 이므로 참조 컬럼도 UUID 여야 한다.
+    // INTEGER 로 두면 PostgreSQL 이 FK 제약을 만들지 못해 테이블 생성이 실패한다.
+    type: DataTypes.UUID,
     allowNull: false,
     field: 'user_id',
     references: {

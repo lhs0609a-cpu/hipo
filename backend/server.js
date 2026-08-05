@@ -33,22 +33,36 @@ if (process.env.ADDITIONAL_CORS_ORIGINS) {
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // 개발 환경에서는 origin이 없는 요청(Postman 등) 허용
-    if (!origin && process.env.NODE_ENV !== 'production') {
+    /**
+     * Origin 이 없는 요청은 허용한다.
+     *
+     * CORS 는 브라우저가 교차 출처 요청을 막기 위한 장치다. Origin 헤더가
+     * 아예 없는 요청은 브라우저가 보낸 게 아니므로 CORS 로 막을 대상이 아니다.
+     *  - Fly 헬스체크 (/health)
+     *  - React Native 앱 (브라우저가 아니라 Origin 을 보내지 않는다)
+     *  - 서버 간 호출, curl, Postman
+     *
+     * 예전에는 프로덕션에서 이걸 전부 차단해, 배포하자마자 헬스체크가
+     * 30초마다 실패하고 앱도 API 를 못 불렀다.
+     * 실제 접근 제어는 CORS 가 아니라 인증 미들웨어가 한다.
+     */
+    if (!origin) {
       return callback(null, true);
     }
+
     if (ALLOWED_ORIGINS.includes(origin)) {
-      callback(null, true);
-    } else if (process.env.NODE_ENV !== 'production') {
-      // 개발 환경에서는 로컬호스트 허용
-      if (origin && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
-        callback(null, true);
-      } else {
-        callback(new Error('CORS policy violation'));
-      }
-    } else {
-      callback(new Error('CORS policy violation'));
+      return callback(null, true);
     }
+
+    // 개발 환경에서는 로컬호스트를 열어 둔다
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      (origin.includes('localhost') || origin.includes('127.0.0.1'))
+    ) {
+      return callback(null, true);
+    }
+
+    return callback(new Error('CORS policy violation'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -109,6 +123,35 @@ app.get('/', (req, res) => {
 });
 
 // Function to load routes after database is ready
+/**
+ * 라우트 하나를 등록한다. 실패해도 나머지 라우트는 살린다.
+ *
+ * 예전에는 57개 라우트가 하나의 try 블록 안에 있었다. 그래서 37번째인
+ * 결제 라우트가 토스페이먼츠 키 없음으로 던지면 그 뒤 20개가 통째로
+ * 등록되지 않았고, 원인과 무관한 API 들이 404 를 냈다.
+ *
+ * 선택적 연동(결제·외부 API)이 빠졌다고 앱 전체가 마비돼서는 안 된다.
+ */
+const failedRoutes = [];
+
+function mountRoute(app, mountPath, loader) {
+  try {
+    app.use(mountPath, loader());
+  } catch (error) {
+    failedRoutes.push({ path: mountPath, reason: error.message });
+    console.error(`⚠️ 라우트 등록 실패 ${mountPath}: ${error.message}`);
+
+    // 해당 경로만 원인을 알려주는 503 을 돌려준다 (조용한 404 방지)
+    app.use(mountPath, (req, res) => {
+      res.status(503).json({
+        error: '이 기능은 현재 사용할 수 없습니다',
+        detail: error.message,
+        code: 'ROUTE_UNAVAILABLE',
+      });
+    });
+  }
+}
+
 function loadRoutes() {
   try {
     const passport = require('./src/config/passport');
@@ -154,7 +197,8 @@ function loadRoutes() {
     app.use('/api/competitions', require('./src/routes/competition'));
     app.use('/api/news', require('./src/routes/news'));
     app.use('/api/verification', require('./src/routes/verification'));
-    app.use('/api/payment', require('./src/routes/payment'));
+    // 토스페이먼츠 키가 없으면 이 라우트만 503 이 되고 나머지는 정상 동작한다
+    mountRoute(app, '/api/payment', () => require('./src/routes/payment'));
     app.use('/api/errors', require('./src/routes/error'));
     app.use('/api/feedback', require('./src/routes/feedback'));
     app.use('/api/creator-rankings', require('./src/routes/creatorRanking'));
@@ -198,7 +242,14 @@ function loadRoutes() {
     // === 가상 셀럽 사전상장 라우트 ===
     app.use('/api/virtual-celebrity', require('./src/routes/virtualCelebrity'));
 
-    console.log('✅ All routes loaded successfully');
+    if (failedRoutes.length > 0) {
+      console.warn(
+        `⚠️ 라우트 ${failedRoutes.length}개는 사용 불가 상태로 등록됨: ` +
+          failedRoutes.map((f) => f.path).join(', ')
+      );
+    } else {
+      console.log('✅ All routes loaded successfully');
+    }
     return true;
   } catch (error) {
     // 프로덕션에서는 스택 트레이스 로깅 제외
@@ -253,6 +304,18 @@ async function startServer() {
 
     // 2. 테이블 동기화
     if (dbConnected) {
+      /**
+       * 모델을 먼저 등록한다.
+       *
+       * sequelize.sync() 는 "그 시점에 등록된 모델"만 만든다. 모델은
+       * src/models/index.js 가 require 될 때 등록되는데, 예전에는 그게
+       * loadRoutes() → 컨트롤러 → models 순서로 sync() **뒤**에 일어났다.
+       * 그래서 sync() 는 모델 0개를 대상으로 아무 것도 만들지 않고
+       * "Database synchronized" 만 찍었고, 실제 요청은 42P01(relation does
+       * not exist)로 전부 500 이 났다.
+       */
+      require('./src/models');
+
       // 스키마를 먼저 만든다. sync() 는 테이블만 만들고 스키마는 만들지 않는다.
       await ensureSchema();
 
@@ -266,10 +329,19 @@ async function startServer() {
       const isProduction = process.env.NODE_ENV === 'production';
       const allowAlter = !isProduction && process.env.DB_SYNC_ALTER !== 'false';
 
+      const modelCount = Object.keys(sequelize.models).length;
+      if (modelCount === 0) {
+        // 여기 걸리면 모델 등록이 또 깨진 것이다. 조용히 넘어가면
+        // 테이블 없이 기동해 모든 API 가 500 이 된다.
+        throw new Error('등록된 모델이 0개입니다. src/models 로드 순서를 확인하세요.');
+      }
+
       await sequelize.sync(allowAlter ? { alter: true } : undefined);
 
       const where = usePostgres ? `스키마 ${DB_SCHEMA}` : 'SQLite';
-      console.log(`📊 Database synchronized (${where}${allowAlter ? ', alter' : ''})`);
+      console.log(
+        `📊 Database synchronized (${where}, 모델 ${modelCount}개${allowAlter ? ', alter' : ''})`
+      );
     }
 
     // 3. Routes 로드 (DB 동기화 후)

@@ -12,7 +12,7 @@ module.exports = (sequelize) => {
       allowNull: false,
       unique: true,
       references: {
-        model: 'Users',
+        model: 'users',
         key: 'id',
       },
       field: 'user_id',

@@ -20,12 +20,24 @@ const postgresUrl = process.env.DATABASE_URL || process.env.POSTGRES_URL;
 const DB_SCHEMA = (process.env.DB_SCHEMA || 'hipo').trim();
 const usePostgres = Boolean(postgresUrl);
 
-/** 모든 모델에 공통 적용되는 정의 */
+/**
+ * 모든 모델에 공통 적용되는 정의.
+ *
+ * ⚠️ createdAt/updatedAt 을 여기서 이름 바꾸지 말 것.
+ *
+ * 예전에는 `createdAt: 'created_at'` 이 있었다. 이 옵션은 **컬럼명이 아니라
+ * 속성명 자체**를 바꾼다. 그래서 모델 속성이 created_at 이 되어,
+ * 코드 곳곳의 `order: [['createdAt','DESC']]` (83곳)가
+ * "column Model.createdAt does not exist" 로 전부 실패했다.
+ *
+ * underscored: true 만 두면 속성은 createdAt, 컬럼은 created_at 이 되어
+ * 양쪽 표기가 모두 동작한다.
+ *  - 'createdAt'  → 속성으로 인식되어 created_at 컬럼에 매핑
+ *  - 'created_at' → 속성엔 없지만 실제 컬럼이라 그대로 통과
+ */
 const commonDefine = {
   timestamps: true,
   underscored: true,
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
   // PostgreSQL 에서만 스키마를 붙인다
   ...(usePostgres ? { schema: DB_SCHEMA } : {}),
 };

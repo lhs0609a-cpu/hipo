@@ -520,7 +520,7 @@ exports.getUserGrowthChart = async (req, res) => {
     // 날짜별 신규 가입자 수
     const dailySignups = await User.findAll({
       attributes: [
-        [sequelize.fn('DATE', sequelize.col('createdAt')), 'date'],
+        [sequelize.fn('DATE', sequelize.col('created_at')), 'date'],
         [sequelize.fn('COUNT', sequelize.col('id')), 'count']
       ],
       where: {
@@ -528,8 +528,8 @@ exports.getUserGrowthChart = async (req, res) => {
           [Op.gte]: daysAgo
         }
       },
-      group: [sequelize.fn('DATE', sequelize.col('createdAt'))],
-      order: [[sequelize.fn('DATE', sequelize.col('createdAt')), 'ASC']]
+      group: [sequelize.fn('DATE', sequelize.col('created_at'))],
+      order: [[sequelize.fn('DATE', sequelize.col('created_at')), 'ASC']]
     });
 
     // 모든 날짜에 대해 0으로 초기화
@@ -569,7 +569,7 @@ exports.getTransactionVolumeChart = async (req, res) => {
 
     const dailyTransactions = await StockTransaction.findAll({
       attributes: [
-        [sequelize.fn('DATE', sequelize.col('createdAt')), 'date'],
+        [sequelize.fn('DATE', sequelize.col('created_at')), 'date'],
         [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
         [sequelize.fn('SUM', sequelize.col('totalAmount')), 'volume']
       ],
@@ -578,8 +578,8 @@ exports.getTransactionVolumeChart = async (req, res) => {
           [Op.gte]: daysAgo
         }
       },
-      group: [sequelize.fn('DATE', sequelize.col('createdAt'))],
-      order: [[sequelize.fn('DATE', sequelize.col('createdAt')), 'ASC']]
+      group: [sequelize.fn('DATE', sequelize.col('created_at'))],
+      order: [[sequelize.fn('DATE', sequelize.col('created_at')), 'ASC']]
     });
 
     const chartData = [];
@@ -620,7 +620,7 @@ exports.getCoinFlowChart = async (req, res) => {
     // 일별 발행량 (EARN)
     const dailyEarned = await CoinTransaction.findAll({
       attributes: [
-        [sequelize.fn('DATE', sequelize.col('createdAt')), 'date'],
+        [sequelize.fn('DATE', sequelize.col('created_at')), 'date'],
         [sequelize.fn('SUM', sequelize.col('amount')), 'amount']
       ],
       where: {
@@ -629,14 +629,14 @@ exports.getCoinFlowChart = async (req, res) => {
           [Op.gte]: daysAgo
         }
       },
-      group: [sequelize.fn('DATE', sequelize.col('createdAt'))],
-      order: [[sequelize.fn('DATE', sequelize.col('createdAt')), 'ASC']]
+      group: [sequelize.fn('DATE', sequelize.col('created_at'))],
+      order: [[sequelize.fn('DATE', sequelize.col('created_at')), 'ASC']]
     });
 
     // 일별 사용량 (SPEND)
     const dailySpent = await CoinTransaction.findAll({
       attributes: [
-        [sequelize.fn('DATE', sequelize.col('createdAt')), 'date'],
+        [sequelize.fn('DATE', sequelize.col('created_at')), 'date'],
         [sequelize.fn('SUM', sequelize.col('amount')), 'amount']
       ],
       where: {
@@ -645,8 +645,8 @@ exports.getCoinFlowChart = async (req, res) => {
           [Op.gte]: daysAgo
         }
       },
-      group: [sequelize.fn('DATE', sequelize.col('createdAt'))],
-      order: [[sequelize.fn('DATE', sequelize.col('createdAt')), 'ASC']]
+      group: [sequelize.fn('DATE', sequelize.col('created_at'))],
+      order: [[sequelize.fn('DATE', sequelize.col('created_at')), 'ASC']]
     });
 
     const chartData = [];

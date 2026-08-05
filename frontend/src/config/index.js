@@ -14,8 +14,8 @@
  * ## 지금 방식 (우선순위 순)
  *
  *  1. EXPO_PUBLIC_API_URL 환경변수 — 배포 때 주입한다. 코드 수정 불필요
- *  2. 웹에서 같은 도메인 — 프론트와 백엔드를 한 도메인에 올린 경우 자동으로 맞는다
- *  3. 개발 기본값 — localhost:5555
+ *  2. 개발 중(__DEV__)이면 localhost:5555
+ *  3. 그 외에는 배포된 백엔드 (Fly.io)
  *
  * 배포 예:
  *   EXPO_PUBLIC_API_URL=https://api.hipo.app npx expo export --platform web
@@ -26,6 +26,9 @@ import { Platform } from 'react-native';
 /** HIPO 전용 포트 5555 (다른 프로젝트와 충돌 방지) */
 const DEV_HOST = 'http://localhost:5555';
 
+/** 배포된 백엔드 (Fly.io, 도쿄 리전) */
+const PROD_HOST = 'https://hipo-backend.fly.dev';
+
 /** 끝의 슬래시와 중복 /api 를 정리한다 */
 const normalize = (raw) => {
   if (!raw) return null;
@@ -33,32 +36,27 @@ const normalize = (raw) => {
   return trimmed.replace(/\/api$/, '');
 };
 
-/**
- * 웹에서 같은 도메인에 백엔드가 있는 경우를 자동 처리한다.
- * localhost 개발 서버(Metro, 보통 8081)에서 실행 중이면 해당하지 않는다.
- */
-const sameOriginBase = () => {
-  if (Platform.OS !== 'web') return null;
-  if (typeof window === 'undefined' || !window.location) return null;
-
-  const { origin, hostname } = window.location;
-  const isLocalDevServer =
-    hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0';
-
-  return isLocalDevServer ? null : origin;
+/** Metro 개발 서버에서 실행 중인지 (웹) */
+const isLocalDevServer = () => {
+  if (Platform.OS !== 'web') return false;
+  if (typeof window === 'undefined' || !window.location) return false;
+  const { hostname } = window.location;
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '0.0.0.0';
 };
 
 const resolveBase = () => {
-  // 1) 명시적 환경변수가 최우선
+  // 1) 명시적 환경변수가 최우선.
+  //    프론트와 백엔드를 한 도메인에 올렸다면 여기에 그 주소를 넣는다.
   const fromEnv = normalize(process.env.EXPO_PUBLIC_API_URL);
   if (fromEnv) return fromEnv;
 
-  // 2) 웹에서 배포된 경우 같은 도메인
-  const sameOrigin = sameOriginBase();
-  if (sameOrigin) return sameOrigin;
+  // 2) 개발 중이면 로컬 백엔드
+  //    (__DEV__ 는 Expo 가 주입한다. 웹 Metro 서버도 여기 해당)
+  if (typeof __DEV__ !== 'undefined' && __DEV__) return DEV_HOST;
+  if (isLocalDevServer()) return DEV_HOST;
 
-  // 3) 개발 기본값
-  return DEV_HOST;
+  // 3) 배포 기본값
+  return PROD_HOST;
 };
 
 /** 프로토콜+호스트만 (경로 없음). 소켓·OAuth 리다이렉트에 쓴다. */

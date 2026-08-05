@@ -16,7 +16,7 @@ module.exports = (sequelize) => {
       }
     },
     senderId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: 'users',
