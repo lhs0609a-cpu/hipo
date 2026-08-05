@@ -6,23 +6,45 @@ primary_region = 'nrt'
 [env]
   NODE_ENV = 'production'
   PORT = '3000'
-  DB_STORAGE = '/data/database.sqlite'
+  # 같은 PostgreSQL 인스턴스를 다른 앱과 공유하므로 전용 스키마로 격리한다.
+  # 서버 기동 시 자동 생성된다.
+  DB_SCHEMA = 'hipo'
+  APP_SCHEME = 'hipo'
   INITIAL_PO_BALANCE = '10000'
   INITIAL_MARKET_CAP = '5000'
+
+  # 비밀값은 여기 두지 않는다. fly secrets set 으로 주입한다.
+  #   DATABASE_URL, JWT_SECRET, CLIENT_URL,
+  #   GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET / GOOGLE_CALLBACK_URL
 
 [http_service]
   internal_port = 3000
   force_https = true
+
+  # 초기(유저 없음)에는 재워 둔다. 요청이 오면 1~3초 내 깨어난다.
+  #
+  # 주의: 잠든 동안에는 캔들 기록·주문 매칭 스케줄러가 멈춘다.
+  # 거래가 실제로 발생하기 시작하면 아래를 바꿔 상시 실행으로 전환할 것.
+  #   auto_stop_machines = 'off'
+  #   min_machines_running = 1
   auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
   processes = ['app']
 
+[[http_service.checks]]
+  grace_period = '20s'
+  interval = '30s'
+  method = 'GET'
+  timeout = '5s'
+  path = '/health'
+
 [[vm]]
-  memory = '512mb'
+  # 초기에는 256MB 로 충분하다. 부족하면 fly scale memory 512 로 올린다.
+  memory = '256mb'
   cpu_kind = 'shared'
   cpus = 1
 
-[mounts]
-  source = 'hipo_data'
-  destination = '/data'
+# 볼륨을 두지 않는다.
+# DB 는 외부 PostgreSQL(Supabase)을 쓰므로 영구 디스크가 필요 없고,
+# 볼륨은 머신이 꺼져 있어도 요금이 계속 나간다.
