@@ -14,8 +14,10 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { dividendAPI } from '../services/api';
+import comingSoon from '../utils/comingSoon';
 import { useAuth } from '../contexts/AuthContext';
 
+import goBackOrHome from '../utils/goBackOrHome';
 const DividendScreen = ({ navigation }) => {
   const styles = useThemedStyles(makeStyles);
   const { isAuthenticated } = useAuth();
@@ -264,7 +266,7 @@ const DividendScreen = ({ navigation }) => {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => goBackOrHome(navigation)}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>배당 내역</Text>
@@ -294,11 +296,11 @@ const DividendScreen = ({ navigation }) => {
         colors={['#00B368', '#00915A']}
         style={styles.header}
       >
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => goBackOrHome(navigation)}>
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>배당 내역</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('DividendSettings')}>
+        <TouchableOpacity onPress={() => comingSoon('배당 설정')}>
           <Ionicons name="settings-outline" size={24} color="#fff" />
         </TouchableOpacity>
       </LinearGradient>

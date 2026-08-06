@@ -15,6 +15,7 @@ import { COLORS } from '../constants/colors';
 import api from '../api/client';
 import { useStockTicker, useStock } from '../contexts/StockContext';
 
+import goBackOrHome from '../utils/goBackOrHome';
 export default function StockMarketScreen({ navigation }) {
   const styles = useThemedStyles(makeStyles);
   const insets = useSafeAreaInsets();
@@ -112,7 +113,7 @@ export default function StockMarketScreen({ navigation }) {
       {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => goBackOrHome(navigation)}
           style={styles.backButton}
           accessibilityLabel="뒤로 가기"
           accessibilityRole="button"

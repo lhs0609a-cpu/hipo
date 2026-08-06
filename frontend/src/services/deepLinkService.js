@@ -22,6 +22,17 @@ const WEB_URL = WEB_ORIGIN;
 export const linking = {
   prefixes: [`${APP_SCHEME}://`, WEB_URL],
   config: {
+    /**
+     * 딥링크로 진입해도 스택 맨 아래에 MainTabs 를 깔아 둔다.
+     *
+     * 이게 없으면 `/suggest` 같은 주소로 직접 들어왔을 때 스택에 화면이
+     * 하나뿐이라 뒤로가기가 아무 동작도 하지 않는다. 공유 링크를 누른
+     * 사람은 헤더의 뒤로가기가 먹통인 화면에 갇힌다.
+     *
+     * AuthStack(로그인 전)에는 MainTabs 가 없지만, StackRouter 가
+     * 모르는 라우트를 걸러내고 initialRouteName 으로 폴백하므로 문제없다.
+     */
+    initialRouteName: 'MainTabs',
     screens: {
       // --- 로그인 후 (MainStack) ---
       MainTabs: {

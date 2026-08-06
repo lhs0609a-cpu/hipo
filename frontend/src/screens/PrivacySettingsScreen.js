@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import comingSoon from '../utils/comingSoon';
 
 const PRIVACY_SETTINGS_KEY = '@privacy_settings';
 
@@ -143,7 +144,7 @@ export default function PrivacySettingsScreen({ navigation }) {
   };
 
   const handleBlockedUsers = () => {
-    navigation.navigate('BlockedUsers');
+    comingSoon('차단 사용자 관리');
   };
 
   const renderSettingItem = (label, value, onToggle, description = null) => (

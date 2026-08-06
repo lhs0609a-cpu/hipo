@@ -14,6 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '../contexts/ThemeContext';
+import comingSoon from '../utils/comingSoon';
 
 const APP_VERSION = '1.0.0';
 const BUILD_NUMBER = '100';
@@ -183,7 +184,7 @@ export default function AboutScreen({ navigation }) {
             '#2B5FE3',
             '투자 가이드',
             '크리에이터 주식 투자 방법',
-            () => navigation.navigate('InvestGuide')
+            () => comingSoon('투자 가이드')
           )}
         </View>
 
@@ -205,7 +206,7 @@ export default function AboutScreen({ navigation }) {
             '#6E8CA0',
             '업데이트 내역',
             '버전별 변경 사항',
-            () => navigation.navigate('UpdateHistory')
+            () => comingSoon('업데이트 내역')
           )}
         </View>
 
@@ -234,7 +235,7 @@ export default function AboutScreen({ navigation }) {
             '#F59B00',
             '전자금융거래 이용약관',
             null,
-            () => navigation.navigate('FinancialTerms')
+            () => comingSoon('전자금융거래 이용약관')
           )}
 
           {renderMenuItem(
@@ -242,7 +243,7 @@ export default function AboutScreen({ navigation }) {
             '#8B5CF6',
             '오픈소스 라이선스',
             null,
-            () => navigation.navigate('OpenSourceLicense')
+            () => comingSoon('오픈소스 라이선스')
           )}
         </View>
 

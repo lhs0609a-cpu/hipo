@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { COLORS } from '../constants/colors';
 import { rankingAPI } from '../services/api';
 
+import goBackOrHome from '../utils/goBackOrHome';
 const TABS = [
   { key: 'all', label: '전체' },
   { key: 'return', label: '수익률 TOP' },
@@ -126,7 +127,7 @@ export default function CopyTradingScreen({ navigation }) {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => goBackOrHome(navigation)}
           activeOpacity={0.7}
           accessibilityLabel="뒤로 가기"
           accessibilityRole="button"

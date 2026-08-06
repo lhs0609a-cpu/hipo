@@ -313,7 +313,9 @@ export default function ClaimStatusScreen({ navigation }) {
       </Text>
       <TouchableOpacity
         style={[styles.browseButton, { backgroundColor: theme.colors.primary }]}
-        onPress={() => navigation.navigate('VirtualCelebrity')}
+        // 'VirtualCelebrity' 화면은 없다. 상장 대기 셀럽 목록은
+        // CelebSuggestion 의 '인기 추천' 탭이며, HomeScreen 도 같은 곳으로 보낸다
+        onPress={() => navigation.navigate('CelebSuggestion')}
       >
         <Text style={styles.browseButtonText}>{'\uC140\uB7FD \uB458\uB7EC\uBCF4\uAE30'}</Text>
       </TouchableOpacity>

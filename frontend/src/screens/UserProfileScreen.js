@@ -17,6 +17,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { COLORS } from '../constants/colors';
 
+import goBackOrHome from '../utils/goBackOrHome';
 export default function UserProfileScreen({ route, navigation }) {
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
@@ -85,7 +86,7 @@ export default function UserProfileScreen({ route, navigation }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => goBackOrHome(navigation)}>
             <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>프로필</Text>
@@ -102,7 +103,7 @@ export default function UserProfileScreen({ route, navigation }) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
+          <TouchableOpacity onPress={() => goBackOrHome(navigation)}>
             <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>프로필</Text>
@@ -126,7 +127,7 @@ export default function UserProfileScreen({ route, navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => goBackOrHome(navigation)}>
           <Ionicons name="arrow-back" size={24} color={theme.colors.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>@{user.username}</Text>

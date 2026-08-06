@@ -13,6 +13,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { merchandiseAPI } from '../services/api';
+import comingSoon from '../utils/comingSoon';
 
 const MerchandiseScreen = ({ navigation }) => {
   const styles = useThemedStyles(makeStyles);
@@ -40,7 +41,7 @@ const MerchandiseScreen = ({ navigation }) => {
   const renderProductItem = ({ item }) => (
     <TouchableOpacity
       style={styles.productCard}
-      onPress={() => navigation.navigate('MerchandiseDetail', { productId: item.id })}
+      onPress={() => comingSoon('굿즈 상세')}
     >
       <View style={styles.productImageContainer}>
         {item.image ? (

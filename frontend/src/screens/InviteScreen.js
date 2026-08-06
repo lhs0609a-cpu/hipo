@@ -19,6 +19,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { viralReferralAPI, inviteLeaderboardAPI, shareAPI } from '../services/api';
 import { copyText, copyFeedback } from '../utils/clipboard';
 
+import goBackOrHome from '../utils/goBackOrHome';
 const InviteScreen = ({ navigation }) => {
   const styles = useThemedStyles(makeStyles);
   const insets = useSafeAreaInsets();
@@ -206,7 +207,7 @@ const InviteScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => goBackOrHome(navigation)}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>친구 초대</Text>

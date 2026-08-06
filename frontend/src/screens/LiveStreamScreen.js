@@ -13,6 +13,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { liveStreamAPI } from '../services/api';
+import comingSoon from '../utils/comingSoon';
 import { useAuth } from '../contexts/AuthContext';
 
 const LiveStreamScreen = ({ navigation }) => {
@@ -45,7 +46,7 @@ const LiveStreamScreen = ({ navigation }) => {
     return (
       <TouchableOpacity
         style={styles.streamCard}
-        onPress={() => navigation.navigate('LiveStreamDetail', { streamId: item.id })}
+        onPress={() => comingSoon('라이브 시청')}
       >
         <View style={styles.thumbnailContainer}>
           {item.thumbnail ? (

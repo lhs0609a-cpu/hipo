@@ -367,7 +367,8 @@ const IPOEligibilityScreen = ({ navigation }) => {
             {!eligibility?.requirements?.profileCompleteness?.met && (
               <TouchableOpacity
                 style={styles.actionButton}
-                onPress={() => navigation.navigate('EditProfile')}
+                // 'EditProfile' 화면은 없다. 프로필 편집은 Profile 안에서 한다
+                onPress={() => navigation.navigate('Profile')}
               >
                 <Text style={styles.actionButtonText}>프로필 수정하기</Text>
                 <Ionicons name="chevron-forward" size={16} color="#2B5FE3" />

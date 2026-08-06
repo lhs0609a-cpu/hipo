@@ -13,6 +13,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { nftAPI } from '../services/api';
+import comingSoon from '../utils/comingSoon';
 
 const NFTScreen = ({ navigation }) => {
   const styles = useThemedStyles(makeStyles);
@@ -43,7 +44,7 @@ const NFTScreen = ({ navigation }) => {
   const renderNFTItem = ({ item }) => (
     <TouchableOpacity
       style={styles.nftCard}
-      onPress={() => navigation.navigate('NFTDetail', { nftId: item.id })}
+      onPress={() => comingSoon('NFT 상세')}
     >
       <View style={styles.nftImageContainer}>
         {item.image ? (

@@ -20,6 +20,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { virtualCelebrityAPI } from '../services/api';
 import { COLORS } from '../constants/colors';
 
+import goBackOrHome from '../utils/goBackOrHome';
 const CATEGORY_OPTIONS = [
   { value: 'entertainment', label: '엔터테인먼트' },
   { value: 'sports', label: '스포츠' },
@@ -510,7 +511,7 @@ export default function CelebSuggestionScreen({ navigation }) {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => goBackOrHome(navigation)}
         >
           <Ionicons name="chevron-back" size={24} color={theme.colors.text} />
         </TouchableOpacity>

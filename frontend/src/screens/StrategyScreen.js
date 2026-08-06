@@ -16,6 +16,7 @@ import {
   Platform,
 } from 'react-native';
 import { COLORS } from '../constants/colors';
+import comingSoon from '../utils/comingSoon';
 import api from '../api/client';
 
 export default function StrategyScreen({ navigation }) {
@@ -269,7 +270,7 @@ export default function StrategyScreen({ navigation }) {
               <View style={styles.strategyActions}>
                 <TouchableOpacity
                   style={styles.detailButton}
-                  onPress={() => navigation.navigate('StrategyDetail', { strategyId: strategy.id })}
+                  onPress={() => comingSoon('전략 상세')}
                 >
                   <Text style={styles.detailButtonText}>상세보기</Text>
                 </TouchableOpacity>

@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { securityAPI } from '../services/api';
+import comingSoon from '../utils/comingSoon';
 
 const SecuritySettingsScreen = ({ navigation }) => {
   const styles = useThemedStyles(makeStyles);
@@ -226,7 +227,9 @@ const SecuritySettingsScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => navigation.navigate('IdentityVerification')}
+            // 'IdentityVerification' 이라는 화면은 등록된 적이 없다.
+            // 본인 인증 동선은 VerificationRequest 가 담당한다.
+            onPress={() => navigation.navigate('VerificationRequest')}
           >
             <View style={styles.settingLeft}>
               <Ionicons name="person-circle-outline" size={24} color="#2B5FE3" />
@@ -254,7 +257,7 @@ const SecuritySettingsScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => navigation.navigate('LoginHistory')}
+            onPress={() => comingSoon('로그인 기록')}
           >
             <View style={styles.settingLeft}>
               <Ionicons name="time-outline" size={24} color="#2B5FE3" />
