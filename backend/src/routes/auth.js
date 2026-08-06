@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const rateLimit = require('express-rate-limit');
 const authController = require('../controllers/authController');
 const {
@@ -135,6 +136,73 @@ const APP_SCHEME = process.env.APP_SCHEME || 'hipo';
  * "Unknown authentication strategy" 로 500 이 나거나 라우트가 없는 것처럼 보인다.
  * 원인을 알 수 있는 메시지를 돌려준다.
  */
+/**
+ * OAuth 결과를 클라이언트에 넘기기 위한 일회용 코드 저장소.
+ *
+ * ## 왜 토큰을 URL 로 바로 주지 않는가
+ *
+ * 예전에는 콜백이 `localStorage.setItem('accessToken', ...)` 을 하는 HTML 을
+ * 돌려줬다. 그런데 그 localStorage 는 **백엔드 오리진(hipo-backend.fly.dev)**
+ * 의 저장소다. localStorage 는 오리진별로 격리되므로 CLIENT_URL(Vercel)에서는
+ * 절대 읽을 수 없다. 즉 구글 인증은 통과하는데 앱은 로그아웃 상태로 남았다.
+ *
+ * 그렇다고 토큰을 쿼리스트링에 실으면 7일짜리 refresh token 이 브라우저
+ * 히스토리·리퍼러·중간 로그에 그대로 남는다. 그래서 한 번만 쓸 수 있는
+ * 짧은 수명의 코드만 넘기고, 실제 토큰은 클라이언트가 POST 로 교환해 간다.
+ *
+ * 저장소가 프로세스 메모리인 이유: 코드의 수명이 2분이라 재시작 때 날아가도
+ * 영향이 한 번의 로그인 재시도뿐이다. 다만 **머신을 2대 이상으로 늘리면**
+ * 교환 요청이 다른 머신에 붙어 실패하므로, 그때는 Redis/DB 로 옮겨야 한다.
+ */
+const AUTH_CODE_TTL_MS = 2 * 60 * 1000;
+const pendingAuthCodes = new Map();
+
+function issueAuthCode(payload) {
+  const code = crypto.randomBytes(32).toString('hex');
+  pendingAuthCodes.set(code, { payload, expiresAt: Date.now() + AUTH_CODE_TTL_MS });
+  return code;
+}
+
+function consumeAuthCode(code) {
+  const entry = pendingAuthCodes.get(code);
+  if (!entry) return null;
+  // 일회용: 만료 여부와 무관하게 조회 즉시 폐기한다
+  pendingAuthCodes.delete(code);
+  if (entry.expiresAt < Date.now()) return null;
+  return entry.payload;
+}
+
+// 교환되지 않고 버려진 코드(사용자가 창을 닫은 경우)가 쌓이지 않도록 청소한다.
+// unref() 로 두어 이 타이머가 프로세스 종료를 막지 않게 한다.
+setInterval(() => {
+  const now = Date.now();
+  for (const [code, entry] of pendingAuthCodes) {
+    if (entry.expiresAt < now) pendingAuthCodes.delete(code);
+  }
+}, AUTH_CODE_TTL_MS).unref();
+
+/**
+ * 클라이언트에 내보내도 되는 사용자 필드만 추린다.
+ *
+ * 예전 콜백은 `JSON.stringify(req.user)` 로 Sequelize 인스턴스를 통째로
+ * 직렬화해서 **password 해시까지** 브라우저에 내려보냈다.
+ * 모양은 authController.login 의 응답과 맞춘다.
+ */
+function publicUser(user) {
+  return {
+    id: user.id,
+    email: user.email,
+    username: user.username,
+    displayName: user.displayName,
+    profileImage: user.profileImage,
+    poBalance: user.poBalance,
+    marketCap: user.marketCap,
+    trustLevel: user.trustLevel,
+    trustMultiplier: user.trustMultiplier,
+    onboardedAt: user.onboardedAt,
+  };
+}
+
 const requireGoogleOAuth = (req, res, next) => {
   if (!passport._strategy || !passport._strategy('google')) {
     return res.status(503).json({
@@ -177,6 +245,14 @@ router.get(
       // Refresh Token을 DB에 저장
       await saveRefreshToken(req.user.id, refreshToken, req);
 
+      // 토큰 자체가 아니라 교환용 코드만 넘긴다 (위 pendingAuthCodes 주석 참고)
+      const authCode = issueAuthCode({
+        accessToken,
+        refreshToken,
+        expiresIn: 15 * 60, // 초 단위. authController.login 과 동일
+        user: publicUser(req.user),
+      });
+
       // 웹 환경과 모바일 환경 구분
       const userAgent = req.headers['user-agent'] || '';
       const isMobile = /mobile/i.test(userAgent) && !/web/i.test(userAgent);
@@ -184,30 +260,9 @@ router.get(
       if (isMobile) {
         // 앱으로 딥링크. 스킴은 app.json 의 expo.scheme 과 같아야 열린다
         // (예전에는 존재하지 않는 myapp:// 을 써서 앱이 열리지 않았다)
-        res.redirect(`${APP_SCHEME}://auth?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+        res.redirect(`${APP_SCHEME}://auth?authCode=${authCode}`);
       } else {
-        // 웹의 경우 토큰을 localStorage에 저장하고 홈으로 리다이렉트
-        res.send(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>로그인 성공</title>
-          </head>
-          <body>
-            <script>
-              // 토큰을 localStorage에 저장
-              localStorage.setItem('accessToken', '${accessToken}');
-              localStorage.setItem('refreshToken', '${refreshToken}');
-              // 하위 호환성을 위해 token도 저장
-              localStorage.setItem('token', '${accessToken}');
-              localStorage.setItem('user', JSON.stringify(${JSON.stringify(req.user)}));
-              // 홈 페이지로 리다이렉트
-              window.location.href = '${CLIENT_URL}';
-            </script>
-            <p>로그인 중...</p>
-          </body>
-          </html>
-        `);
+        res.redirect(`${CLIENT_URL}/?authCode=${authCode}`);
       }
     } catch (error) {
       console.error('Google OAuth 콜백 오류:', error);
@@ -215,5 +270,58 @@ router.get(
     }
   }
 );
+
+/**
+ * 일회용 코드 교환 제한: 1분에 20회.
+ *
+ * 코드가 32바이트 난수라 추측 공격은 사실상 불가능하지만,
+ * 실패한 교환을 무한히 반복하는 것 자체를 막는다.
+ */
+const oauthExchangeLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  message: {
+    error: '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
+    code: 'TOO_MANY_EXCHANGE_ATTEMPTS',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/**
+ * POST /api/auth/google/exchange
+ * OAuth 콜백이 준 일회용 코드를 실제 토큰으로 교환한다.
+ *
+ * 응답 모양은 POST /api/auth/login 과 동일해서 클라이언트가 같은 경로로 처리한다.
+ */
+router.post('/google/exchange', oauthExchangeLimiter, (req, res) => {
+  const authCode = req.body?.code;
+
+  if (!authCode || typeof authCode !== 'string') {
+    return res.status(400).json({
+      error: '인증 코드가 필요합니다',
+      code: 'AUTH_CODE_REQUIRED',
+    });
+  }
+
+  const payload = consumeAuthCode(authCode);
+
+  if (!payload) {
+    return res.status(400).json({
+      error: '만료되었거나 이미 사용된 인증 코드입니다. 다시 로그인해주세요.',
+      code: 'AUTH_CODE_INVALID',
+    });
+  }
+
+  return res.json({
+    success: true,
+    accessToken: payload.accessToken,
+    refreshToken: payload.refreshToken,
+    expiresIn: payload.expiresIn,
+    // 하위 호환성을 위해 token 도 유지 (accessToken 과 동일)
+    token: payload.accessToken,
+    user: payload.user,
+  });
+});
 
 module.exports = router;

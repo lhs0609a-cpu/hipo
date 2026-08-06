@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import useThemedStyles from '../hooks/useThemedStyles';
 import {
@@ -21,12 +21,27 @@ import Button from '../components/Button';
 export default function LoginScreen({ navigation }) {
   const styles = useThemedStyles(makeStyles);
   const { theme } = useTheme();
-  const { login } = useAuth();
+  const { login, oauthError, clearOAuthError } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+
+  /**
+   * 구글 로그인 실패는 리다이렉트로 돌아온 뒤에 판명된다.
+   * 이 화면이 다시 뜬 시점에 알려주지 않으면 사용자는 아무 일도 없었던 것처럼
+   * 로그인 화면만 다시 보게 된다.
+   */
+  useEffect(() => {
+    if (!oauthError) return;
+    if (Platform.OS === 'web') {
+      alert(oauthError);
+    } else {
+      Alert.alert('구글 로그인 실패', oauthError);
+    }
+    clearOAuthError();
+  }, [oauthError]);
 
   const handleLogin = async () => {
     const errors = [];
@@ -101,9 +116,16 @@ export default function LoginScreen({ navigation }) {
           return;
         }
       } catch (probeError) {
+        /**
+         * fetch 는 서버가 죽었을 때와 CORS 로 거부당했을 때를 구분해 주지 않는다.
+         * 둘 다 TypeError 다. 예전에는 "백엔드가 꺼져 있다"고만 안내해서,
+         * 실제로는 살아 있는데 이 도메인이 허용 목록에 없던 상황을 오진했다.
+         * (해결: 서버의 ADDITIONAL_CORS_ORIGINS 에 이 도메인 추가)
+         */
         const msg =
-          `서버에 연결할 수 없습니다.\n\n주소: ${API_BASE}\n\n` +
-          '백엔드가 실행 중인지 확인해주세요.';
+          `서버에 연결하지 못했습니다.\n\n주소: ${API_BASE}\n\n` +
+          '백엔드가 꺼져 있거나, 이 도메인이 서버의 허용 목록(CORS)에 ' +
+          '없을 수 있습니다.';
         Platform.OS === 'web' ? alert(msg) : Alert.alert('연결 실패', msg);
         return;
       }

@@ -1,6 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api, { authAPI } from '../services/api';
+import {
+  consumePendingAuthResult,
+  startAuthCodeListener,
+} from '../utils/oauthCallback';
 
 const AuthContext = createContext();
 
@@ -14,6 +18,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [onboardingCompleted, setOnboardingCompleted] = useState(false);
+  // 구글 로그인 실패 사유. 리다이렉트로 돌아온 뒤라 화면 쪽에서 알려줄 방법이 없다
+  const [oauthError, setOauthError] = useState(null);
   const refreshTimerRef = useRef(null);
 
   // 토큰 갱신 함수
@@ -85,6 +91,64 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
   };
 
+  /**
+   * 인증 응답을 저장하고 로그인 상태로 전환한다.
+   *
+   * 이메일 로그인 / 회원가입 / 구글 코드 교환이 모두 같은 모양의 응답
+   * (accessToken, refreshToken, user, expiresIn)을 주므로 한 곳에서 처리한다.
+   */
+  const persistSession = async ({ accessToken, refreshToken, token, user: sessionUser, expiresIn }) => {
+    // accessToken 우선, 없으면 token 사용 (하위 호환성)
+    const finalAccessToken = accessToken || token;
+    await AsyncStorage.setItem('token', finalAccessToken);
+    await AsyncStorage.setItem('accessToken', finalAccessToken);
+
+    if (refreshToken) {
+      await AsyncStorage.setItem('refreshToken', refreshToken);
+    }
+
+    await AsyncStorage.setItem('user', JSON.stringify(sessionUser));
+
+    setUser(sessionUser);
+    setIsAuthenticated(true);
+
+    if (refreshToken && expiresIn) {
+      scheduleTokenRefresh(expiresIn);
+    }
+  };
+
+  /**
+   * 구글 콜백이 준 일회용 코드를 토큰으로 교환해 로그인한다.
+   *
+   * 코드는 서버에서 2분 뒤 만료되고 한 번만 쓸 수 있다. 뒤로 가기나 새로고침으로
+   * 같은 코드가 다시 오면 서버가 AUTH_CODE_INVALID 로 거절한다.
+   */
+  const loginWithGoogleCode = async (code) => {
+    try {
+      const response = await authAPI.exchangeGoogleCode(code);
+      await persistSession(response.data);
+      setOauthError(null);
+      return { success: true };
+    } catch (error) {
+      console.error('Google code exchange failed:', error);
+
+      const message =
+        error.response?.data?.error ||
+        (error.request
+          ? '서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.'
+          : '구글 로그인을 완료하지 못했습니다. 다시 시도해주세요.');
+
+      setOauthError(message);
+      return { success: false, error: message };
+    }
+  };
+
+  // 앱이 떠 있는 동안 딥링크로 돌아오는 경우 (네이티브). 웹은 전체 페이지 로드라
+  // checkAuth 의 consumePendingAuthResult 가 처리한다.
+  useEffect(() => startAuthCodeListener((code) => {
+    loginWithGoogleCode(code);
+  }), []);
+
   useEffect(() => {
     checkAuth();
 
@@ -139,6 +203,23 @@ export const AuthProvider = ({ children }) => {
       const onboardingDone = await AsyncStorage.getItem(ONBOARDING_COMPLETED_KEY);
       setOnboardingCompleted(onboardingDone === 'true');
 
+      /**
+       * 구글 로그인 리다이렉트로 돌아왔는지 먼저 본다.
+       *
+       * 저장된 토큰 확인보다 앞서야 한다. 다른 계정으로 구글 로그인을 했는데
+       * 예전 세션이 남아 있으면 그대로 예전 계정으로 들어가 버린다.
+       */
+      const { code: oauthCode, error: oauthFailure } = await consumePendingAuthResult();
+
+      if (oauthFailure) {
+        setOauthError('구글 로그인에 실패했습니다. 다시 시도해주세요.');
+      }
+
+      if (oauthCode) {
+        const result = await loginWithGoogleCode(oauthCode);
+        if (result.success) return; // finally 에서 loading 을 내린다
+      }
+
       // 인증 상태 확인
       const token = await AsyncStorage.getItem('token');
       const refreshToken = await AsyncStorage.getItem('refreshToken');
@@ -173,26 +254,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await authAPI.login(email, password);
-      const { accessToken, refreshToken, token, user, expiresIn } = response.data;
-
-      // 토큰 저장 (accessToken 우선, 없으면 token 사용 - 하위 호환성)
-      const finalAccessToken = accessToken || token;
-      await AsyncStorage.setItem('token', finalAccessToken);
-      await AsyncStorage.setItem('accessToken', finalAccessToken);
-
-      if (refreshToken) {
-        await AsyncStorage.setItem('refreshToken', refreshToken);
-      }
-
-      await AsyncStorage.setItem('user', JSON.stringify(user));
-
-      setUser(user);
-      setIsAuthenticated(true);
-
-      // 토큰 갱신 스케줄링
-      if (refreshToken && expiresIn) {
-        scheduleTokenRefresh(expiresIn);
-      }
+      await persistSession(response.data);
 
       return { success: true };
     } catch (error) {
@@ -220,26 +282,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       const response = await authAPI.register(userData);
-      const { accessToken, refreshToken, token, user, expiresIn } = response.data;
-
-      // 토큰 저장
-      const finalAccessToken = accessToken || token;
-      await AsyncStorage.setItem('token', finalAccessToken);
-      await AsyncStorage.setItem('accessToken', finalAccessToken);
-
-      if (refreshToken) {
-        await AsyncStorage.setItem('refreshToken', refreshToken);
-      }
-
-      await AsyncStorage.setItem('user', JSON.stringify(user));
-
-      setUser(user);
-      setIsAuthenticated(true);
-
-      // 토큰 갱신 스케줄링
-      if (refreshToken && expiresIn) {
-        scheduleTokenRefresh(expiresIn);
-      }
+      await persistSession(response.data);
 
       return { success: true };
     } catch (error) {
@@ -307,6 +350,8 @@ export const AuthProvider = ({ children }) => {
       loading,
       isAuthenticated,
       onboardingCompleted,
+      oauthError,
+      clearOAuthError: () => setOauthError(null),
       login,
       register,
       logout,

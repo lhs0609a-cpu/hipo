@@ -48,6 +48,8 @@ export const authAPI = {
   login: (email, password) => api.post('/auth/login', { email, password }),
   register: (data) => api.post('/auth/register', data),
   getProfile: () => api.get('/auth/me'),
+  // 구글 콜백이 준 일회용 코드를 토큰으로 교환한다. 응답 모양은 login 과 같다
+  exchangeGoogleCode: (code) => api.post('/auth/google/exchange', { code }),
   logout: async () => {
     await AsyncStorage.removeItem('token');
     await AsyncStorage.removeItem('user');
