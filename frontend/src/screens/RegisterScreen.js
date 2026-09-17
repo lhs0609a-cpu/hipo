@@ -13,6 +13,7 @@ import {
   Linking,
 } from 'react-native';
 import { register } from '../api/auth';
+import { API_URL } from '../config';
 import { COLORS } from '../constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -149,7 +150,7 @@ export default function RegisterScreen({ navigation }) {
   const handleGoogleLogin = async () => {
     try {
       // Google OAuth URL (포트 5555로 변경)
-      const googleAuthUrl = 'http://localhost:5555/api/auth/google';
+      const googleAuthUrl = `${API_URL}/auth/google`;
 
       if (Platform.OS === 'web') {
         // 웹에서는 직접 페이지 이동

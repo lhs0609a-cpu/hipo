@@ -15,14 +15,40 @@ module.exports = (sequelize) => {
     },
     actorId: {
       type: DataTypes.UUID,
-      allowNull: false,
+      // 시스템 알림(배당, 티어 변경, 미션 등)은 행위자가 없음
+      allowNull: true,
       field: 'actor_id',
-      comment: '알림을 발생시킨 사용자 ID'
+      comment: '알림을 발생시킨 사용자 ID (시스템 알림이면 null)'
     },
     type: {
-      type: DataTypes.ENUM('like', 'comment', 'follow', 'mention'),
+      // ENUM 대신 문자열: 소셜 알림(like/comment/follow/mention) 외에
+      // DIVIDEND_RECEIVED, REFERRAL, STOCK_PURCHASED, BADGE_EARNED,
+      // MISSION_COMPLETE, tier_change, VICE_ADMIN_APPOINTED 등 도메인 알림이 계속 늘어남
+      type: DataTypes.STRING(50),
       allowNull: false,
       comment: '알림 타입'
+    },
+    title: {
+      type: DataTypes.STRING(200),
+      allowNull: true,
+      comment: '알림 제목 (목록 화면에 표시)'
+    },
+    message: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: '알림 본문 (목록 화면에 표시)'
+    },
+    relatedId: {
+      // 커뮤니티 ID, 콘텐츠 요청 ID, 크리에이터 ID 등 타입별로 대상이 다름
+      type: DataTypes.STRING,
+      allowNull: true,
+      field: 'related_id',
+      comment: '알림 타입별 연관 리소스 ID'
+    },
+    data: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: '알림 타입별 부가 데이터'
     },
     postId: {
       type: DataTypes.UUID,
@@ -53,7 +79,11 @@ module.exports = (sequelize) => {
   }, {
     tableName: 'notifications',
     underscored: true,
-    timestamps: true
+    timestamps: true,
+    indexes: [
+      { fields: ['user_id', 'is_read'] },
+      { fields: ['user_id', 'created_at'] }
+    ]
   });
 
   Notification.associate = (models) => {

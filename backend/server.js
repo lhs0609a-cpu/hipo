@@ -7,7 +7,7 @@ const morgan = require('morgan');
 
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5555;
 
 // Middleware
 app.use(helmet());
@@ -134,20 +134,37 @@ async function startServer() {
     // 1. 데이터베이스 연결 테스트
     const dbConnected = await testConnection();
 
-    // 2. 테이블 동기화 (먼저!)
-    if (dbConnected) {
-      // alter: true로 새 컬럼 동기화
-      await sequelize.sync({ alter: true });
-      console.log('📊 Database synchronized');
+    // 2. 모델 등록 (sync 이전에 반드시!)
+    //    sequelize.sync()는 "그 시점까지 define된 모델"만 생성한다.
+    //    예전에는 여기서 모델을 require하지 않아 sync가 0개 모델을 대상으로 돌았고,
+    //    테이블이 하나도 만들어지지 않은 채 "Database synchronized"만 찍혔다.
+    //    (모델은 그 뒤 loadRoutes() -> 컨트롤러 -> ../models 경로로 뒤늦게 등록됐다.)
+    const models = require('./src/models');
+    console.log(`🗂  모델 ${Object.keys(models).length - 1}개 등록됨`);
+
+    // 3. 테이블 동기화
+    //    예전에는 부팅할 때마다 무조건 sync({ alter: true })가 돌았다.
+    //    모델 96개에 대해 운영 중 스키마를 변경하는 것은 위험하고 느리므로
+    //    DB_SYNC로 제어한다 (기본: 운영=none, 그 외=alter).
+    //    수동 실행은 `npm run migrate` (src/config/migrate.js).
+    const syncMode =
+      process.env.DB_SYNC ||
+      (process.env.NODE_ENV === 'production' ? 'none' : 'alter');
+
+    if (dbConnected && syncMode !== 'none') {
+      await sequelize.sync(syncMode === 'alter' ? { alter: true } : {});
+      console.log(`📊 Database synchronized (${syncMode} 모드)`);
+    } else if (dbConnected) {
+      console.log('📊 스키마 동기화 건너뜀 (DB_SYNC=none) — 변경이 필요하면 `npm run migrate`');
     }
 
-    // 3. Routes 로드 (DB 동기화 후)
+    // 4. Routes 로드 (DB 동기화 후)
     const routesLoaded = loadRoutes();
 
-    // 4. 404 핸들러 추가
+    // 5. 404 핸들러 추가
     add404Handler();
 
-    // 5. 백그라운드 서비스 시작 (테이블 생성 후)
+    // 6. 백그라운드 서비스 시작 (테이블 생성 후)
     if (routesLoaded) {
       try {
         const { initSocket } = require('./src/config/socket');
@@ -181,7 +198,7 @@ async function startServer() {
       }
     }
 
-    // 6. 서버 시작
+    // 7. 서버 시작
     server.listen(PORT, () => {
       console.log(`🚀 HIPO Backend Server running on port ${PORT}`);
       console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);

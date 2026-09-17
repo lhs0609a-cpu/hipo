@@ -291,6 +291,32 @@ function sendMessageToUser(userId, message) {
   }
 }
 
+// 새 게시글 브로드캐스트 (실시간 활동 피드)
+// 작성자 본인에게는 이미 작성 응답이 갔으므로 중복 방지는 클라이언트에서 처리한다.
+function broadcastNewPost(post) {
+  if (io) {
+    io.emit('post:new', {
+      id: post.id,
+      content: post.content,
+      imageUrl: post.imageUrl,
+      visibilityType: post.visibilityType,
+      isPremium: post.isPremium,
+      likesCount: post.likesCount || 0,
+      commentsCount: post.commentsCount || 0,
+      author: post.author
+        ? {
+            id: post.author.id,
+            username: post.author.username,
+            profileImage: post.author.profileImage,
+            trustLevel: post.author.trustLevel
+          }
+        : null,
+      createdAt: post.createdAt,
+      timestamp: new Date()
+    });
+  }
+}
+
 // 실시간 주가 업데이트 전송
 function sendStockPriceUpdate(stockUpdate) {
   if (io) {
@@ -404,6 +430,7 @@ module.exports = {
   getIO,
   sendNotificationToUser,
   sendMessageToUser,
+  broadcastNewPost,
   sendStockPriceUpdate,
   sendDividendNotification,
   sendLevelUpNotification,

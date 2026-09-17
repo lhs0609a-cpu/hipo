@@ -10,9 +10,11 @@ import {
 } from 'react-native';
 import { notificationAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useSocket } from '../contexts/SocketContext';
 
 const NotificationScreen = ({ navigation }) => {
   const { isAuthenticated } = useAuth();
+  const { socket, isConnected } = useSocket();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -46,6 +48,26 @@ const NotificationScreen = ({ navigation }) => {
   useEffect(() => {
     fetchNotifications();
   }, [isAuthenticated]);
+
+  // 실시간 알림 수신 (서버: sendNotificationToUser -> 'notification:new')
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    const handleNewNotification = (notification) => {
+      setNotifications((prev) => {
+        // 이미 목록에 있으면(새로고침과 경합) 중복 추가하지 않는다
+        if (notification.id && prev.some((n) => n.id === notification.id)) {
+          return prev;
+        }
+        return [notification, ...prev];
+      });
+    };
+
+    socket.on('notification:new', handleNewNotification);
+    return () => {
+      socket.off('notification:new', handleNewNotification);
+    };
+  }, [socket, isConnected]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);

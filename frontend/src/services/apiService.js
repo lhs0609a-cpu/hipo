@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import cacheService from './cacheService';
 
-const API_BASE_URL = 'http://localhost:3000/api';
+import { API_URL as API_BASE_URL } from '../config';
 const TOKEN_KEY = '@hipo_auth_token';
 
 /**

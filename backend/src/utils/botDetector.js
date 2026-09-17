@@ -1,5 +1,6 @@
-const { DailyLimit, User, CoinTransaction } = require('../models');
+const { DailyLimit, User, CoinTransaction, Post, Comment, Transaction } = require('../models');
 const { sequelize } = require('../config/database');
+const { Op } = require('sequelize');
 const { sendNotificationToUser } = require('../config/socket');
 
 // 의심 패턴 정의
@@ -66,7 +67,7 @@ async function checkCommentSpeed(userId) {
     where: {
       userId,
       source: 'COMMENT_CREATE',
-      createdAt: { [sequelize.Op.gte]: fiveSecondsAgo }
+      createdAt: { [Op.gte]: fiveSecondsAgo }
     }
   });
 
@@ -125,7 +126,7 @@ async function checkLikeBurst(userId) {
     where: {
       userId,
       source: 'LIKE',
-      createdAt: { [sequelize.Op.gte]: oneMinuteAgo }
+      createdAt: { [Op.gte]: oneMinuteAgo }
     }
   });
 
@@ -137,19 +138,84 @@ async function checkLikeBurst(userId) {
   return { suspicious: false };
 }
 
+// 반복 콘텐츠 체크
+// 같은 내용을 여러 번 게시/댓글하는 도배 패턴.
+// 최근 24시간 내 동일 content가 threshold회 이상이면 의심.
+async function checkRepeatedContent(userId, { content, kind = 'POST' } = {}) {
+  if (!content || !content.trim()) return { suspicious: false };
+
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  const Model = kind === 'COMMENT' ? Comment : Post;
+
+  const duplicates = await Model.count({
+    where: {
+      userId,
+      content: content.trim(),
+      createdAt: { [Op.gte]: oneDayAgo }
+    }
+  });
+
+  // 이번 작성분은 아직 저장 전이므로, 기존 동일 콘텐츠가 threshold-1개면 이번이 threshold번째
+  if (duplicates >= SUSPICIOUS_PATTERNS.REPEATED_CONTENT.threshold - 1) {
+    await increaseSuspicionScore(userId, 'REPEATED_CONTENT', SUSPICIOUS_PATTERNS.REPEATED_CONTENT.score);
+    return { suspicious: true, pattern: 'REPEATED_CONTENT', score: SUSPICIOUS_PATTERNS.REPEATED_CONTENT.score };
+  }
+
+  return { suspicious: false };
+}
+
+// 단시간 대량 거래 체크
+// 사람이 손으로 낼 수 없는 속도의 매수/매도는 자동매매 봇으로 본다.
+async function checkRapidStockTrades(userId) {
+  const { threshold, withinMinutes } = SUSPICIOUS_PATTERNS.RAPID_STOCK_TRADES;
+  const since = new Date(Date.now() - withinMinutes * 60 * 1000);
+
+  const recentTrades = await Transaction.count({
+    where: {
+      [Op.or]: [{ buyerId: userId }, { sellerId: userId }],
+      createdAt: { [Op.gte]: since }
+    }
+  });
+
+  if (recentTrades >= threshold) {
+    await increaseSuspicionScore(userId, 'RAPID_STOCK_TRADES', SUSPICIOUS_PATTERNS.RAPID_STOCK_TRADES.score);
+    return { suspicious: true, pattern: 'RAPID_STOCK_TRADES', score: SUSPICIOUS_PATTERNS.RAPID_STOCK_TRADES.score };
+  }
+
+  return { suspicious: false };
+}
+
 // 종합 봇 탐지 (활동 전 체크)
-async function detectBot(userId, activityType) {
+//
+// @param {string} userId
+// @param {string} activityType - 'COMMENT' | 'LIKE' | 'POST' | 'STOCK_TRADE'
+// @param {Object} context - 패턴별 추가 정보 (예: { content } for REPEATED_CONTENT)
+async function detectBot(userId, activityType, context = {}) {
   const checks = [];
 
   if (activityType === 'COMMENT') {
     checks.push(await checkCommentSpeed(userId));
+    checks.push(await checkRepeatedContent(userId, { content: context.content, kind: 'COMMENT' }));
   }
 
   if (activityType === 'LIKE') {
     checks.push(await checkLikeBurst(userId));
   }
 
+  if (activityType === 'POST') {
+    checks.push(await checkRepeatedContent(userId, { content: context.content, kind: 'POST' }));
+  }
+
+  if (activityType === 'STOCK_TRADE') {
+    checks.push(await checkRapidStockTrades(userId));
+  }
+
   checks.push(await checkNightActivity(userId));
+
+  // checkEmptyProfile은 여기서 부르지 않는다.
+  // 호출할 때마다 +10점이 누적되므로 활동마다 돌리면 프로필 미작성 사용자가
+  // 활동 7번 만에 70점(봇 의심)에 도달한다. 하루 1회 스캔으로 처리한다.
+  // → src/jobs/adminScheduler.js 의 scanEmptyProfiles()
 
   const suspiciousCheck = checks.find(c => c.suspicious);
 
@@ -187,5 +253,7 @@ module.exports = {
   checkCommentSpeed,
   checkNightActivity,
   checkEmptyProfile,
-  checkLikeBurst
+  checkLikeBurst,
+  checkRepeatedContent,
+  checkRapidStockTrades
 };

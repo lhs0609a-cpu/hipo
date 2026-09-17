@@ -4,7 +4,41 @@ const { createNotification } = require('./notificationController');
 const { extractHashtags, addHashtagsToPost, removeHashtagsFromPost } = require('../utils/hashtagHelper');
 const { extractMentions, createMentionNotifications } = require('../utils/mentionHelper');
 const { checkCommentLimit, incrementCommentCount, getShareholding } = require('../utils/shareholderHelper');
+const { awardCoins } = require('../utils/coinRewards');
+const { detectBot } = require('../utils/botDetector');
+const { broadcastNewPost } = require('../config/socket');
 const { canAccessContentTier, getUserMaxTier, getRequiredShares, getTierName } = require('../utils/contentTierHelper');
+
+/**
+ * 활동 보상(PO) 지급 + 봇 탐지.
+ *
+ * 보상 지급이나 봇 탐지가 실패해도 본 동작(작성/좋아요)은 성공해야 하므로
+ * 모든 예외를 여기서 삼키고 null을 돌려준다.
+ *
+ * @param {string} userId
+ * @param {string} source - coinRewards.BASE_REWARDS 의 키
+ * @param {Object} options - awardCoins 옵션 (relatedId, relatedType, description)
+ * @param {string|null} activityType - detectBot 활동 타입 ('POST' | 'COMMENT' | 'LIKE'). null이면 탐지 생략
+ * @param {Object} detectContext - 패턴별 추가 정보 (예: { content } — 반복 콘텐츠 검사용)
+ * @returns {Promise<Object|null>} awardCoins 결과 또는 null
+ */
+async function awardActivity(userId, source, options = {}, activityType = null, detectContext = {}) {
+  try {
+    if (activityType) {
+      const detection = await detectBot(userId, activityType, detectContext);
+      if (detection.isSuspicious) {
+        console.warn(`봇 의심 활동 - 보상 미지급: user=${userId} pattern=${detection.pattern}`);
+        return null;
+      }
+    }
+
+    const result = await awardCoins(userId, source, options);
+    return result?.success ? result : null;
+  } catch (error) {
+    console.error(`활동 보상 지급 실패 (${source}):`, error.message);
+    return null;
+  }
+}
 
 /**
  * 포스트 상세 조회 (단일)
@@ -301,6 +335,14 @@ exports.createPost = async (req, res) => {
       }
     }
 
+    // 활동 보상 지급 (작성자가 크리에이터면 awardCoins 내부에서 주주 배당까지 처리)
+    // 같은 내용을 반복 게시하는 도배는 REPEATED_CONTENT 패턴으로 걸러진다
+    const reward = await awardActivity(userId, 'POST_CREATE', {
+      relatedId: post.id,
+      relatedType: 'POST',
+      description: '게시글 작성 보상'
+    }, 'POST', { content });
+
     const postWithAuthor = await Post.findByPk(post.id, {
       include: [{
         model: User,
@@ -309,9 +351,21 @@ exports.createPost = async (req, res) => {
       }]
     });
 
+    // 실시간 활동 피드 브로드캐스트.
+    // 전체 공개 게시글만 내보낸다 — 팔로워/주주 전용 글은 수신자마다 열람 권한이
+    // 달라서 소켓으로 일괄 브로드캐스트하면 안 된다.
+    if (postWithAuthor.visibilityType === 'PUBLIC') {
+      try {
+        broadcastNewPost(postWithAuthor);
+      } catch (broadcastError) {
+        console.error('게시글 브로드캐스트 오류 (무시됨):', broadcastError.message);
+      }
+    }
+
     res.status(201).json({
       message: '포스트가 생성되었습니다',
-      post: postWithAuthor
+      post: postWithAuthor,
+      reward: reward?.po || null
     });
   } catch (error) {
     console.error('포스트 생성 오류:', error);
@@ -359,10 +413,18 @@ exports.likePost = async (req, res) => {
       // 알림 생성 (포스트 작성자에게)
       await createNotification(post.userId, userId, 'like', { postId });
 
+      // 활동 보상 지급 (좋아요 폭발 패턴이면 미지급)
+      const reward = await awardActivity(userId, 'LIKE', {
+        relatedId: postId,
+        relatedType: 'POST',
+        description: '좋아요 보상'
+      }, 'LIKE');
+
       return res.json({
         message: '좋아요를 추가했습니다',
         isLiked: true,
-        likesCount: post.likesCount + 1
+        likesCount: post.likesCount + 1,
+        reward: reward?.po || null
       });
     }
   } catch (error) {
@@ -432,6 +494,13 @@ exports.addComment = async (req, res) => {
       await createMentionNotifications(mentions, userId, { postId, commentId: comment.id }, { User });
     }
 
+    // 활동 보상 지급 (댓글 속도/반복 콘텐츠 패턴이면 미지급)
+    const reward = await awardActivity(userId, 'COMMENT_CREATE', {
+      relatedId: comment.id,
+      relatedType: 'COMMENT',
+      description: '댓글 작성 보상'
+    }, 'COMMENT', { content });
+
     const commentWithAuthor = await Comment.findByPk(comment.id, {
       include: [{
         model: User,
@@ -442,7 +511,8 @@ exports.addComment = async (req, res) => {
 
     res.status(201).json({
       message: '댓글이 추가되었습니다',
-      comment: commentWithAuthor
+      comment: commentWithAuthor,
+      reward: reward?.po || null
     });
   } catch (error) {
     console.error('댓글 추가 오류:', error);

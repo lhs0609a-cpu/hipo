@@ -1,8 +1,7 @@
 import { io } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Backend Socket.IO URL
-const SOCKET_URL = 'https://hipo-backend.fly.dev';
+import { SOCKET_URL } from '../config';
 
 class SocketService {
   constructor() {

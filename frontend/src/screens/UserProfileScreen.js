@@ -25,6 +25,10 @@ export default function UserProfileScreen({ route, navigation }) {
   const [error, setError] = useState(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followLoading, setFollowLoading] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [postsPage, setPostsPage] = useState(1);
+  const [postsTotalPages, setPostsTotalPages] = useState(1);
 
   const fetchUserProfile = useCallback(async () => {
     try {
@@ -36,9 +40,11 @@ export default function UserProfileScreen({ route, navigation }) {
         api.get(`/stocks/user/${userId}`).catch(() => ({ data: null }))
       ]);
 
-      setUser(userResponse.data);
+      // GET /api/users/:userId 는 { user: {...} } 형태로 응답한다
+      const profile = userResponse.data?.user || userResponse.data;
+      setUser(profile);
       setStock(stockResponse.data?.stock || null);
-      setIsFollowing(userResponse.data?.isFollowing || false);
+      setIsFollowing(profile?.isFollowing || false);
     } catch (err) {
       console.error('프로필 로드 오류:', err);
       setError('프로필을 불러오는데 실패했습니다');
@@ -47,9 +53,34 @@ export default function UserProfileScreen({ route, navigation }) {
     }
   }, [userId]);
 
+  const fetchUserPosts = useCallback(async (page = 1) => {
+    try {
+      setPostsLoading(true);
+      const response = await api.get(`/users/${userId}/posts`, {
+        params: { page, limit: 10 },
+      });
+
+      const loaded = response.data?.posts || [];
+      setPosts((prev) => (page === 1 ? loaded : [...prev, ...loaded]));
+      setPostsPage(page);
+      setPostsTotalPages(response.data?.pagination?.totalPages || 1);
+    } catch (err) {
+      console.error('사용자 포스트 로드 오류:', err);
+      if (page === 1) setPosts([]);
+    } finally {
+      setPostsLoading(false);
+    }
+  }, [userId]);
+
   useEffect(() => {
     fetchUserProfile();
-  }, [fetchUserProfile]);
+    fetchUserPosts(1);
+  }, [fetchUserProfile, fetchUserPosts]);
+
+  const handleLoadMorePosts = () => {
+    if (postsLoading || postsPage >= postsTotalPages) return;
+    fetchUserPosts(postsPage + 1);
+  };
 
   const handleFollow = async () => {
     try {
@@ -229,6 +260,44 @@ export default function UserProfileScreen({ route, navigation }) {
             </ScrollView>
           </View>
         )}
+
+        {/* Posts */}
+        <View style={styles.postsSection}>
+          <Text style={styles.sectionTitle}>포스트</Text>
+
+          {posts.length === 0 && !postsLoading && (
+            <Text style={styles.emptyPostsText}>아직 작성한 포스트가 없습니다</Text>
+          )}
+
+          {posts.map((post) => (
+            <TouchableOpacity
+              key={post.id}
+              style={styles.postItem}
+              onPress={() => navigation.navigate('PostDetail', { postId: post.id })}
+            >
+              <Text style={styles.postContent} numberOfLines={3}>
+                {post.content}
+              </Text>
+              <View style={styles.postMetaRow}>
+                <Text style={styles.postMeta}>❤️ {post.likesCount || 0}</Text>
+                <Text style={styles.postMeta}>💬 {post.commentsCount || 0}</Text>
+                <Text style={styles.postMeta}>
+                  {new Date(post.createdAt || post.created_at).toLocaleDateString('ko-KR')}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+
+          {postsLoading && (
+            <ActivityIndicator size="small" color={COLORS.primary} style={styles.postsLoader} />
+          )}
+
+          {!postsLoading && postsPage < postsTotalPages && (
+            <TouchableOpacity style={styles.loadMoreButton} onPress={handleLoadMorePosts}>
+              <Text style={styles.loadMoreText}>더 보기</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -438,6 +507,46 @@ const styles = StyleSheet.create({
   },
   badgesSection: {
     padding: 16,
+  },
+  postsSection: {
+    padding: 16,
+  },
+  postItem: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  postContent: {
+    fontSize: 15,
+    color: COLORS.white,
+    lineHeight: 22,
+  },
+  postMetaRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  postMeta: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  emptyPostsText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
+  postsLoader: {
+    marginVertical: 16,
+  },
+  loadMoreButton: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  loadMoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
   sectionTitle: {
     fontSize: 16,

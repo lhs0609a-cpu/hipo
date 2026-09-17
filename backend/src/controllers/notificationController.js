@@ -1,4 +1,26 @@
 const { Notification, User, Post, Comment } = require('../models');
+const { sendNotificationToUser } = require('../config/socket');
+
+// 소셜 알림 타입별 제목/본문 템플릿
+// NotificationScreen이 title/message를 렌더하므로 생성 시점에 채워둔다
+const SOCIAL_TEMPLATES = {
+  like: {
+    title: '❤️ 좋아요',
+    message: (actorName) => `${actorName}님이 회원님의 게시글을 좋아합니다`
+  },
+  comment: {
+    title: '💬 새 댓글',
+    message: (actorName) => `${actorName}님이 회원님의 게시글에 댓글을 남겼습니다`
+  },
+  follow: {
+    title: '👤 새 팔로워',
+    message: (actorName) => `${actorName}님이 회원님을 팔로우하기 시작했습니다`
+  },
+  mention: {
+    title: '📢 멘션',
+    message: (actorName) => `${actorName}님이 회원님을 언급했습니다`
+  }
+};
 
 /**
  * 알림 생성 헬퍼 함수
@@ -10,12 +32,36 @@ exports.createNotification = async (userId, actorId, type, data = {}) => {
       return null;
     }
 
+    const actor = actorId
+      ? await User.findByPk(actorId, { attributes: ['id', 'username', 'profileImage'] })
+      : null;
+
+    const template = SOCIAL_TEMPLATES[type];
+    const actorName = actor?.username || '알 수 없는 사용자';
+
     const notification = await Notification.create({
       userId,
       actorId,
       type,
+      title: data.title || template?.title || '알림',
+      message: data.message || (template ? template.message(actorName) : null),
       postId: data.postId || null,
-      commentId: data.commentId || null
+      commentId: data.commentId || null,
+      relatedId: data.relatedId || null,
+      data: data.data || null
+    });
+
+    // 실시간 푸시
+    sendNotificationToUser(userId, {
+      id: notification.id,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      postId: notification.postId,
+      commentId: notification.commentId,
+      actor: actor ? { id: actor.id, username: actor.username, profileImage: actor.profileImage } : null,
+      isRead: false,
+      createdAt: notification.createdAt
     });
 
     return notification;

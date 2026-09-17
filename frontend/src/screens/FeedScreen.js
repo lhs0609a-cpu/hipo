@@ -13,9 +13,11 @@ import {
 } from 'react-native';
 import { postAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useSocket } from '../contexts/SocketContext';
 
 const FeedScreen = ({ navigation }) => {
   const { isAuthenticated, user } = useAuth();
+  const { socket, isConnected } = useSocket();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -46,6 +48,26 @@ const FeedScreen = ({ navigation }) => {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  // 실시간 활동 피드 (서버: broadcastNewPost -> 'post:new')
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    const handleNewPost = (post) => {
+      setPosts((prev) => {
+        // 내가 쓴 글은 작성 응답으로 이미 반영되므로 건너뛴다
+        if (post.author?.id && post.author.id === user?.id) return prev;
+        // 새로고침과 경합해 중복 추가되는 것을 막는다
+        if (post.id && prev.some((p) => p.id === post.id)) return prev;
+        return [post, ...prev];
+      });
+    };
+
+    socket.on('post:new', handleNewPost);
+    return () => {
+      socket.off('post:new', handleNewPost);
+    };
+  }, [socket, isConnected, user?.id]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);

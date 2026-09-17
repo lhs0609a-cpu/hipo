@@ -4,6 +4,7 @@ const {
   CommunityNotice, User, Wallet, CoinTransaction
 } = require('../models');
 const { sequelize } = require('../config/database');
+const { Op } = require('sequelize');
 const { getShareholding } = require('../utils/shareholderHelper');
 
 /**
@@ -258,7 +259,7 @@ exports.banMember = async (req, res) => {
       where: {
         communityId,
         bannedBy: bannerId,
-        bannedAt: { [sequelize.Op.gte]: thisMonth }
+        bannedAt: { [Op.gte]: thisMonth }
       },
       transaction
     });

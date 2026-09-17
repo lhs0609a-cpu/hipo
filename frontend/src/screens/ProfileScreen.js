@@ -34,6 +34,10 @@ export default function ProfileScreen({ navigation, route }) {
   const [tradeType, setTradeType] = useState('buy');
   const [quantity, setQuantity] = useState('');
   const [tradeLoading, setTradeLoading] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+  const [postsPage, setPostsPage] = useState(1);
+  const [postsTotalPages, setPostsTotalPages] = useState(1);
   const userId = route?.params?.userId;
 
   useEffect(() => {
@@ -46,19 +50,47 @@ export default function ProfileScreen({ navigation, route }) {
       const currentUserData = await getSavedUser();
       setCurrentUser(currentUserData);
 
-      if (userId && userId !== currentUserData.id) {
+      const targetUserId = userId && userId !== currentUserData.id ? userId : currentUserData.id;
+
+      if (targetUserId === userId) {
         const profileData = await getUserProfile(userId);
         setUser(profileData.user);
-        await loadStockData(userId);
       } else {
         setUser(currentUserData);
-        await loadStockData(currentUserData.id);
       }
+
+      await loadStockData(targetUserId);
+      await loadUserPosts(targetUserId, 1);
     } catch (error) {
       console.error('Profile load error:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadUserPosts = async (targetUserId, page = 1) => {
+    try {
+      setPostsLoading(true);
+      const response = await api.get(`/users/${targetUserId}/posts`, {
+        params: { page, limit: 10 },
+      });
+
+      const loaded = response.data?.posts || [];
+      setPosts((prev) => (page === 1 ? loaded : [...prev, ...loaded]));
+      setPostsPage(page);
+      setPostsTotalPages(response.data?.pagination?.totalPages || 1);
+    } catch (error) {
+      console.error('User posts load error:', error);
+      if (page === 1) setPosts([]);
+    } finally {
+      setPostsLoading(false);
+    }
+  };
+
+  const handleLoadMorePosts = () => {
+    if (postsLoading || postsPage >= postsTotalPages) return;
+    const targetUserId = user?.id;
+    if (targetUserId) loadUserPosts(targetUserId, postsPage + 1);
   };
 
   const loadStockData = async (targetUserId) => {
@@ -361,6 +393,46 @@ export default function ProfileScreen({ navigation, route }) {
           </View>
         </SectionCard>
       )}
+
+      {/* Posts */}
+      <SectionCard title={`게시물 ${user.postsCount ? `(${user.postsCount})` : ''}`}>
+        {posts.length === 0 && !postsLoading && (
+          <View style={styles.emptyPosts}>
+            <Text style={styles.emptyPostsText}>아직 작성한 게시물이 없습니다</Text>
+          </View>
+        )}
+
+        {posts.map((post) => (
+          <Pressable
+            key={post.id}
+            style={styles.postItem}
+            onPress={() => navigation.navigate('PostDetail', { postId: post.id })}
+          >
+            <Text style={styles.postContent} numberOfLines={3}>
+              {post.content}
+            </Text>
+            <View style={styles.postMetaRow}>
+              <Text style={styles.postMeta}>❤️ {post.likesCount || 0}</Text>
+              <Text style={styles.postMeta}>💬 {post.commentsCount || 0}</Text>
+              <Text style={styles.postMeta}>
+                {new Date(post.createdAt || post.created_at).toLocaleDateString('ko-KR')}
+              </Text>
+            </View>
+          </Pressable>
+        ))}
+
+        {postsLoading && (
+          <View style={styles.emptyPosts}>
+            <ActivityIndicator size="small" color={theme.colors.primary} />
+          </View>
+        )}
+
+        {!postsLoading && postsPage < postsTotalPages && (
+          <Pressable style={styles.loadMoreButton} onPress={handleLoadMorePosts}>
+            <Text style={styles.loadMoreText}>더 보기</Text>
+          </Pressable>
+        )}
+      </SectionCard>
 
       {/* Settings (Own Profile Only) */}
       {isOwnProfile && (
@@ -687,6 +759,46 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.fontSize.base,
     color: theme.colors.textPrimary,
     lineHeight: theme.typography.fontSize.base * theme.typography.lineHeight.relaxed,
+  },
+
+  // Posts
+  postItem: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.gray100,
+  },
+  postContent: {
+    fontSize: theme.typography.fontSize.base,
+    color: theme.colors.textPrimary,
+    lineHeight: theme.typography.fontSize.base * theme.typography.lineHeight.relaxed,
+  },
+  postMetaRow: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.sm,
+  },
+  postMeta: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textSecondary,
+  },
+  emptyPosts: {
+    paddingHorizontal: theme.spacing.lg,
+    paddingVertical: theme.spacing.lg,
+    alignItems: 'center',
+  },
+  emptyPostsText: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.textSecondary,
+  },
+  loadMoreButton: {
+    paddingVertical: theme.spacing.md,
+    alignItems: 'center',
+  },
+  loadMoreText: {
+    fontSize: theme.typography.fontSize.sm,
+    color: theme.colors.primary,
+    fontWeight: '600',
   },
 
   // Logout

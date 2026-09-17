@@ -59,7 +59,8 @@ module.exports = (sequelize) => {
 }, {
   tableName: 'wallet_transactions',
   timestamps: true,
-  underscored: false,
+  // underscored: true (전역 설정) — 아래 인덱스가 created_at 을 참조하므로 반드시 snake_case 매핑이어야 한다.
+  // 일반 컬럼은 각 속성의 field: 선언이 우선하므로 영향 없음.
   updatedAt: false,
   indexes: [
     { fields: ['user_id'] },

@@ -1,5 +1,6 @@
 const { UserLevel, ViceAdmin, User, ShareholderCommunity, CommunityMember, Notification } = require('../models');
 const { sequelize } = require('../config/database');
+const { Op } = require('sequelize');
 const { getIO } = require('../config/socket');
 
 // 커뮤니티 내 레벨 랭킹 조회
@@ -62,11 +63,11 @@ exports.getMyLevel = async (req, res) => {
     const rank = await UserLevel.count({
       where: {
         communityId,
-        [sequelize.Op.or]: [
-          { level: { [sequelize.Op.gt]: userLevel.level } },
+        [Op.or]: [
+          { level: { [Op.gt]: userLevel.level } },
           {
             level: userLevel.level,
-            experiencePoints: { [sequelize.Op.gt]: userLevel.experiencePoints }
+            experiencePoints: { [Op.gt]: userLevel.experiencePoints }
           }
         ]
       }
@@ -323,7 +324,7 @@ exports.getBestMembers = async (req, res) => {
     const bestMembers = await UserLevel.findAll({
       where: {
         communityId,
-        level: { [sequelize.Op.gte]: 10 }
+        level: { [Op.gte]: 10 }
       },
       include: [
         {

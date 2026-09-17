@@ -48,9 +48,29 @@ npm install
 # 3. 서버 시작 (개발 모드)
 npm run dev
 
-# 서버가 http://localhost:3000 에서 실행됩니다
+# 서버가 http://localhost:5555 에서 실행됩니다 (PORT 환경변수로 변경 가능)
 # SQLite 데이터베이스가 자동으로 생성됩니다
 \`\`\`
+
+#### 스키마 관리
+
+스키마의 원본은 `backend/src/models/*.js` 이고, 반영은 Sequelize의 `sync()`가 담당한다.
+
+\`\`\`bash
+npm run migrate                  # alter — 누락된 테이블/컬럼 추가 (기본)
+npm run migrate -- --mode=sync   # 없는 테이블만 생성, 기존 테이블은 건드리지 않음
+npm run migrate -- --mode=force  # 전체 DROP 후 재생성 (데이터 전부 삭제)
+\`\`\`
+
+서버 부팅 시 자동 동기화 여부는 `DB_SYNC` 환경변수로 제어한다.
+
+| 값 | 동작 |
+|---|---|
+| `alter` | 누락된 테이블/컬럼 추가 (개발 기본값) |
+| `sync` | 없는 테이블만 생성 |
+| `none` | 동기화 안 함 (**운영 기본값**) |
+
+운영 환경은 부팅 시 스키마를 건드리지 않는다. 변경이 필요하면 `npm run migrate`를 명시적으로 실행할 것.
 
 ### 프론트엔드 설정
 
@@ -70,11 +90,15 @@ npm start
 
 ### API 기본 URL 변경 (필요시)
 
-프론트엔드에서 백엔드 URL을 변경하려면:
+API/소켓 주소는 `frontend/src/config/index.js` **한 곳**에서만 정의한다.
+axios 클라이언트, fetch 래퍼, 소켓 서비스가 모두 여기를 참조하므로 다른 파일에
+URL을 하드코딩하지 말 것.
 
 \`\`\`javascript
-// frontend/src/api/client.js
-const API_URL = 'http://YOUR_IP_ADDRESS:3000/api';
+// frontend/src/config/index.js
+const DEV_HOST = 'localhost';  // 실기기 테스트 시 PC의 LAN IP (예: 192.168.0.100)
+const DEV_PORT = 5555;         // backend/.env 의 PORT와 일치해야 함
+const PROD_ORIGIN = 'https://hipo-backend.fly.dev';
 \`\`\`
 
 ## API 엔드포인트
@@ -122,9 +146,9 @@ const API_URL = 'http://YOUR_IP_ADDRESS:3000/api';
 - [x] 커뮤니티 시스템
 - [x] NFT, 이벤트, 팬미팅 등
 
-### 웹앱 프론트엔드 (완성도: 90%)
-- [x] React 프로젝트 생성
-- [x] React Router 설정
+### 프론트엔드 (React Native + Expo, 완성도: 90%)
+- [x] Expo 프로젝트 생성
+- [x] React Navigation 설정
 - [x] API 클라이언트 (Axios)
 - [x] 로그인/회원가입 화면
 - [x] 피드 화면 (게시글 목록)
@@ -174,10 +198,10 @@ cd backend
 npm run dev
 ```
 
-### 웹앱 프론트엔드
+### 프론트엔드 (React Native + Expo)
 1. 패키지 설치 (이미 설치됨):
 ```bash
-cd webapp
+cd frontend
 npm install
 ```
 
@@ -200,20 +224,23 @@ npm start
 
 ## 다음 단계
 
-1. **관리자 대시보드**
-   - 봇 의심 계정 관리
-   - 사용자 통계
-   - 시스템 모니터링
+> 미구현/미작동 항목의 최신 검증 결과는 [`UNIMPLEMENTED_FEATURES.md`](UNIMPLEMENTED_FEATURES.md)
+> (요약: [`QUICK_REFERENCE.md`](QUICK_REFERENCE.md)) 참조.
 
-2. **통계 및 분석**
-   - 거래량 차트
-   - 배당 통계
-   - 사용자 성장 그래프
+아래 항목은 **이미 구현 완료**되어 목록에서 제외:
+`관리자 대시보드`(`/api/admin/*` + `AdminDashboardScreen`), `통계 및 분석`(`/api/admin/charts/*`),
+`스키마 관리 정리`(`DB_SYNC` + `npm run migrate`), `실시간 활동 피드`(`post:new`).
 
-3. **테스트 코드**
-   - API 단위 테스트
-   - 통합 테스트
-   - E2E 테스트
+1. **테스트 코드**
+   - 현재 백엔드 테스트는 4개 파일 (`auth`/`post`/`stock`/`admin`) / 컨트롤러 52개
+   - API 단위 테스트 · 통합 테스트 · E2E 테스트
+
+2. **죽은 화면 정리**
+   - `HomeScreenRedesigned.js`, `TransactionsScreen.js`가 `AppNavigator`에 등록돼 있지 않음
+   - 남길지 지울지 결정 필요 (`HomeScreenRedesigned`는 목 데이터로 동작 중)
+
+3. **에러 트래킹 연동**
+   - `frontend/src/components/ErrorBoundary.js:42` — Sentry 등 DSN 발급 후 연결
 
 ## 라이선스
 

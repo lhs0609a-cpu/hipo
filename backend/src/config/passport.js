@@ -2,14 +2,30 @@ const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const { User, Stock } = require('../models');
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: process.env.GOOGLE_CALLBACK_URL,
-    },
-    async (accessToken, refreshToken, profile, done) => {
+// Google OAuth 자격증명이 없으면 전략을 등록하지 않는다.
+// GoogleStrategy 생성자는 clientID가 없으면 즉시 throw 하는데,
+// 이 모듈은 server.js의 loadRoutes() 최상단에서 require 되므로
+// 예전에는 GOOGLE_CLIENT_ID 미설정 시 **라우트 55개가 통째로 로드 실패**했다.
+// (서버는 뜨지만 /health, / 외 모든 API가 404가 되는 상태)
+const googleOAuthEnabled = Boolean(
+  process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+);
+
+if (!googleOAuthEnabled) {
+  console.warn(
+    '⚠️  GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET 미설정 — Google 로그인 비활성화 (나머지 API는 정상 동작)'
+  );
+}
+
+if (googleOAuthEnabled) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: process.env.GOOGLE_CALLBACK_URL,
+      },
+      async (accessToken, refreshToken, profile, done) => {
       try {
         // Google 프로필에서 이메일 가져오기
         const email = profile.emails[0].value;
@@ -48,14 +64,15 @@ passport.use(
           marketCapTotal: 10000000,
         });
 
-        return done(null, user);
-      } catch (error) {
-        console.error('Google OAuth 오류:', error);
-        return done(error, null);
+          return done(null, user);
+        } catch (error) {
+          console.error('Google OAuth 오류:', error);
+          return done(error, null);
+        }
       }
-    }
-  )
-);
+    )
+  );
+}
 
 // 세션 직렬화
 passport.serializeUser((user, done) => {

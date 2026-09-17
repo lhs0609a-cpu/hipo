@@ -1,5 +1,6 @@
 const { ChatMessage, CommunityMember, UserLevel, User, ShareholderCommunity, ChatReport, SuspiciousActivity, ViceAdmin } = require('../models');
 const { sequelize } = require('../config/database');
+const { Op } = require('sequelize');
 const { getIO, sendLevelUpNotification } = require('../config/socket');
 
 // AI 필터링 키워드 (금융 사기 탐지)
@@ -184,7 +185,7 @@ exports.getMessages = async (req, res) => {
     if (before) {
       const beforeMessage = await ChatMessage.findByPk(before);
       if (beforeMessage) {
-        whereClause.createdAt = { [sequelize.Op.lt]: beforeMessage.createdAt };
+        whereClause.createdAt = { [Op.lt]: beforeMessage.createdAt };
       }
     }
 

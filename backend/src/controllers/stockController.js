@@ -11,6 +11,8 @@ const {
 } = require('../utils/technicalIndicators');
 const { getMaxSharesByTier } = require('../utils/tierSystem');
 const viralController = require('./viralController');
+const { awardCoins } = require('../utils/coinRewards');
+const { detectBot } = require('../utils/botDetector');
 
 /**
  * 주식 목록 조회
@@ -345,8 +347,28 @@ exports.buyStock = async (req, res) => {
       console.error('바이럴 기능 실행 오류 (무시됨):', viralError);
     }
 
+    // 매수 활동 보상 (PO). 자동매매 봇으로 의심되면 미지급.
+    // 보상 실패가 매수 자체를 되돌리면 안 되므로 예외를 삼킨다.
+    let reward = null;
+    try {
+      const detection = await detectBot(buyerId, 'STOCK_TRADE');
+      if (detection.isSuspicious) {
+        console.warn(`봇 의심 거래 - 보상 미지급: user=${buyerId} pattern=${detection.pattern}`);
+      } else {
+        const result = await awardCoins(buyerId, 'STOCK_PURCHASE', {
+          relatedId: stock.id,
+          relatedType: 'STOCK',
+          description: '주식 매수 보상'
+        });
+        reward = result?.success ? result.po : null;
+      }
+    } catch (rewardError) {
+      console.error('매수 보상 지급 실패:', rewardError.message);
+    }
+
     res.json({
       message: '매수 완료',
+      reward,
       transaction: {
         shares,
         pricePerShare: stock.sharePrice,

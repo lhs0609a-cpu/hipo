@@ -122,7 +122,7 @@ async function distributeDividends(creatorId, earnedPO, source, options = {}) {
           title: '💰 배당 수령',
           message: `${creator.username}님의 활동으로 ${dividendAmount}PO 배당을 받으셨습니다`,
           relatedId: creatorId,
-          metadata: {
+          data: {
             source,
             creatorName: creator.username,
             dividendAmount,
@@ -252,11 +252,11 @@ async function getDividendHistory(userId, options = {}) {
     });
 
     const dividends = dividendNotifications.map(n => ({
-      creatorName: n.metadata?.creatorName,
-      amount: n.metadata?.dividendAmount || 0,
-      shares: n.metadata?.shares || 0,
-      source: n.metadata?.source,
-      description: n.metadata?.description,
+      creatorName: n.data?.creatorName,
+      amount: n.data?.dividendAmount || 0,
+      shares: n.data?.shares || 0,
+      source: n.data?.source,
+      description: n.data?.description,
       receivedAt: n.createdAt
     }));
 
@@ -301,7 +301,7 @@ async function getCreatorDividendStats(creatorId) {
       where: {
         relatedId: creatorId,
         type: 'DIVIDEND_RECEIVED',
-        createdAt: { [sequelize.Op.gte]: sevenDaysAgo }
+        createdAt: { [Op.gte]: sevenDaysAgo }
       }
     });
 

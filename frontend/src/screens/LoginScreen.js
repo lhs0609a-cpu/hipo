@@ -13,6 +13,7 @@ import {
   SafeAreaView,
 } from 'react-native';
 import { login } from '../api/auth';
+import { API_URL } from '../config';
 import theme from '../styles/theme';
 import Button from '../components/Button';
 
@@ -73,7 +74,7 @@ export default function LoginScreen({ navigation }) {
 
   const handleGoogleLogin = async () => {
     try {
-      const googleAuthUrl = 'http://localhost:5555/api/auth/google';
+      const googleAuthUrl = `${API_URL}/auth/google`;
 
       if (Platform.OS === 'web') {
         window.location.href = googleAuthUrl;

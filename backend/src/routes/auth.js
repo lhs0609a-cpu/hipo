@@ -23,12 +23,23 @@ router.post('/login', authController.login);
  */
 router.get('/me', authenticateToken, authController.getMe);
 
+// Google 전략은 자격증명이 있을 때만 등록된다 (src/config/passport.js).
+// 미등록 상태에서 passport.authenticate('google')을 호출하면
+// "Unknown authentication strategy"로 500이 나므로, 먼저 막아준다.
+const requireGoogleOAuth = (req, res, next) => {
+  if (!passport._strategy('google')) {
+    return res.status(503).json({ error: 'Google 로그인이 설정되지 않았습니다' });
+  }
+  next();
+};
+
 /**
  * GET /api/auth/google
  * Google OAuth 인증 시작
  */
 router.get(
   '/google',
+  requireGoogleOAuth,
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
@@ -38,6 +49,7 @@ router.get(
  */
 router.get(
   '/google/callback',
+  requireGoogleOAuth,
   passport.authenticate('google', { session: false, failureRedirect: 'http://localhost:8081?error=auth_failed' }),
   (req, res) => {
     try {
