@@ -3,11 +3,13 @@ import { View, Text, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
 
 // Auth Screens
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import WelcomeScreen from '../screens/WelcomeScreen';
 
 // Main Tab Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -107,21 +109,31 @@ const Tab = createBottomTabNavigator();
 function MainTabs() {
   return (
     <Tab.Navigator
-      screenOptions={{
-        tabBarActiveTintColor: '#4CAF50',
-        tabBarInactiveTintColor: '#999',
+      screenOptions={({ route }) => ({
+        tabBarActiveTintColor: '#2F6BFF',
+        tabBarInactiveTintColor: '#9AA4B2',
         tabBarStyle: {
-          backgroundColor: '#1a1a1a',
-          borderTopColor: '#333',
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#EDF0F4',
+          height: 70,
+          paddingBottom: 10,
+          paddingTop: 7,
+          elevation: 0,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
+          fontSize: 10,
+          fontWeight: '800',
         },
-      }}
+        tabBarIcon: ({ color, focused }) => {
+          const icons = {
+            Home: focused ? 'home' : 'home-outline',
+            Market: focused ? 'trending-up' : 'trending-up-outline',
+            Community: focused ? 'chatbubbles' : 'chatbubbles-outline',
+            Menu: focused ? 'grid' : 'grid-outline',
+          };
+          return <Ionicons name={icons[route.name]} size={focused ? 23 : 22} color={color} />;
+        },
+      })}
     >
       <Tab.Screen
         name="Home"
@@ -129,10 +141,12 @@ function MainTabs() {
         options={{
           title: '홈',
           headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: focused ? 28 : 24, color, fontWeight: focused ? 'bold' : 'normal' }}>⌂</Text>
-          ),
         }}
+      />
+      <Tab.Screen
+        name="Market"
+        component={StockMarketScreen}
+        options={{ title: '발견', headerShown: false }}
       />
       <Tab.Screen
         name="Community"
@@ -140,9 +154,6 @@ function MainTabs() {
         options={{
           title: '피드',
           headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: focused ? 28 : 24, color, fontWeight: focused ? 'bold' : 'normal' }}>◉</Text>
-          ),
         }}
       />
       <Tab.Screen
@@ -151,9 +162,6 @@ function MainTabs() {
         options={{
           title: '메뉴',
           headerShown: false,
-          tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: focused ? 28 : 24, color, fontWeight: focused ? 'bold' : 'normal' }}>≡</Text>
-          ),
         }}
       />
     </Tab.Navigator>
@@ -161,15 +169,19 @@ function MainTabs() {
 }
 
 // 메인 앱 스택
-function MainStack() {
+function MainStack({ initialRouteName }) {
   return (
     <Stack.Navigator
+      initialRouteName={initialRouteName}
       screenOptions={{
-        headerStyle: { backgroundColor: '#1a1a1a' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: 'bold' },
+        headerStyle: { backgroundColor: '#FFFFFF' },
+        headerTintColor: '#202B3C',
+        headerTitleStyle: { fontWeight: '800', fontSize: 16 },
+        headerShadowVisible: false,
+        cardStyle: { backgroundColor: '#F6F8FB' },
       }}
     >
+      <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
       <Stack.Screen
         name="MainTabs"
         component={MainTabs}
@@ -280,7 +292,7 @@ function MainStack() {
       <Stack.Screen
         name="Wallet"
         component={WalletScreen}
-        options={{ title: '지갑' }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Charge"
@@ -509,19 +521,20 @@ function MainStack() {
 
 // 앱 네비게이터
 export default function AppNavigator() {
-  const { loading } = useAuth();
+  const { loading, isAuthenticated } = useAuth();
 
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>HIPO</Text>
+        <View style={styles.loadingMark}><Text style={styles.loadingMarkText}>H</Text></View>
+        <Text style={styles.loadingText}>HIPO.</Text>
       </View>
     );
   }
 
   return (
     <NavigationContainer>
-      <MainStack />
+      <MainStack initialRouteName={isAuthenticated ? 'MainTabs' : 'Welcome'} />
     </NavigationContainer>
   );
 }
@@ -531,11 +544,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#FFFFFF',
   },
+  loadingMark: {
+    width: 64,
+    height: 64,
+    borderRadius: 22,
+    backgroundColor: '#2F6BFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  loadingMarkText: { color: '#FFFFFF', fontSize: 28, fontWeight: '900' },
   loadingText: {
-    fontSize: 48,
-    fontWeight: 'bold',
-    color: '#4CAF50',
+    fontSize: 19,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    color: '#121926',
   },
 });

@@ -20,11 +20,15 @@ const models = require('../src/models');
   const stock = await models.Stock.create({ userId: issuer.id, sharePrice: 100, previousClose: 100, totalShares: 1000, issuedShares: 100, availableShares: 100 });
   await models.Holding.create({ holderId: seller.id, stockId: stock.id, shares: 100, averagePrice: 80 });
   await models.StockOrder.create({ engineVersion: 2, userId: seller.id, targetUserId: issuer.id, stockId: stock.id, orderType: 'SELL', orderMode: 'limit', quantity: 40, pricePerShare: 100, limitPrice: 100, totalAmount: 4000, isTriggered: true, status: 'PENDING', expiresAt: new Date(Date.now() + 86400000) });
+  // The portable review install may not contain bcrypt's platform-native binary.
+  // bcryptjs is API-compatible and is used only by this isolated in-memory server.
+  const bcryptPath = require.resolve('bcrypt');
+  require.cache[bcryptPath] = { id: bcryptPath, filename: bcryptPath, loaded: true, exports: require('bcryptjs'), children: [], paths: [] };
   const app = require('../server');
   const server = http.createServer(app);
   require('../src/config/socket').initSocket(server);
   const fixturePath = path.resolve(__dirname, '../../tmp/review-session.json');
   fs.mkdirSync(path.dirname(fixturePath), { recursive: true });
-  fs.writeFileSync(fixturePath, JSON.stringify({ token: jwt.sign({ userId: buyer.id }, process.env.JWT_SECRET), user: { id: buyer.id, username: buyer.username, displayName: buyer.displayName, poBalance: 10000 }, stockId: stock.id }, null, 2));
+  fs.writeFileSync(fixturePath, JSON.stringify({ token: jwt.sign({ userId: buyer.id }, process.env.JWT_SECRET), user: { id: buyer.id, email: buyer.email, username: buyer.username, displayName: buyer.displayName, poBalance: 10000 }, stockId: stock.id }, null, 2));
   server.listen(5657, '127.0.0.1', () => console.log('Isolated exchange review: http://127.0.0.1:5657'));
 })().catch(error => { console.error(error); process.exit(1); });

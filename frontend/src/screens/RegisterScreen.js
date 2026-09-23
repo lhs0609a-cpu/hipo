@@ -1,395 +1,102 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ActivityIndicator,
-  ScrollView,
-  Linking,
-} from 'react-native';
-import { register } from '../api/auth';
-import { API_URL } from '../config';
-import { COLORS } from '../constants/colors';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../contexts/AuthContext';
+
+const notify = (title, message) => Platform.OS === 'web' ? window.alert(`${title}\n${message}`) : Alert.alert(title, message);
+
+function Field({ label, icon, value, onChangeText, placeholder, secureTextEntry, keyboardType, hint, ok }) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.inputWrap}><Ionicons name={icon} size={19} color="#8B95A1" /><TextInput style={styles.input} value={value} onChangeText={onChangeText} placeholder={placeholder} placeholderTextColor="#B0B8C1" secureTextEntry={secureTextEntry} keyboardType={keyboardType} autoCapitalize="none" autoCorrect={false} /></View>
+      {!!value && hint && <Text style={[styles.hint, ok && styles.hintOk]}>{ok ? '✓ ' : ''}{hint}</Text>}
+    </View>
+  );
+}
 
 export default function RegisterScreen({ navigation }) {
+  const { register } = useAuth();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = async () => {
-    // 디버깅: 입력값 출력
-    console.log('=== 회원가입 입력값 확인 ===');
-    console.log('이메일:', JSON.stringify(email), '길이:', email?.length, '타입:', typeof email);
-    console.log('사용자명:', JSON.stringify(username), '길이:', username?.length, '타입:', typeof username);
-    console.log('비밀번호:', '***', '길이:', password?.length, '타입:', typeof password);
-    console.log('비밀번호 확인:', '***', '길이:', confirmPassword?.length, '타입:', typeof confirmPassword);
+  const valid = useMemo(() => /^\S+@\S+\.\S+$/.test(email.trim()) && username.trim().length >= 3 && password.length >= 6 && password === confirm && agreed, [email, username, password, confirm, agreed]);
 
-    // 각 필드를 개별적으로 검증
-    const errors = [];
-
-    // 이메일 검증
-    if (!email || email.trim() === '') {
-      errors.push('이메일을 입력해주세요');
-      console.log('❌ 이메일 검증 실패: 빈 값');
-    } else if (!email.includes('@')) {
-      errors.push('올바른 이메일 형식이 아닙니다 (예: user@example.com)');
-      console.log('❌ 이메일 검증 실패: @ 없음');
-    } else {
-      console.log('✅ 이메일 검증 통과');
-    }
-
-    // 사용자명 검증
-    if (!username || username.trim() === '') {
-      errors.push('사용자명을 입력해주세요');
-      console.log('❌ 사용자명 검증 실패: 빈 값');
-    } else if (username.length < 3) {
-      errors.push('사용자명은 최소 3자 이상이어야 합니다');
-      console.log('❌ 사용자명 검증 실패: 3자 미만');
-    } else if (username.length > 20) {
-      errors.push('사용자명은 최대 20자까지 가능합니다');
-      console.log('❌ 사용자명 검증 실패: 20자 초과');
-    } else {
-      console.log('✅ 사용자명 검증 통과');
-    }
-
-    // 비밀번호 검증
-    if (!password || password.trim() === '') {
-      errors.push('비밀번호를 입력해주세요');
-      console.log('❌ 비밀번호 검증 실패: 빈 값');
-    } else {
-      // 비밀번호 강도 검증
-      const passwordIssues = [];
-      if (password.length < 6) {
-        passwordIssues.push(`현재 ${password.length}자 (최소 6자 필요)`);
-        console.log('❌ 비밀번호 검증 실패: 6자 미만');
-      }
-      if (password.length > 50) {
-        passwordIssues.push('비밀번호가 너무 깁니다 (최대 50자)');
-        console.log('❌ 비밀번호 검증 실패: 50자 초과');
-      }
-      if (passwordIssues.length > 0) {
-        errors.push('비밀번호: ' + passwordIssues.join(', '));
-      } else {
-        console.log('✅ 비밀번호 검증 통과');
-      }
-    }
-
-    // 비밀번호 확인 검증
-    if (!confirmPassword || confirmPassword.trim() === '') {
-      errors.push('비밀번호 확인을 입력해주세요');
-      console.log('❌ 비밀번호 확인 검증 실패: 빈 값');
-    } else if (password !== confirmPassword) {
-      errors.push('비밀번호가 일치하지 않습니다');
-      console.log('❌ 비밀번호 확인 검증 실패: 불일치');
-    } else {
-      console.log('✅ 비밀번호 확인 검증 통과');
-    }
-
-    // 에러가 있으면 표시
-    if (errors.length > 0) {
-      console.log('❌ 총', errors.length, '개의 오류 발견');
-      const errorMessage = '입력 오류:\n\n' + errors.map((err, idx) => `${idx + 1}. ${err}`).join('\n');
-      if (Platform.OS === 'web') {
-        alert(errorMessage);
-      } else {
-        Alert.alert('입력 오류', errors.join('\n\n'));
-      }
-      return;
-    }
-
-    console.log('✅ 모든 검증 통과! 서버에 요청 보냅니다.');
-
+  const submit = async () => {
+    if (!valid) return notify('조금만 더 확인해주세요', '입력 조건과 필수 약관 동의를 확인해주세요.');
     setLoading(true);
-
-    try {
-      console.log('회원가입 시도:', email, username);
-      const data = await register(email, username, password);
-      console.log('회원가입 성공:', data);
-
-      // 토큰과 사용자 정보 저장 (자동 로그인)
-      if (data.token && data.user) {
-        await AsyncStorage.setItem('token', data.token);
-        await AsyncStorage.setItem('user', JSON.stringify(data.user));
-      }
-
-      // 웹에서는 페이지를 새로고침하여 인증 상태 업데이트
-      if (Platform.OS === 'web') {
-        window.location.href = '/';
-      } else {
-        Alert.alert('성공', '회원가입이 완료되었습니다!', [
-          {
-            text: '확인',
-            onPress: () => navigation.replace('Main'),
-          },
-        ]);
-      }
-    } catch (error) {
-      console.error('회원가입 실패:', error);
-      console.error('에러 응답:', error.response?.data);
-
-      const errorMsg = error.response?.data?.error || error.message || '회원가입 중 오류가 발생했습니다';
-
-      if (Platform.OS === 'web') {
-        alert('회원가입 실패: ' + errorMsg);
-      } else {
-        Alert.alert('회원가입 실패', errorMsg);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      // Google OAuth URL (포트 5555로 변경)
-      const googleAuthUrl = `${API_URL}/auth/google`;
-
-      if (Platform.OS === 'web') {
-        // 웹에서는 직접 페이지 이동
-        window.location.href = googleAuthUrl;
-      } else {
-        // 모바일에서는 Linking API 사용
-        const supported = await Linking.canOpenURL(googleAuthUrl);
-        if (supported) {
-          await Linking.openURL(googleAuthUrl);
-        } else {
-          Alert.alert('오류', 'Google 로그인을 열 수 없습니다');
-        }
-      }
-    } catch (error) {
-      console.error('Google 로그인 오류:', error);
-      if (Platform.OS === 'web') {
-        alert('Google 로그인 중 오류가 발생했습니다');
-      } else {
-        Alert.alert('오류', 'Google 로그인 중 오류가 발생했습니다');
-      }
-    }
+    const result = await register({ email: email.trim().toLowerCase(), username: username.trim(), password });
+    setLoading(false);
+    if (!result.success) return notify('가입을 완료하지 못했어요', result.error);
+    navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
-          <Text style={styles.title}>회원가입</Text>
-          <Text style={styles.subtitle}>
-            HIPO에 가입하고 사람들과 거래를 시작하세요
-          </Text>
+    <SafeAreaView style={styles.safe}>
+      <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <View style={styles.shell}>
+            <View style={styles.nav}><Pressable style={styles.back} onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={22} color="#202B3C" /></Pressable><Text style={styles.step}>가입하기</Text><View style={styles.back} /></View>
+            <View style={styles.progress}><View style={styles.progressOn} /></View>
+            <View style={styles.intro}><Text style={styles.title}>새로운 가능성을{`\n`}만날 준비가 됐나요?</Text><Text style={styles.subtitle}>간단한 정보만 입력하면 10,000 PO로{`\n`}바로 시작할 수 있어요.</Text></View>
 
-          <View style={styles.form}>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="이메일"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
-              {email && !email.includes('@') && (
-                <Text style={styles.helperText}>이메일 형식: user@example.com</Text>
-              )}
+            <View style={styles.form}>
+              <Field label="이메일" icon="mail-outline" value={email} onChangeText={setEmail} placeholder="name@example.com" keyboardType="email-address" hint={/^\S+@\S+\.\S+$/.test(email) ? '사용할 수 있는 이메일이에요' : '이메일 형식을 확인해주세요'} ok={/^\S+@\S+\.\S+$/.test(email)} />
+              <Field label="활동 이름" icon="person-outline" value={username} onChangeText={setUsername} placeholder="3~20자로 입력" hint={username.trim().length >= 3 ? '좋아요. 이 이름으로 활동해요' : '3자 이상 입력해주세요'} ok={username.trim().length >= 3} />
+              <Field label="비밀번호" icon="lock-closed-outline" value={password} onChangeText={setPassword} placeholder="6자 이상 입력" secureTextEntry hint={password.length >= 6 ? '안전하게 설정됐어요' : `현재 ${password.length}자 · 6자 이상 필요`} ok={password.length >= 6} />
+              <Field label="비밀번호 확인" icon="checkmark-circle-outline" value={confirm} onChangeText={setConfirm} placeholder="한 번 더 입력" secureTextEntry hint={password === confirm && confirm ? '비밀번호가 같아요' : '비밀번호가 일치하지 않아요'} ok={password === confirm && !!confirm} />
+
+              <Pressable style={styles.agreement} onPress={() => setAgreed(v => !v)}>
+                <View style={[styles.checkbox, agreed && styles.checkboxOn]}>{agreed && <Ionicons name="checkmark" size={15} color="#FFFFFF" />}</View>
+                <Text style={styles.agreementText}><Text style={styles.required}>[필수]</Text> 이용약관과 개인정보 처리방침에 동의해요</Text>
+                <Ionicons name="chevron-forward" size={16} color="#A1AAB7" />
+              </Pressable>
+
+              <Pressable style={({ pressed }) => [styles.primary, !valid && styles.disabled, pressed && styles.pressed]} disabled={!valid || loading} onPress={submit}>
+                {loading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.primaryText}>10,000 PO 받고 시작하기</Text>}
+              </Pressable>
+              <Pressable style={styles.loginLink} onPress={() => navigation.navigate('Login')}><Text style={styles.loginText}>이미 계정이 있다면 <Text style={styles.loginStrong}>로그인</Text></Text></Pressable>
             </View>
-
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="사용자명 (3-20자)"
-                value={username}
-                onChangeText={setUsername}
-                autoCapitalize="none"
-              />
-              {username && username.length < 3 && (
-                <Text style={styles.helperText}>
-                  {username.length}/3 (최소 3자 필요)
-                </Text>
-              )}
-              {username && username.length >= 3 && (
-                <Text style={styles.helperTextSuccess}>사용 가능</Text>
-              )}
-            </View>
-
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="비밀번호 (최소 6자)"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-              />
-              {password && password.length < 6 && (
-                <Text style={styles.helperText}>
-                  {password.length}/6 (최소 6자 필요)
-                </Text>
-              )}
-              {password && password.length >= 6 && (
-                <Text style={styles.helperTextSuccess}>강도: 양호</Text>
-              )}
-            </View>
-
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.input}
-                placeholder="비밀번호 확인"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-              />
-              {confirmPassword && password !== confirmPassword && (
-                <Text style={styles.helperText}>비밀번호가 일치하지 않습니다</Text>
-              )}
-              {confirmPassword && password === confirmPassword && password.length >= 6 && (
-                <Text style={styles.helperTextSuccess}>비밀번호 일치</Text>
-              )}
-            </View>
-
-            <TouchableOpacity
-              style={[styles.button, loading && styles.buttonDisabled]}
-              onPress={handleRegister}
-              disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>가입하기</Text>
-              )}
-            </TouchableOpacity>
-
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>또는</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <TouchableOpacity
-              style={styles.googleButton}
-              onPress={handleGoogleLogin}
-            >
-              <Text style={styles.googleButtonText}>Google로 가입</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.linkButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Text style={styles.linkText}>이미 계정이 있으신가요? 로그인</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    textAlign: 'center',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  form: {
-    width: '100%',
-  },
-  inputContainer: {
-    marginBottom: 15,
-  },
-  input: {
-    backgroundColor: COLORS.surface,
-    padding: 15,
-    borderRadius: 10,
-    fontSize: 16,
-  },
-  helperText: {
-    fontSize: 12,
-    color: COLORS.danger,
-    marginTop: 6,
-    marginLeft: 4,
-  },
-  helperTextSuccess: {
-    fontSize: 12,
-    color: COLORS.success,
-    marginTop: 6,
-    marginLeft: 4,
-  },
-  button: {
-    backgroundColor: COLORS.primary,
-    padding: 18,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  linkButton: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: COLORS.primary,
-    fontSize: 14,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.border,
-  },
-  dividerText: {
-    marginHorizontal: 10,
-    color: COLORS.textSecondary,
-    fontSize: 14,
-  },
-  googleButton: {
-    backgroundColor: '#fff',
-    padding: 18,
-    borderRadius: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  googleButtonText: {
-    color: COLORS.text,
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  page: { flexGrow: 1, alignItems: 'center' },
+  shell: { width: '100%', maxWidth: 500, paddingHorizontal: 22, paddingBottom: 36 },
+  nav: { height: 62, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  back: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center' },
+  step: { color: '#202B3C', fontSize: 15, fontWeight: '800' },
+  progress: { height: 3, backgroundColor: '#EDF0F4', borderRadius: 2 },
+  progressOn: { width: '100%', height: 3, backgroundColor: '#2F6BFF', borderRadius: 2 },
+  intro: { marginTop: 34 },
+  title: { color: '#121926', fontSize: 29, lineHeight: 38, fontWeight: '900', letterSpacing: -1 },
+  subtitle: { color: '#6B7684', fontSize: 15, lineHeight: 23, marginTop: 12 },
+  form: { marginTop: 32 },
+  field: { marginBottom: 19 },
+  label: { color: '#333D4B', fontSize: 13, fontWeight: '800', marginBottom: 9, marginLeft: 2 },
+  inputWrap: { height: 57, borderRadius: 17, backgroundColor: '#F4F6F8', paddingHorizontal: 17, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  input: { flex: 1, height: '100%', fontSize: 16, color: '#202B3C' },
+  hint: { color: '#F04452', fontSize: 11, fontWeight: '600', marginTop: 7, marginLeft: 4 },
+  hintOk: { color: '#20A66A' },
+  agreement: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 13 },
+  checkbox: { width: 22, height: 22, borderRadius: 7, borderWidth: 1.5, borderColor: '#D1D6DB', alignItems: 'center', justifyContent: 'center' },
+  checkboxOn: { backgroundColor: '#2F6BFF', borderColor: '#2F6BFF' },
+  agreementText: { flex: 1, color: '#6B7684', fontSize: 12, fontWeight: '600' },
+  required: { color: '#2F6BFF', fontWeight: '800' },
+  primary: { height: 58, borderRadius: 18, backgroundColor: '#2F6BFF', alignItems: 'center', justifyContent: 'center', marginTop: 13 },
+  primaryText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800' },
+  disabled: { opacity: 0.4 },
+  pressed: { opacity: 0.78 },
+  loginLink: { alignItems: 'center', paddingTop: 21 },
+  loginText: { color: '#8B95A1', fontSize: 13, fontWeight: '600' },
+  loginStrong: { color: '#2F6BFF', fontWeight: '800' },
 });

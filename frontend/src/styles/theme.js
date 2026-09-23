@@ -6,10 +6,10 @@
 
 export const colors = {
   // Primary Colors - 토스 블루
-  primary: '#3182F6',
-  primaryLight: '#5B9CF6',
-  primaryDark: '#1B64DA',
-  primaryBackground: '#EBF4FF',
+  primary: '#2F6BFF',
+  primaryLight: '#6F98FF',
+  primaryDark: '#174FCC',
+  primaryBackground: '#EAF1FF',
   primarySoft: '#F2F6FC',
 
   // Secondary Colors
@@ -24,12 +24,12 @@ export const colors = {
   warningBackground: '#FFF4E5',
   error: '#F04452',
   errorBackground: '#FFEBEE',
-  info: '#3182F6',
+  info: '#2F6BFF',
   infoBackground: '#EBF4FF',
 
   // Stock Colors - 토스 스타일 (상승 빨강, 하락 파랑)
   stockUp: '#F04452',
-  stockDown: '#3182F6',
+  stockDown: '#2F6BFF',
   stockUpBackground: '#FFF0F1',
   stockDownBackground: '#EBF4FF',
 
@@ -57,7 +57,7 @@ export const colors = {
   textInverse: '#FFFFFF',
 
   // Background Colors
-  background: '#F7F8FA',
+  background: '#F6F8FB',
   backgroundPure: '#FFFFFF',
   backgroundSecondary: '#F2F4F6',
   backgroundTertiary: '#E5E8EB',
@@ -76,11 +76,11 @@ export const colors = {
   overlayDark: 'rgba(25, 31, 40, 0.6)',
 
   // Button Colors
-  buttonPrimary: '#3182F6',
+  buttonPrimary: '#2F6BFF',
   buttonSecondary: '#F2F4F6',
   buttonDanger: '#F04452',
   buttonBuy: '#F04452',
-  buttonSell: '#3182F6',
+  buttonSell: '#2F6BFF',
 
   // Trust Level Colors
   bronze: '#CD7F32',

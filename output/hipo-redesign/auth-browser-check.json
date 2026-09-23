@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "checks": [
+    "authenticated wallet",
+    "authenticated transfer",
+    "authenticated account hub"
+  ],
+  "pageErrors": []
+}

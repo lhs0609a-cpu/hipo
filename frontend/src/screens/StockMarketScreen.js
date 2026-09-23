@@ -1,418 +1,54 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  ActivityIndicator,
-} from 'react-native';
-import { COLORS } from '../constants/colors';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, RefreshControl, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import api from '../api/client';
-import { useStockTicker, useStock } from '../contexts/StockContext';
+
+const tabs = [{ id: 'all', label: '주목받는' }, { id: 'rising', label: '급상승' }, { id: 'falling', label: '새 기회' }, { id: 'volume', label: '거래 활발' }];
+const compact = value => { const number = Number(value || 0); if (number >= 1000000) return `${(number / 1000000).toFixed(1)}M`; if (number >= 1000) return `${(number / 1000).toFixed(1)}K`; return number.toLocaleString(); };
 
 export default function StockMarketScreen({ navigation }) {
+  const [selectedTab, setSelectedTab] = useState('all');
+  const [stocks, setStocks] = useState([]);
+  const [market, setMarket] = useState({ totalVolume: 0, totalMarketCap: 0, activeTraders: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedTab, setSelectedTab] = useState('all'); // all, rising, falling, volume
-  const [stocks, setStocks] = useState([]);
   const [error, setError] = useState('');
-  const [marketData, setMarketData] = useState({
-    totalVolume: 0,
-    totalMarketCap: 0,
-    activeTraders: 0,
-  });
 
-  useEffect(() => {
-    loadData();
-    const timer = setInterval(loadData, 5000);
-    return () => clearInterval(timer);
-  }, [selectedTab]);
-
-  const loadData = async () => {
+  const sort = () => ({ rising: 'change', falling: 'changeAsc', volume: 'volume' }[selectedTab] || 'marketCap');
+  const load = async () => {
     try {
-      // 주식 목록 조회
-      const response = await api.get('/stocks', {
-        params: {
-          sortBy: getSortParam(),
-          direction: selectedTab,
-          limit: 50,
-        }
-      });
-
-      setStocks((response.data.stocks || []).map(stock => ({ ...stock, user: stock.issuer, priceChange: Number(stock.priceChangePercent || 0) })));
-
-      // 시장 차트 데이터 조회 (시장 통계)
-      const marketResponse = await api.get('/stock-market/overview');
-        setMarketData({
-          totalVolume: marketResponse.data.todayVolume || 0,
-          totalMarketCap: marketResponse.data.totalMarketCap || 0,
-          activeTraders: marketResponse.data.todayTrades || 0,
-        });
+      const [stockRes, overviewRes] = await Promise.all([api.get('/stocks', { params: { sortBy: sort(), direction: selectedTab, limit: 50 } }), api.get('/stock-market/overview')]);
+      setStocks((stockRes.data.stocks || []).map(stock => ({ ...stock, person: stock.issuer || stock.user || {}, change: Number(stock.priceChangePercent || 0) })));
+      setMarket({ totalVolume: overviewRes.data.todayVolume || 0, totalMarketCap: overviewRes.data.totalMarketCap || 0, activeTraders: overviewRes.data.todayTrades || 0 });
       setError('');
-    } catch (error) {
-      setError('시장 정보를 갱신하지 못했습니다. 아래로 당겨 다시 시도해주세요.');
-      console.error('데이터 로드 오류:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+    } catch (_) { setError('시장 정보를 새로 불러오지 못했어요.'); }
+    finally { setLoading(false); setRefreshing(false); }
   };
+  useEffect(() => { setLoading(true); load(); const timer = setInterval(load, 10000); return () => clearInterval(timer); }, [selectedTab]);
 
-  const getSortParam = () => {
-    switch (selectedTab) {
-      case 'rising': return 'change';
-      case 'falling': return 'changeAsc';
-      case 'volume': return 'volume';
-      default: return 'marketCap';
-    }
-  };
+  return <SafeAreaView style={styles.safe}><ScrollView contentContainerStyle={styles.page} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor="#2F6BFF" />} showsVerticalScrollIndicator={false}><View style={styles.shell}>
+    <View style={styles.header}><View><Text style={styles.eyebrow}>DISCOVER</Text><Text style={styles.title}>사람 발견</Text><Text style={styles.subtitle}>지금 관심이 모이는 사람을 살펴보세요</Text></View><Pressable style={styles.search} onPress={() => navigation.navigate('Search')}><Ionicons name="search" size={21} color="#273447" /></Pressable></View>
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadData();
-  };
-
-  const getPriceChangeColor = (change) => {
-    if (change > 0) return COLORS.stockUp;
-    if (change < 0) return COLORS.stockDown;
-    return COLORS.textSecondary;
-  };
-
-  const getPriceChangeIcon = (change) => {
-    if (change > 0) return '▲';
-    if (change < 0) return '▼';
-    return '─';
-  };
-
-  const formatNumber = (num) => {
-    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
-    if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
-    return num.toLocaleString();
-  };
-
-  if (loading && !refreshing) {
-    return (
-      <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={COLORS.primary} />
-        <Text style={styles.loadingText}>로딩 중...</Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.container}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-          accessibilityLabel="뒤로 가기"
-          accessibilityRole="button"
-        >
-          <Text style={styles.backIcon}>←</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>실시간 크리에이터 시장</Text>
-        <View style={{ width: 40 }} />
-      </View>
-
-      <ScrollView
-        style={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      >
-        {/* 시장 통계 */}
-        {!!error && <Text style={{ padding: 16, color: COLORS.danger }}>{error}</Text>}
-        <View style={styles.statsCard}>
-          <Text style={styles.statsTitle}>시장 현황</Text>
-          <View style={styles.statsRow}>
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>총 시가총액</Text>
-              <Text style={styles.statValue}>{formatNumber(marketData.totalMarketCap)} PO</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>오늘 거래대금</Text>
-              <Text style={styles.statValue}>{formatNumber(marketData.totalVolume)} PO</Text>
-            </View>
-            <View style={styles.statDivider} />
-            <View style={styles.statItem}>
-              <Text style={styles.statLabel}>오늘 체결</Text>
-              <Text style={styles.statValue}>{marketData.activeTraders}건</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* 탭 네비게이션 */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === 'all' && styles.tabActive]}
-            onPress={() => setSelectedTab('all')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'all' && styles.tabTextActive]}>
-              시가총액 Top
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === 'rising' && styles.tabActive]}
-            onPress={() => setSelectedTab('rising')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'rising' && styles.tabTextActive]}>
-              급상승 크리에이터 🔥
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === 'falling' && styles.tabActive]}
-            onPress={() => setSelectedTab('falling')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'falling' && styles.tabTextActive]}>
-              급하락 크리에이터 ❄️
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, selectedTab === 'volume' && styles.tabActive]}
-            onPress={() => setSelectedTab('volume')}
-          >
-            <Text style={[styles.tabText, selectedTab === 'volume' && styles.tabTextActive]}>
-              거래량 순위
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 주식 목록 */}
-        <View style={styles.stockList}>
-          {stocks.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>크리에이터 데이터가 없습니다</Text>
-            </View>
-          ) : (
-            stocks.map((stock, index) => (
-              <TouchableOpacity
-                key={stock.id}
-                style={styles.stockItem}
-                onPress={() => navigation.navigate('StockDetail', { stockId: stock.id })}
-                accessibilityLabel={`${stock.user?.username || '알 수 없음'}, 현재가 ${stock.sharePrice?.toLocaleString() || 0} PO, ${stock.priceChange >= 0 ? '상승' : '하락'} ${Math.abs(stock.priceChange || 0).toFixed(2)}%`}
-                accessibilityRole="button"
-                accessibilityHint="상세 정보 보기"
-              >
-                <View style={styles.stockRank}>
-                  <Text style={styles.rankNumber}>{index + 1}</Text>
-                </View>
-                <View style={styles.stockAvatar}>
-                  <Text style={styles.avatarText}>
-                    {stock.user?.username?.charAt(0)?.toUpperCase() || '?'}
-                  </Text>
-                </View>
-                <View style={styles.stockInfo}>
-                  <Text style={styles.stockName} numberOfLines={1}>
-                    {stock.user?.username || '알 수 없음'}
-                  </Text>
-                  <Text style={styles.stockSymbol}>
-                    시총 {formatNumber(stock.marketCapTotal || 0)} PO
-                  </Text>
-                </View>
-                <View style={styles.stockPriceInfo}>
-                  <Text style={styles.stockPrice}>{stock.sharePrice?.toLocaleString() || 0} PO</Text>
-                  <View style={styles.priceChange}>
-                    <Text style={[styles.priceChangeText, { color: getPriceChangeColor(stock.priceChange || 0) }]}>
-                      {getPriceChangeIcon(stock.priceChange || 0)} {Math.abs(stock.priceChange || 0).toFixed(2)}%
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))
-          )}
-        </View>
-      </ScrollView>
+    <View style={styles.insight}>
+      <View style={styles.insightTop}><View><Text style={styles.insightLabel}>오늘의 HIPO 마켓</Text><Text style={styles.insightTitle}>새로운 가능성이{`\n`}계속 발견되고 있어요</Text></View><View style={styles.pulse}><View style={styles.pulseDot} /><Text style={styles.pulseText}>LIVE</Text></View></View>
+      <View style={styles.stats}><View style={styles.stat}><Text style={styles.statLabel}>전체 가치</Text><Text style={styles.statValue}>{compact(market.totalMarketCap)} <Text style={styles.statUnit}>PO</Text></Text></View><View style={styles.statLine} /><View style={styles.stat}><Text style={styles.statLabel}>오늘 거래</Text><Text style={styles.statValue}>{compact(market.activeTraders)} <Text style={styles.statUnit}>건</Text></Text></View><View style={styles.statLine} /><View style={styles.stat}><Text style={styles.statLabel}>거래량</Text><Text style={styles.statValue}>{compact(market.totalVolume)}</Text></View></View>
     </View>
-  );
+
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabs}>{tabs.map(tab => <Pressable key={tab.id} style={[styles.tab, selectedTab === tab.id && styles.tabOn]} onPress={() => setSelectedTab(tab.id)}><Text style={[styles.tabText, selectedTab === tab.id && styles.tabTextOn]}>{tab.label}</Text></Pressable>)}</ScrollView>
+    <View style={styles.listHeader}><Text style={styles.listTitle}>{tabs.find(tab => tab.id === selectedTab)?.label} 크리에이터</Text><Text style={styles.listCaption}>10초마다 업데이트</Text></View>
+    {!!error && <View style={styles.error}><Ionicons name="cloud-offline-outline" size={17} color="#F06D55" /><Text style={styles.errorText}>{error}</Text><Pressable onPress={load}><Text style={styles.retry}>다시 시도</Text></Pressable></View>}
+    {loading ? <ActivityIndicator color="#2F6BFF" style={{ marginVertical: 60 }} /> : <View style={styles.list}>{stocks.map((stock, index) => <Pressable key={stock.id || index} style={[styles.row, index === stocks.length - 1 && { borderBottomWidth: 0 }]} onPress={() => navigation.navigate('StockDetail', { stockId: stock.id })}>
+      <Text style={styles.rank}>{index + 1}</Text><View style={styles.avatar}><Text style={styles.avatarText}>{stock.person.username?.[0]?.toUpperCase() || '?'}</Text></View><View style={styles.info}><View style={styles.nameRow}><Text style={styles.name} numberOfLines={1}>{stock.person.username || '크리에이터'}</Text>{stock.person.isVerified && <Ionicons name="checkmark-circle" size={14} color="#2F6BFF" />}</View><Text style={styles.meta}>시가총액 {compact(stock.marketCapTotal || stock.marketCap)} PO</Text></View><View style={styles.value}><Text style={styles.price}>{Number(stock.sharePrice || 0).toLocaleString()} PO</Text><Text style={[styles.change, { color: stock.change >= 0 ? '#F04452' : '#2F6BFF' }]}>{stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}%</Text></View>
+    </Pressable>)}{!stocks.length && <View style={styles.empty}><Ionicons name="telescope-outline" size={38} color="#B7C0CC" /><Text style={styles.emptyTitle}>발견할 사람을 찾고 있어요</Text><Text style={styles.emptyText}>마켓이 열리면 가장 먼저 알려드릴게요.</Text></View>}</View>}
+    <View style={styles.guide}><Ionicons name="information-circle-outline" size={18} color="#7A8799" /><Text style={styles.guideText}>사람의 인기와 성장 가능성은 언제든 달라질 수 있어요. 숫자뿐 아니라 활동과 이야기도 함께 살펴보세요.</Text></View>
+  </View></ScrollView></SafeAreaView>;
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: COLORS.background,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: COLORS.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  backIcon: {
-    fontSize: 24,
-    color: COLORS.text,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  content: {
-    flex: 1,
-  },
-  statsCard: {
-    backgroundColor: COLORS.surface,
-    padding: 20,
-    marginTop: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  statsTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 16,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: COLORS.border,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.surface,
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: COLORS.surface,
-  },
-  tabActive: {
-    borderBottomColor: COLORS.primary,
-  },
-  tabText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  tabTextActive: {
-    color: COLORS.primary,
-  },
-  stockList: {
-    backgroundColor: COLORS.surface,
-    marginTop: 8,
-  },
-  stockItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  stockRank: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.background,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  rankNumber: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  stockAvatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  avatarText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
-  stockInfo: {
-    flex: 1,
-  },
-  stockName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  stockSymbol: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  stockPriceInfo: {
-    alignItems: 'flex-end',
-  },
-  stockPrice: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  priceChange: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    backgroundColor: COLORS.background,
-  },
-  priceChangeText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  emptyContainer: {
-    padding: 40,
-    alignItems: 'center',
-  },
-  emptyText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
+  safe: { flex: 1, backgroundColor: '#F6F8FB' }, page: { alignItems: 'center', paddingBottom: 36 }, shell: { width: '100%', maxWidth: 680 },
+  header: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 18, backgroundColor: '#FFFFFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }, eyebrow: { color: '#2F6BFF', fontSize: 9, fontWeight: '900', letterSpacing: 1.3 }, title: { color: '#182335', fontSize: 27, fontWeight: '900', letterSpacing: -0.8, marginTop: 3 }, subtitle: { color: '#8B95A1', fontSize: 11, marginTop: 5 }, search: { width: 42, height: 42, borderRadius: 15, backgroundColor: '#F3F5F8', alignItems: 'center', justifyContent: 'center' },
+  insight: { backgroundColor: '#172640', margin: 16, borderRadius: 26, padding: 21 }, insightTop: { flexDirection: 'row', justifyContent: 'space-between' }, insightLabel: { color: '#91A6C8', fontSize: 10, fontWeight: '700' }, insightTitle: { color: '#FFFFFF', fontSize: 20, lineHeight: 28, fontWeight: '900', marginTop: 7 }, pulse: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.09)', height: 27, borderRadius: 12, paddingHorizontal: 9 }, pulseDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#5AE0A7' }, pulseText: { color: '#A9F0D2', fontSize: 8, fontWeight: '900' }, stats: { flexDirection: 'row', alignItems: 'center', marginTop: 22, paddingTop: 17, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.09)' }, stat: { flex: 1 }, statLabel: { color: '#8395B0', fontSize: 9 }, statValue: { color: '#FFFFFF', fontSize: 13, fontWeight: '800', marginTop: 5 }, statUnit: { color: '#8FADE8', fontSize: 9 }, statLine: { width: 1, height: 27, backgroundColor: 'rgba(255,255,255,0.09)', marginHorizontal: 12 },
+  tabs: { paddingHorizontal: 16, gap: 8 }, tab: { backgroundColor: '#FFFFFF', borderRadius: 14, paddingHorizontal: 16, paddingVertical: 10 }, tabOn: { backgroundColor: '#2F6BFF' }, tabText: { color: '#7A8799', fontSize: 12, fontWeight: '700' }, tabTextOn: { color: '#FFFFFF' },
+  listHeader: { marginTop: 27, marginBottom: 11, paddingHorizontal: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }, listTitle: { color: '#273447', fontSize: 17, fontWeight: '900' }, listCaption: { color: '#A1AAB7', fontSize: 9 }, list: { backgroundColor: '#FFFFFF', marginHorizontal: 16, borderRadius: 24, paddingHorizontal: 15 }, row: { minHeight: 78, borderBottomWidth: 1, borderBottomColor: '#F0F2F5', flexDirection: 'row', alignItems: 'center' }, rank: { width: 25, color: '#8B95A1', fontSize: 11, fontWeight: '800' }, avatar: { width: 44, height: 44, borderRadius: 15, backgroundColor: '#EAF1FF', alignItems: 'center', justifyContent: 'center' }, avatarText: { color: '#2F6BFF', fontSize: 16, fontWeight: '900' }, info: { flex: 1, marginLeft: 11 }, nameRow: { flexDirection: 'row', alignItems: 'center', gap: 4 }, name: { color: '#273447', fontSize: 14, fontWeight: '800', maxWidth: 150 }, meta: { color: '#A1AAB7', fontSize: 9, marginTop: 4 }, value: { alignItems: 'flex-end' }, price: { color: '#273447', fontSize: 13, fontWeight: '800' }, change: { fontSize: 10, fontWeight: '800', marginTop: 4 },
+  error: { flexDirection: 'row', alignItems: 'center', gap: 8, marginHorizontal: 16, backgroundColor: '#FFF4F1', padding: 13, borderRadius: 15 }, errorText: { flex: 1, color: '#8F6159', fontSize: 10 }, retry: { color: '#F06D55', fontSize: 10, fontWeight: '800' }, empty: { alignItems: 'center', paddingVertical: 48 }, emptyTitle: { color: '#536071', fontSize: 14, fontWeight: '800', marginTop: 12 }, emptyText: { color: '#9AA4B2', fontSize: 10, marginTop: 5 }, guide: { flexDirection: 'row', gap: 9, margin: 20, alignItems: 'flex-start' }, guideText: { flex: 1, color: '#8B95A1', fontSize: 10, lineHeight: 16 },
 });

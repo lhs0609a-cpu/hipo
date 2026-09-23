@@ -1,16 +1,16 @@
 export const COLORS = {
   // 토스 스타일 메인 컬러
-  primary: '#3182F6', // 토스 블루
-  primaryLight: '#5B9CF6',
-  primaryDark: '#1B64DA',
-  primaryBackground: '#EBF4FF',
+  primary: '#2F6BFF',
+  primaryLight: '#6F98FF',
+  primaryDark: '#174FCC',
+  primaryBackground: '#EAF1FF',
   secondary: '#6B7684',
 
   // 주식 상승/하락 (토스 스타일)
   up: '#F04452', // 빨간색 (상승)
-  down: '#3182F6', // 파란색 (하락)
+  down: '#2F6BFF', // 파란색 (하락)
   stockUp: '#F04452',
-  stockDown: '#3182F6',
+  stockDown: '#2F6BFF',
   stockUpBackground: '#FFF0F1',
   stockDownBackground: '#EBF4FF',
 
@@ -22,7 +22,7 @@ export const COLORS = {
   errorBackground: '#FFEBEE',
   warning: '#FF9100',
   warningBackground: '#FFF4E5',
-  info: '#3182F6',
+  info: '#2F6BFF',
 
   // 그레이 스케일
   white: '#FFFFFF',
@@ -39,7 +39,7 @@ export const COLORS = {
   gray900: '#191F28',
 
   // 배경 및 서페이스
-  background: '#F7F8FA',
+  background: '#F6F8FB',
   backgroundDark: '#FFFFFF',
   surface: '#FFFFFF',
   surfaceHover: '#F2F4F6',
@@ -56,9 +56,9 @@ export const COLORS = {
   divider: '#F2F4F6',
 
   // 버튼
-  buttonPrimary: '#3182F6',
+  buttonPrimary: '#2F6BFF',
   buttonBuy: '#F04452',
-  buttonSell: '#3182F6',
+  buttonSell: '#2F6BFF',
 
   // 오버레이
   overlay: 'rgba(25, 31, 40, 0.4)',

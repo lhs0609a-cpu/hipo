@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "checks": [
+    "welcome hero and copy",
+    "registration form and copy",
+    "login form",
+    "guest home",
+    "market discovery tab",
+    "community tab",
+    "guest account tab"
+  ],
+  "pageErrors": []
+}
