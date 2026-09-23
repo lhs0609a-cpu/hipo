@@ -1,3 +1,5 @@
+const tradingTransaction = require('../services/tradingTransaction');
+const { account, changeBalance, positiveAmount } = require('../services/poAccountService');
 /**
  * Pre-IPO 라운드 서비스
  */
@@ -190,7 +192,7 @@ async function checkEligibility(roundId, userId) {
  * Pre-IPO 투자
  */
 async function invest(roundId, userId, shares, inviteCode = null) {
-  const t = await sequelize.transaction();
+  const t = await tradingTransaction();
 
   try {
     // 자격 확인
@@ -199,19 +201,20 @@ async function invest(roundId, userId, shares, inviteCode = null) {
       throw new Error(eligibility.reason);
     }
 
-    const round = await PreIPORound.findByPk(roundId, { transaction: t });
-    const user = await User.findByPk(userId, { transaction: t });
+    const round = await PreIPORound.findByPk(roundId, { transaction: t, lock: t.LOCK.UPDATE });
+    const user = await User.findByPk(userId, { transaction: t, lock: t.LOCK.UPDATE });
 
     // 초대 코드 확인 (invited_only인 경우)
     if (round.eligibilityType === 'invited_only' && !inviteCode) {
       throw new Error('초대 코드가 필요합니다');
     }
 
+    positiveAmount(shares);
     // 수량 검증
     if (shares < round.minInvestmentShares) {
       throw new Error(`최소 ${round.minInvestmentShares}주 이상 투자해야 합니다`);
     }
-    if (shares > round.maxInvestmentShares) {
+    if (round.maxInvestmentShares && shares > round.maxInvestmentShares) {
       throw new Error(`최대 ${round.maxInvestmentShares}주까지 투자 가능합니다`);
     }
     if (shares > round.remainingShares) {
@@ -228,7 +231,7 @@ async function invest(roundId, userId, shares, inviteCode = null) {
     const totalAmount = actualPrice * shares;
 
     // 잔액 확인
-    if (user.poBalance < totalAmount) {
+    if ((await account(userId, t)).availableBalance < totalAmount) {
       throw new Error('PO가 부족합니다');
     }
 
@@ -236,9 +239,7 @@ async function invest(roundId, userId, shares, inviteCode = null) {
     const bonusShares = round.bonusShares > 0 ? Math.floor(shares / 100) * round.bonusShares : 0;
 
     // PO 차감
-    await user.update({
-      poBalance: user.poBalance - totalAmount
-    }, { transaction: t });
+    await changeBalance(userId, -totalAmount, t);
 
     // 투자 기록 생성
     const investment = await PreIPOInvestment.create({
@@ -265,7 +266,7 @@ async function invest(roundId, userId, shares, inviteCode = null) {
     }, { transaction: t });
 
     // 물량 소진 시 완료 처리
-    if (round.remainingShares - shares <= 0) {
+    if (round.remainingShares <= 0) {
       await round.update({ status: 'completed' }, { transaction: t });
     }
 
@@ -285,7 +286,7 @@ async function invest(roundId, userId, shares, inviteCode = null) {
       }
     };
   } catch (error) {
-    await t.rollback();
+    if (!t.finished) await t.rollback();
     throw error;
   }
 }
@@ -294,7 +295,7 @@ async function invest(roundId, userId, shares, inviteCode = null) {
  * 투자 취소
  */
 async function cancelInvestment(investmentId, userId) {
-  const t = await sequelize.transaction();
+  const t = await tradingTransaction();
 
   try {
     const investment = await PreIPOInvestment.findByPk(investmentId, {
@@ -319,17 +320,14 @@ async function cancelInvestment(investmentId, userId) {
     }
 
     // 환불
-    await User.increment('poBalance', {
-      by: investment.totalAmount,
-      where: { id: userId },
-      transaction: t
-    });
+    if (Number(investment.totalAmount) > 0) await changeBalance(userId, Number(investment.totalAmount), t);
 
     // 투자 상태 업데이트
     await investment.update({ status: 'cancelled' }, { transaction: t });
 
     // 라운드 업데이트
     await investment.round.update({
+      status: investment.round.status === 'completed' && new Date() < investment.round.endAt ? 'active' : investment.round.status,
       soldShares: investment.round.soldShares - investment.shares,
       remainingShares: investment.round.remainingShares + investment.shares,
       currentInvestors: investment.round.currentInvestors - 1,
@@ -340,7 +338,7 @@ async function cancelInvestment(investmentId, userId) {
 
     return { refundAmount: investment.totalAmount };
   } catch (error) {
-    await t.rollback();
+    if (!t.finished) await t.rollback();
     throw error;
   }
 }
@@ -349,7 +347,7 @@ async function cancelInvestment(investmentId, userId) {
  * IPO로 전환 (상장 시)
  */
 async function convertToIPO(roundId, stockId) {
-  const t = await sequelize.transaction();
+  const t = await tradingTransaction();
 
   try {
     const round = await PreIPORound.findByPk(roundId, {
@@ -364,6 +362,9 @@ async function convertToIPO(roundId, stockId) {
     const stock = await Stock.findByPk(stockId, { transaction: t });
     if (!stock) {
       throw new Error('주식을 찾을 수 없습니다');
+    }
+    if (round.status === 'converted' || round.status === 'cancelled' || stock.userId !== round.userId) {
+      throw new Error('전환 가능한 동일 발행자의 라운드가 아닙니다');
     }
 
     // 상장일 기준 락업 해제일 계산
@@ -380,7 +381,7 @@ async function convertToIPO(roundId, stockId) {
           holderId: investment.userId,
           stockId,
           shares: investment.finalShares,
-          averageCost: investment.pricePerShare,
+          averagePrice: investment.pricePerShare,
           isLocked: true,
           lockupEndAt
         },
@@ -390,11 +391,11 @@ async function convertToIPO(roundId, stockId) {
       if (!created) {
         const newTotalShares = holding.shares + investment.finalShares;
         const newAverageCost = Math.floor(
-          (holding.shares * holding.averageCost + investment.finalShares * investment.pricePerShare) / newTotalShares
+          (holding.shares * holding.averagePrice + investment.finalShares * investment.pricePerShare) / newTotalShares
         );
         await holding.update({
           shares: newTotalShares,
-          averageCost: newAverageCost
+          averagePrice: newAverageCost
         }, { transaction: t });
       }
 
@@ -414,7 +415,7 @@ async function convertToIPO(roundId, stockId) {
         shares: investment.finalShares,
         pricePerShare: investment.pricePerShare,
         totalAmount: investment.totalAmount,
-        transactionType: 'pre_ipo',
+        transactionType: 'buy',
         fee: 0
       }, { transaction: t });
 
@@ -422,11 +423,7 @@ async function convertToIPO(roundId, stockId) {
     }
 
     // 발행자에게 모금액 지급
-    await User.increment('poBalance', {
-      by: round.totalRaised,
-      where: { id: round.userId },
-      transaction: t
-    });
+    if (Number(round.totalRaised) > 0) await changeBalance(round.userId, Number(round.totalRaised), t);
 
     // 주식 발행량 업데이트
     await stock.update({
@@ -445,7 +442,7 @@ async function convertToIPO(roundId, stockId) {
       totalRaised: round.totalRaised
     };
   } catch (error) {
-    await t.rollback();
+    if (!t.finished) await t.rollback();
     throw error;
   }
 }
@@ -685,10 +682,10 @@ async function updateRound(roundId, userId, updateData) {
  * 라운드 취소
  */
 async function cancelRound(roundId, userId) {
-  const t = await sequelize.transaction();
+  const t = await tradingTransaction();
 
   try {
-    const round = await PreIPORound.findByPk(roundId, { transaction: t });
+    const round = await PreIPORound.findByPk(roundId, { transaction: t, lock: t.LOCK.UPDATE });
     if (!round) {
       throw new Error('라운드를 찾을 수 없습니다');
     }
@@ -708,11 +705,7 @@ async function cancelRound(roundId, userId) {
     });
 
     for (const inv of investments) {
-      await User.increment('poBalance', {
-        by: inv.totalAmount,
-        where: { id: inv.userId },
-        transaction: t
-      });
+      if (Number(inv.totalAmount) > 0) await changeBalance(inv.userId, Number(inv.totalAmount), t);
       await inv.update({ status: 'refunded' }, { transaction: t });
     }
 
@@ -721,7 +714,7 @@ async function cancelRound(roundId, userId) {
 
     return { success: true, refundedCount: investments.length };
   } catch (error) {
-    await t.rollback();
+    if (!t.finished) await t.rollback();
     throw error;
   }
 }

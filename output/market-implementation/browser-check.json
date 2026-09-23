@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "checks": [
+    "market buy",
+    "available balance",
+    "real remaining order book",
+    "limit order",
+    "amend order",
+    "cancel order",
+    "wallet reservations",
+    "PO wallet balance",
+    "PO trade ledger"
+  ],
+  "pageErrors": [],
+  "dialogs": [
+    "3주 체결 / 3주 주문\n거래금액 300 PO",
+    "주문 결과\n0주 체결 / 2주 주문",
+    "이 주문을 취소하시겠습니까?",
+    "성공\n주문이 취소되었습니다"
+  ]
+}

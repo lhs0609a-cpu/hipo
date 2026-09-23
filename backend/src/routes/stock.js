@@ -50,6 +50,7 @@ router.post('/issue', authenticateToken, stockController.issueStock);
  * 주식 매수 (인증 필요)
  */
 router.post('/buy', authenticateToken, stockController.buyStock);
+router.post('/subscribe', authenticateToken, stockController.subscribeStock);
 
 /**
  * POST /api/stocks/sell
@@ -97,6 +98,8 @@ router.get('/:stockId/stats', stockController.getStockStats);
  * POST /api/stocks/:stockId/generate-demo-history
  * 데모용 가격 히스토리 생성 (개발용)
  */
-router.post('/:stockId/generate-demo-history', stockController.generateDemoHistory);
+if (process.env.NODE_ENV === 'development' && process.env.ENABLE_DEMO_DATA === 'true') {
+  router.post('/:stockId/generate-demo-history', authenticateToken, stockController.generateDemoHistory);
+}
 
 module.exports = router;

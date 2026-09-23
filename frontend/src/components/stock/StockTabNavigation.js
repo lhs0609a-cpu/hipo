@@ -1,5 +1,5 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { COLORS } from '../../constants/colors';
 
 const TABS = [
@@ -9,27 +9,15 @@ const TABS = [
 ];
 
 export default function StockTabNavigation({ activeTab, onTabChange }) {
-  const indicatorPosition = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    const index = TABS.findIndex((tab) => tab.key === activeTab);
-    Animated.spring(indicatorPosition, {
-      toValue: index,
-      useNativeDriver: true,
-      friction: 8,
-      tension: 100,
-    }).start();
-  }, [activeTab, indicatorPosition]);
-
-  const tabWidth = 100 / TABS.length;
-
   return (
     <View style={styles.container}>
       <View style={styles.tabsContainer}>
         {TABS.map((tab) => (
           <TouchableOpacity
             key={tab.key}
-            style={styles.tab}
+            style={[styles.tab, { borderBottomColor: activeTab === tab.key ? COLORS.primary : 'transparent' }]}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: activeTab === tab.key }}
             onPress={() => onTabChange(tab.key)}
             activeOpacity={0.7}
           >
@@ -45,25 +33,6 @@ export default function StockTabNavigation({ activeTab, onTabChange }) {
         ))}
       </View>
 
-      {/* 슬라이딩 인디케이터 */}
-      <View style={styles.indicatorContainer}>
-        <Animated.View
-          style={[
-            styles.indicator,
-            {
-              width: `${tabWidth}%`,
-              transform: [
-                {
-                  translateX: indicatorPosition.interpolate({
-                    inputRange: TABS.map((_, i) => i),
-                    outputRange: TABS.map((_, i) => (i * 100) / TABS.length * 3.5), // Adjust multiplier based on container width
-                  }),
-                },
-              ],
-            },
-          ]}
-        />
-      </View>
     </View>
   );
 }
@@ -80,6 +49,7 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
+    borderBottomWidth: 3,
     paddingVertical: 14,
     alignItems: 'center',
   },

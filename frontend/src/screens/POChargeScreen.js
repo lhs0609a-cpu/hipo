@@ -11,14 +11,26 @@ import {
   TextInput,
   Modal,
   FlatList,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { poWalletAPI } from '../services/api';
+
+const notify = (title, message) => Platform.OS === 'web' ? window.alert(`${title}\n${message}`) : Alert.alert(title, message);
+const confirmAction = (title, message, action) => {
+  if (Platform.OS === 'web') { if (window.confirm(`${title}\n${message}`)) action(); }
+  else Alert.alert(title, message, [{ text: '취소', style: 'cancel' }, { text: '확인', onPress: action }]);
+};
 
 const POChargeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [balance, setBalance] = useState(0);
+  const [cash, setCash] = useState(0);
+  const [available, setAvailable] = useState(0);
+  const [reserved, setReserved] = useState(0);
+  const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState('');
   const [products, setProducts] = useState([]);
   const [history, setHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('charge');
@@ -37,7 +49,8 @@ const POChargeScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+    return navigation.addListener('focus', fetchData);
+  }, [navigation]);
 
   const fetchData = async () => {
     try {
@@ -46,11 +59,15 @@ const POChargeScreen = ({ navigation }) => {
         poWalletAPI.getProducts(),
         poWalletAPI.getHistory('all'),
       ]);
-      setBalance(balanceRes.data.balance || 0);
+      setBalance(balanceRes.data.poBalance || 0);
+      setCash(balanceRes.data.cashBalance || 0);
+      setAvailable(balanceRes.data.availableBalance || 0);
+      setReserved(balanceRes.data.reservedBalance || 0);
+      setError('');
       setProducts(productsRes.data.products || []);
-      setHistory(historyRes.data.history || []);
+      setHistory(historyRes.data.transactions || []);
     } catch (error) {
-      console.error('Error fetching PO data:', error);
+      setError('지갑 정보를 불러오지 못했습니다. 새로고침해주세요.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -64,7 +81,7 @@ const POChargeScreen = ({ navigation }) => {
 
   const formatNumber = (num) => {
     if (!num) return '0';
-    return num.toLocaleString();
+    return Number(num).toLocaleString();
   };
 
   const formatDate = (dateString) => {
@@ -82,88 +99,49 @@ const POChargeScreen = ({ navigation }) => {
     setChargeModalVisible(true);
   };
 
-  const handleCharge = async () => {
-    const amount = selectedProduct?.amount || parseInt(customAmount);
-    if (!amount || amount <= 0) {
-      Alert.alert('오류', '충전 금액을 선택해주세요');
-      return;
-    }
-
-    // In real app, this would open payment gateway
-    Alert.alert(
-      'PO 충전',
-      `${formatNumber(amount)} PO를 충전하시겠습니까?\n결제 금액: ${formatNumber(amount)}원`,
-      [
-        { text: '취소', style: 'cancel' },
-        {
-          text: '결제하기',
-          onPress: async () => {
-            try {
-              // Simulate payment ID
-              const paymentId = `PAY_${Date.now()}`;
-              await poWalletAPI.charge(amount, 'card', paymentId);
-              Alert.alert('성공', `${formatNumber(amount)} PO가 충전되었습니다`);
-              setChargeModalVisible(false);
-              setSelectedProduct(null);
-              setCustomAmount('');
-              fetchData();
-            } catch (error) {
-              Alert.alert('오류', error.response?.data?.message || '충전에 실패했습니다');
-            }
-          },
-        },
-      ]
-    );
+  const handleCharge = () => {
+    const amount = selectedProduct?.amount || Number(customAmount);
+    if (processing) return;
+    if (!Number.isSafeInteger(amount) || amount <= 0) return notify('오류', '양의 정수 금액을 입력해주세요');
+    if (amount > cash) return notify('오류', '결제 완료 현금 잔액이 부족합니다. 현금 충전을 먼저 진행해주세요.');
+    confirmAction('PO 전환', `현금 ${formatNumber(amount)}원을 ${formatNumber(amount)} PO로 전환합니다.`, async () => {
+      setProcessing(true);
+      try {
+        await poWalletAPI.charge(amount);
+        setChargeModalVisible(false);
+        setSelectedProduct(null);
+        setCustomAmount('');
+        await fetchData();
+        notify('완료', `${formatNumber(amount)} PO로 전환되었습니다`);
+      } catch (error) { notify('오류', error.response?.data?.error || '전환에 실패했습니다'); }
+      finally { setProcessing(false); }
+    });
   };
 
-  const handleConvert = async () => {
-    if (!convertAmount || !bankName || !accountNumber || !accountHolder) {
-      Alert.alert('오류', '모든 필드를 입력해주세요');
-      return;
-    }
-
-    const amount = parseInt(convertAmount);
-    if (amount > balance) {
-      Alert.alert('오류', '보유 PO보다 많은 금액입니다');
-      return;
-    }
-
-    if (amount < 10000) {
-      Alert.alert('오류', '최소 출금 금액은 10,000 PO입니다');
-      return;
-    }
-
-    Alert.alert(
-      'PO 환전',
-      `${formatNumber(amount)} PO를 현금으로 환전합니다.\n수수료 5% 차감 후 ${formatNumber(Math.floor(amount * 0.95))}원이 입금됩니다.`,
-      [
-        { text: '취소', style: 'cancel' },
-        {
-          text: '환전하기',
-          onPress: async () => {
-            try {
-              await poWalletAPI.convert(amount, bankName, accountNumber, accountHolder);
-              Alert.alert('성공', '환전 신청이 완료되었습니다. 1-3일 내에 입금됩니다.');
-              setConvertModalVisible(false);
-              setConvertAmount('');
-              setBankName('');
-              setAccountNumber('');
-              setAccountHolder('');
-              fetchData();
-            } catch (error) {
-              Alert.alert('오류', error.response?.data?.message || '환전에 실패했습니다');
-            }
-          },
-        },
-      ]
-    );
+  const handleConvert = () => {
+    const amount = Number(convertAmount);
+    if (processing) return;
+    if (!Number.isSafeInteger(amount) || amount < 10000) return notify('오류', '최소 환전 금액은 10,000 PO입니다');
+    if (!bankName.trim() || !accountNumber.trim() || !accountHolder.trim()) return notify('오류', '계좌 정보를 모두 입력해주세요');
+    if (amount > available) return notify('오류', '주문 예약금을 제외한 사용 가능 PO가 부족합니다');
+    confirmAction('PO 환전 신청', `${formatNumber(amount)} PO · 수수료 10% · 승인 후 지급액 ${formatNumber(amount - Math.floor(amount * 0.1))}원`, async () => {
+      setProcessing(true);
+      try {
+        await poWalletAPI.convert(amount, bankName, accountNumber, accountHolder);
+        setConvertModalVisible(false);
+        setConvertAmount('');
+        await fetchData();
+        notify('접수 완료', '환전 신청이 접수되었습니다. 승인 후 지급됩니다.');
+      } catch (error) { notify('오류', error.response?.data?.error || '환전 신청에 실패했습니다'); }
+      finally { setProcessing(false); }
+    });
   };
 
   const getTransactionIcon = (type) => {
     switch (type) {
-      case 'CHARGE':
+      case 'PURCHASE':
         return { name: 'add-circle', color: '#3182F6' };
-      case 'CONVERT':
+      case 'WITHDRAW':
         return { name: 'arrow-down-circle', color: '#F04452' };
       case 'TRADE':
         return { name: 'swap-horizontal', color: '#00C471' };
@@ -196,7 +174,7 @@ const POChargeScreen = ({ navigation }) => {
   );
 
   const renderHistoryItem = ({ item }) => {
-    const icon = getTransactionIcon(item.type);
+    const icon = getTransactionIcon(item.transactionType);
     return (
       <View style={styles.historyItem}>
         <View style={[styles.historyIcon, { backgroundColor: icon.color + '20' }]}>
@@ -238,6 +216,10 @@ const POChargeScreen = ({ navigation }) => {
       <View style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>보유 PO</Text>
         <Text style={styles.balanceAmount}>{formatNumber(balance)} PO</Text>
+        <Text style={{ color: '#fff' }}>사용 가능 {formatNumber(available)} PO · 주문 예약 {formatNumber(reserved)} PO</Text>
+        <Text style={{ color: '#fff' }}>현금 잔액 {formatNumber(cash)}원</Text>
+        {!!error && <Text style={{ color: '#fff' }}>{error}</Text>}
+        <TouchableOpacity onPress={() => navigation.navigate('Charge')}><Text style={{ color: '#fff', padding: 12 }}>현금 충전</Text></TouchableOpacity>
         <View style={styles.balanceActions}>
           <TouchableOpacity
             style={styles.balanceButton}
@@ -283,8 +265,8 @@ const POChargeScreen = ({ navigation }) => {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
         >
-          {/* 충전 상품 목록 */}
-          <Text style={styles.sectionTitle}>충전 상품</Text>
+          {/* 현금 → PO 전환 목록 */}
+          <Text style={styles.sectionTitle}>현금 → PO 전환</Text>
           <FlatList
             data={products}
             renderItem={renderProduct}
@@ -325,7 +307,7 @@ const POChargeScreen = ({ navigation }) => {
             <Text style={styles.infoText}>
               - PO는 앱 내 주식 거래에 사용됩니다{'\n'}
               - 충전 즉시 사용 가능합니다{'\n'}
-              - 환전 시 5% 수수료가 부과됩니다
+              - 환전 시 10% 수수료가 부과됩니다
             </Text>
           </View>
         </ScrollView>
@@ -370,7 +352,7 @@ const POChargeScreen = ({ navigation }) => {
                   </View>
                 )}
                 <View style={[styles.chargeRow, styles.totalRow]}>
-                  <Text style={styles.totalLabel}>결제 금액</Text>
+                  <Text style={styles.totalLabel}>전환할 현금</Text>
                   <Text style={styles.totalValue}>
                     {formatNumber(selectedProduct.price)}원
                   </Text>
@@ -379,10 +361,10 @@ const POChargeScreen = ({ navigation }) => {
             )}
 
             <View style={styles.paymentMethods}>
-              <Text style={styles.paymentTitle}>결제 수단</Text>
+              <Text style={styles.paymentTitle}>사용할 잔액</Text>
               <TouchableOpacity style={styles.paymentOption}>
                 <Ionicons name="card" size={24} color="#3182F6" />
-                <Text style={styles.paymentText}>신용/체크카드</Text>
+                <Text style={styles.paymentText}>결제 완료 현금 잔액</Text>
                 <Ionicons name="checkmark-circle" size={24} color="#3182F6" />
               </TouchableOpacity>
             </View>
@@ -399,9 +381,9 @@ const POChargeScreen = ({ navigation }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.confirmButton}
-                onPress={handleCharge}
+                disabled={processing} onPress={handleCharge}
               >
-                <Text style={styles.confirmButtonText}>결제하기</Text>
+                <Text style={styles.confirmButtonText}>PO로 전환</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -415,7 +397,7 @@ const POChargeScreen = ({ navigation }) => {
             <Text style={styles.modalTitle}>PO 환전</Text>
             <Text style={styles.modalDesc}>
               보유 PO를 현금으로 환전합니다{'\n'}
-              환전 수수료 5%가 적용됩니다
+              환전 수수료 10%가 적용됩니다
             </Text>
 
             <View style={styles.inputGroup}>
@@ -429,7 +411,7 @@ const POChargeScreen = ({ navigation }) => {
               />
               {convertAmount && (
                 <Text style={styles.convertPreview}>
-                  예상 입금액: {formatNumber(Math.floor(parseInt(convertAmount || 0) * 0.95))}원
+                  예상 입금액: {formatNumber(Number(convertAmount || 0) - Math.floor(Number(convertAmount || 0) * 0.1))}원
                 </Text>
               )}
             </View>
@@ -474,7 +456,7 @@ const POChargeScreen = ({ navigation }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.confirmButton}
-                onPress={handleConvert}
+                disabled={processing} onPress={handleConvert}
               >
                 <Text style={styles.confirmButtonText}>환전 신청</Text>
               </TouchableOpacity>

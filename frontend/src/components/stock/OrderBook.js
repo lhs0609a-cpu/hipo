@@ -50,12 +50,15 @@ export default function OrderBook({ stockId, currentPrice, priceChangePercent })
   const [orderBook, setOrderBook] = useState({ asks: [], bids: [] });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState('');
 
   const loadOrderBook = useCallback(async () => {
     try {
       const data = await getOrderBook(stockId);
       setOrderBook(data);
+      setError('');
     } catch (error) {
+      setError('호가를 갱신하지 못했습니다. 마지막 조회 결과입니다.');
       console.error('호가창 조회 오류:', error);
     } finally {
       setLoading(false);
@@ -94,6 +97,10 @@ export default function OrderBook({ stockId, currentPrice, priceChangePercent })
 
   return (
     <View style={styles.container}>
+      {!!error && <Text style={styles.spreadText}>{error}</Text>}
+      {orderBook.tradable === false && <Text style={styles.spreadText}>현재 거래가 정지된 종목입니다.</Text>}
+      {orderBook.lowerLimit != null && <Text style={styles.spreadText}>주문 가능 가격 {orderBook.lowerLimit.toLocaleString()} ~ {orderBook.upperLimit.toLocaleString()} PO</Text>}
+      {!error && !orderBook.asks.length && !orderBook.bids.length && <Text style={styles.spreadText}>등록된 매수·매도 호가가 없습니다.</Text>}
       {/* 헤더 */}
       <View style={styles.header}>
         <Text style={styles.headerText}>잔량</Text>
@@ -109,7 +116,7 @@ export default function OrderBook({ stockId, currentPrice, priceChangePercent })
             총 {orderBook.totalAskQuantity?.toLocaleString() || 0}주
           </Text>
         </View>
-        {orderBook.asks.map((item, index) => (
+        {[...orderBook.asks].reverse().map((item, index) => (
           <OrderBookRow
             key={`ask-${index}`}
             item={item}
@@ -153,7 +160,7 @@ export default function OrderBook({ stockId, currentPrice, priceChangePercent })
       {/* 스프레드 정보 */}
       <View style={styles.spreadInfo}>
         <Text style={styles.spreadText}>
-          스프레드: {orderBook.spread?.toLocaleString() || 0} PO ({orderBook.spreadPercent || 0}%)
+          스프레드: {orderBook.spread == null ? '상대 호가 없음' : `${orderBook.spread.toLocaleString()} PO (${orderBook.spreadPercent}%)`}
         </Text>
       </View>
     </View>

@@ -17,6 +17,7 @@ import api from '../api/client';
 export default function MenuScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(0);
+  const [poBalance, setPOBalance] = useState(null);
   const [loadingBalance, setLoadingBalance] = useState(true);
 
   useEffect(() => {
@@ -43,7 +44,8 @@ export default function MenuScreen({ navigation }) {
   const fetchBalance = async () => {
     try {
       setLoadingBalance(true);
-      const response = await api.get('/payment/my-balance');
+      const [response, poResponse] = await Promise.all([api.get('/payment/my-balance'), api.get('/wallet/po/balance')]);
+      setPOBalance(poResponse.data.poBalance);
       if (response.data.success) {
         setBalance(response.data.balance);
       }
@@ -130,7 +132,7 @@ export default function MenuScreen({ navigation }) {
         <View style={styles.walletCard}>
           <View style={styles.walletHeader}>
             <Text style={styles.walletLabel}>PO 잔액</Text>
-            <Text style={styles.walletBalance}>{user.poBalance?.toLocaleString() || 0} PO</Text>
+            <Text style={styles.walletBalance}>{Number(poBalance ?? user.poBalance ?? 0).toLocaleString()} PO</Text>
           </View>
           <View style={styles.walletButtons}>
             <TouchableOpacity
@@ -155,7 +157,7 @@ export default function MenuScreen({ navigation }) {
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>PO 잔액</Text>
-            <Text style={styles.infoValue}>{user.poBalance?.toLocaleString() || 0} PO</Text>
+            <Text style={styles.infoValue}>{Number(poBalance ?? user.poBalance ?? 0).toLocaleString()} PO</Text>
           </View>
           <View style={styles.divider} />
           <View style={styles.infoRow}>

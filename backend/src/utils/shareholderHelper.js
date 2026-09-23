@@ -1,4 +1,4 @@
-const { StockTransaction } = require('../models');
+const { StockTransaction, Stock, Holding } = require('../models');
 const { Op } = require('sequelize');
 
 /**
@@ -79,23 +79,11 @@ const SHAREHOLDER_TIERS = {
  */
 async function getShareholding(userId, targetUserId) {
   try {
-    // 매수한 주식 합계
-    const bought = await StockTransaction.sum('quantity', {
-      where: {
-        buyerId: userId,
-        targetUserId: targetUserId
-      }
-    }) || 0;
-
-    // 매도한 주식 합계
-    const sold = await StockTransaction.sum('quantity', {
-      where: {
-        sellerId: userId,
-        targetUserId: targetUserId
-      }
-    }) || 0;
-
-    return bought - sold;
+    const stock = await Stock.findOne({ where: { userId: targetUserId } });
+    if (stock) {
+      return Number(await Holding.sum('shares', { where: { holderId: userId, stockId: stock.id } }) || 0);
+    }
+    return 0;
   } catch (error) {
     console.error('주식 보유량 계산 오류:', error);
     return 0;

@@ -20,6 +20,13 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
 
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
+  const [orderPage, setOrderPage] = useState(1);
+  const [orderPages, setOrderPages] = useState(1);
+  const [orderError, setOrderError] = useState('');
+  const [account, setAccount] = useState(null);
+  const [editing, setEditing] = useState(null);
+  const [editQuantity, setEditQuantity] = useState('');
+  const [editPrice, setEditPrice] = useState('');
   const [activeTab, setActiveTab] = useState('new'); // new, pending, history
 
   // Order form states
@@ -35,19 +42,22 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+    const timer = setInterval(fetchOrders, 5000);
+    return () => clearInterval(timer);
+  }, [orderPage]);
 
   const fetchOrders = async () => {
     try {
-      const [pendingRes, historyRes] = await Promise.all([
-        stockOrderAPI.getMyOrders({ status: 'PENDING' }),
-        stockOrderAPI.getMyOrders({ status: 'FILLED' }),
+      const [response, accountResponse] = await Promise.all([
+        stockOrderAPI.getMyOrders({ limit: 100, page: orderPage }),
+        stockId ? stockOrderAPI.getAccount(stockId) : Promise.resolve(null),
       ]);
-      setOrders([
-        ...(pendingRes.data.orders || []),
-        ...(historyRes.data.orders || []),
-      ]);
+      setOrders(response.data.orders || []);
+      setOrderPages(Math.max(1, response.data.pagination?.pages || 1));
+      if (accountResponse) setAccount(accountResponse.data);
+      setOrderError('');
     } catch (error) {
+      setOrderError('주문 내역을 불러오지 못했습니다. 잠시 후 다시 시도합니다.');
       console.error('Error fetching orders:', error);
     }
   };
@@ -68,6 +78,10 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
   };
 
   const orderModes = [
+    {
+      id: 'market', name: '시장가', icon: 'flash', color: '#7C3AED',
+      description: '상대 호가 순서대로 즉시 체결합니다. 매수는 입력한 보호가격 이하, 매도는 보호가격 이상에서 체결하며 남은 수량은 취소합니다.',
+    },
     {
       id: 'limit',
       name: '지정가',
@@ -108,12 +122,12 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
   };
 
   const handleSubmitOrder = async () => {
-    if (!quantity || parseInt(quantity) <= 0) {
+    if (!stockId || !Number.isSafeInteger(Number(quantity)) || Number(quantity) <= 0) {
       showAlert('오류', '주문 수량을 입력해주세요');
       return;
     }
 
-    if (!limitPrice || parseInt(limitPrice) <= 0) {
+    if (!Number.isSafeInteger(Number(limitPrice)) || Number(limitPrice) <= 0) {
       showAlert('오류', '주문 가격을 입력해주세요');
       return;
     }
@@ -130,18 +144,20 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
         stockId,
         orderType,
         orderMode,
-        quantity: parseInt(quantity),
-        limitPrice: parseInt(limitPrice),
+        quantity: Number(quantity),
+        limitPrice: Number(limitPrice),
       };
 
       // 스탑 주문인 경우 stopPrice 추가
-      if (orderMode !== 'limit') {
-        orderData.stopPrice = parseInt(stopPrice);
+      if (!['limit', 'market'].includes(orderMode)) {
+        orderData.stopPrice = Number(stopPrice);
+        if (orderMode === 'stop_limit') orderData.triggerCondition = triggerCondition;
       }
 
-      await stockOrderAPI.create(orderData);
+      const response = await stockOrderAPI.create(orderData);
+      const result = response.data.order;
 
-      showAlert('성공', '주문이 등록되었습니다', () => {
+      showAlert('주문 결과', `${result.filledQuantity || 0}주 체결 / ${result.quantity}주 주문${result.cancelReason ? '\n' + result.cancelReason : ''}`, () => {
         setQuantity('');
         setLimitPrice(currentPrice?.toString() || '');
         setStopPrice('');
@@ -186,6 +202,17 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
     }
   };
 
+  const handleAmend = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      await stockOrderAPI.amend(editing.id, { quantity: Number(editQuantity), limitPrice: Number(editPrice) });
+      setEditing(null);
+      await fetchOrders();
+    } catch (error) { showAlert('정정 실패', error.response?.data?.error || '주문을 정정하지 못했습니다'); }
+    finally { setLoading(false); }
+  };
+
   const showOrderModeInfo = (mode) => {
     setSelectedOrderMode(mode);
     setInfoModalVisible(true);
@@ -221,7 +248,7 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
 
         <View style={styles.orderBody}>
           <View style={styles.orderInfo}>
-            <Text style={styles.orderStock}>{item.stock?.name || item.targetUser?.username}</Text>
+            <Text style={styles.orderStock}>{item.stock?.issuer?.displayName || item.stock?.issuer?.username || '종목'}</Text>
             <Text style={[
               styles.orderTypeText,
               item.orderType === 'BUY' ? styles.buyText : styles.sellText,
@@ -249,6 +276,10 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
         </View>
 
         <View style={styles.orderFooter}>
+          {['PENDING', 'PARTIAL'].includes(item.status) && item.orderMode === 'limit' && <TouchableOpacity
+            onPress={() => { setEditing(item); setEditQuantity(String(item.quantity - item.filledQuantity)); setEditPrice(String(item.limitPrice)); }}>
+            <Text style={{ color: '#3182F6' }}>정정</Text>
+          </TouchableOpacity>}
           <Text style={styles.orderDate}>{formatDate(item.createdAt)}</Text>
           {item.status === 'PENDING' && (
             <TouchableOpacity
@@ -276,6 +307,10 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
       </View>
 
       {/* 탭 */}
+      {account && <Text style={{ padding: 12, color: '#555', fontSize: 12 }}>
+        주문 가능 {formatNumber(account.availableBalance)} PO · 매도 가능 {account.availableShares}주{'\n'}
+        주문 예약 {formatNumber(account.reservedBalance)} PO · {account.reservedShares}주
+      </Text>}
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'new' && styles.activeTab]}
@@ -361,7 +396,7 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
                     styles.modeCard,
                     orderMode === mode.id && { borderColor: mode.color },
                   ]}
-                  onPress={() => setOrderMode(mode.id)}
+                  onPress={() => { setOrderMode(mode.id); if (['stop_loss', 'take_profit'].includes(mode.id)) { setOrderType('SELL'); setTriggerCondition(mode.id === 'stop_loss' ? 'lte' : 'gte'); } }}
                   onLongPress={() => showOrderModeInfo(mode)}
                 >
                   <View style={[styles.modeIcon, { backgroundColor: mode.color + '20' }]}>
@@ -394,7 +429,7 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
           {/* 지정 가격 */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
-              {orderMode === 'limit' ? '지정가' : '체결 가격'}
+              {orderMode === 'market' ? '체결 보호가격' : orderMode === 'limit' ? '지정가' : '체결 가격'}
             </Text>
             <View style={styles.inputRow}>
               <TextInput
@@ -445,6 +480,7 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
                     styles.conditionButton,
                     triggerCondition === 'gte' && styles.activeCondition,
                   ]}
+                  disabled={orderMode !== 'stop_limit'}
                   onPress={() => setTriggerCondition('gte')}
                 >
                   <Ionicons
@@ -464,6 +500,7 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
                     styles.conditionButton,
                     triggerCondition === 'lte' && styles.activeCondition,
                   ]}
+                  disabled={orderMode !== 'stop_limit'}
                   onPress={() => setTriggerCondition('lte')}
                 >
                   <Ionicons
@@ -516,6 +553,11 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
         </ScrollView>
       ) : (
         <FlatList
+          ListHeaderComponent={<Text style={{ padding: 16, color: '#666' }}>{orderError || `주문 ${orderPage} / ${orderPages} 페이지 · 5초마다 갱신`}</Text>}
+          ListFooterComponent={<View style={{ flexDirection: 'row', justifyContent: 'space-around', padding: 20 }}>
+            <TouchableOpacity disabled={orderPage <= 1} onPress={() => setOrderPage(p => p - 1)}><Text style={{ opacity: orderPage <= 1 ? 0.3 : 1 }}>이전 페이지</Text></TouchableOpacity>
+            <TouchableOpacity disabled={orderPage >= orderPages} onPress={() => setOrderPage(p => p + 1)}><Text style={{ opacity: orderPage >= orderPages ? 0.3 : 1 }}>다음 페이지</Text></TouchableOpacity>
+          </View>}
           data={orders.filter((o) =>
             activeTab === 'pending'
               ? o.status === 'PENDING' || o.status === 'PARTIAL'
@@ -536,6 +578,18 @@ const AdvancedOrderScreen = ({ navigation, route }) => {
       )}
 
       {/* 주문 방식 설명 모달 */}
+      <Modal visible={!!editing} transparent animationType="fade" onRequestClose={() => setEditing(null)}>
+        <View style={styles.modalOverlay}><View style={styles.infoModalContent}>
+          <Text style={styles.infoModalTitle}>미체결 잔량 정정</Text>
+          <Text style={styles.infoModalDesc}>정정 주문은 새 주문 순서를 받습니다. 이미 체결된 거래는 유지됩니다.</Text>
+          <Text>새 주문 잔량</Text>
+          <TextInput accessibilityLabel="정정 수량" style={styles.input} value={editQuantity} onChangeText={setEditQuantity} keyboardType="number-pad" />
+          <Text>지정가 (PO)</Text>
+          <TextInput accessibilityLabel="정정 가격" style={styles.input} value={editPrice} onChangeText={setEditPrice} keyboardType="number-pad" />
+          <TouchableOpacity disabled={loading} style={styles.infoModalButton} onPress={handleAmend}><Text>정정하기</Text></TouchableOpacity>
+          <TouchableOpacity disabled={loading} onPress={() => setEditing(null)}><Text>닫기</Text></TouchableOpacity>
+        </View></View>
+      </Modal>
       <Modal visible={infoModalVisible} transparent animationType="fade">
         <TouchableOpacity
           style={styles.modalOverlay}

@@ -26,8 +26,9 @@ const ENV = {
 const CURRENT_ENV =
   typeof __DEV__ !== 'undefined' && __DEV__ ? 'development' : 'production';
 
-export const API_URL = ENV[CURRENT_ENV].API_URL;
-export const SOCKET_URL = ENV[CURRENT_ENV].SOCKET_URL;
+const overrideOrigin = process.env.EXPO_PUBLIC_API_ORIGIN?.replace(/\/$/, '');
+export const API_URL = overrideOrigin ? `${overrideOrigin}/api` : ENV[CURRENT_ENV].API_URL;
+export const SOCKET_URL = overrideOrigin || ENV[CURRENT_ENV].SOCKET_URL;
 
 export default {
   API_URL,

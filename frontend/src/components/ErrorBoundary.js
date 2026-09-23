@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { errorAPI } from '../services/api';
 
 /**
  * ErrorBoundary Component
@@ -39,9 +40,17 @@ class ErrorBoundary extends React.Component {
       this.props.onError(error, errorInfo);
     }
 
-    // TODO: Send to Sentry or other error tracking service
-    // import * as Sentry from '@sentry/react-native';
-    // Sentry.captureException(error, { contexts: { react: errorInfo } });
+    errorAPI.report({
+      severity: 'error',
+      type: error?.name || 'ReactRenderError',
+      message: error?.message || String(error),
+      stack: error?.stack,
+      componentStack: errorInfo?.componentStack,
+      screenName: this.props.screenName,
+      appVersion: '1.0.0',
+    }).catch((reportError) => {
+      console.error('Error report delivery failed:', reportError?.message);
+    });
   }
 
   handleRetry = () => {

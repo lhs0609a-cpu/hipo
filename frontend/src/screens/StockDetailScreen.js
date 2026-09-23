@@ -12,14 +12,15 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getStockDetail, getStockStats, buyStock, sellStock } from '../api/stocks';
+import { getStockDetail, getStockStats, buyStock, sellStock, subscribeStock } from '../api/stocks';
 import { getSavedUser } from '../api/auth';
 import { COLORS } from '../constants/colors';
-import StockChart from '../components/StockChart';
+import StockChart from '../components/ExchangeChart';
 import PriceDisplay from '../components/stock/PriceDisplay';
 import StockTabNavigation from '../components/stock/StockTabNavigation';
 import TimePeriodSelector from '../components/stock/TimePeriodSelector';
 import OrderBook from '../components/stock/OrderBook';
+import { watchlistAPI, stockOrderAPI } from '../services/api';
 
 export default function StockDetailScreen({ route, navigation }) {
   const { stockId } = route.params;
@@ -53,7 +54,10 @@ export default function StockDetailScreen({ route, navigation }) {
       ]);
       setStock(stockData.stock);
       setStats(statsData);
-      setUser(userData);
+      if (userData) {
+        const account = await stockOrderAPI.getAccount(stockId);
+        setUser({ ...userData, poBalance: account.data.availableBalance });
+      } else { setUser(null); }
       setRecentTrades(stockData.recentTrades || []);
     } catch (error) {
       console.error('주식 상세 조회 오류:', error);
@@ -64,11 +68,13 @@ export default function StockDetailScreen({ route, navigation }) {
 
   useEffect(() => {
     loadData();
+    const timer = setInterval(loadData, 5000);
+    return () => clearInterval(timer);
   }, [loadData]);
 
   // 거래 처리
-  const handleTrade = async () => {
-    if (!shares || parseInt(shares) <= 0) {
+  const handleTrade = async (subscribe = false) => {
+    if (!Number.isSafeInteger(Number(shares)) || Number(shares) <= 0) {
       const message = '수량을 입력해주세요';
       Platform.OS === 'web' ? alert(message) : Alert.alert('알림', message);
       return;
@@ -76,15 +82,19 @@ export default function StockDetailScreen({ route, navigation }) {
 
     setIsTrading(true);
     try {
-      const tradeShares = parseInt(shares);
+      const tradeShares = Number(shares);
 
-      if (tradeType === 'buy') {
+      if (subscribe === true) {
+        await subscribeStock(stockId, tradeShares);
+        const message = `신규 발행분 ${tradeShares}주를 매수했습니다.`;
+        Platform.OS === 'web' ? alert(message) : Alert.alert('신규 발행분 매수', message);
+      } else if (tradeType === 'buy') {
         const result = await buyStock(stockId, tradeShares);
-        const message = `매수 완료!\n${tradeShares}주를 ${result.transaction.totalCost.toLocaleString()} PO에 매수했습니다.`;
+        const message = `${result.transaction.shares}주 체결 / ${tradeShares}주 주문\n거래금액 ${result.transaction.totalCost.toLocaleString()} PO${result.order?.cancelReason ? '\n' + result.order.cancelReason : ''}`;
         Platform.OS === 'web' ? alert(message) : Alert.alert('매수 완료', message);
       } else {
         const result = await sellStock(stockId, tradeShares);
-        const message = `매도 완료!\n${tradeShares}주를 ${result.transaction.totalRevenue.toLocaleString()} PO에 매도했습니다.`;
+        const message = `${result.transaction.shares}주 체결 / ${tradeShares}주 주문\n거래금액 ${result.transaction.totalRevenue.toLocaleString()} PO${result.order?.cancelReason ? '\n' + result.order.cancelReason : ''}`;
         Platform.OS === 'web' ? alert(message) : Alert.alert('매도 완료', message);
       }
 
@@ -270,6 +280,13 @@ export default function StockDetailScreen({ route, navigation }) {
       >
         {/* 가격 표시 섹션 */}
         <PriceDisplay stats={stats} stockName={stock.issuer?.username || '크리에이터'} />
+        <View style={{ flexDirection: 'row', gap: 20, padding: 16 }}>
+          <TouchableOpacity onPress={async () => {
+            try { await watchlistAPI.add(stockId); navigation.navigate('Watchlist'); }
+            catch (error) { const message = error.response?.data?.error || '관심종목 추가에 실패했습니다'; Platform.OS === 'web' ? alert(message) : Alert.alert('알림', message); }
+          }}><Text style={{ color: COLORS.primary }}>☆ 관심종목 추가</Text></TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('StockAlert')}><Text style={{ color: COLORS.primary }}>가격 알림</Text></TouchableOpacity>
+        </View>
 
         {/* 탭 네비게이션 */}
         <StockTabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
@@ -338,12 +355,15 @@ export default function StockDetailScreen({ route, navigation }) {
           </View>
 
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>주문 금액</Text>
+            <Text style={styles.totalLabel}>예상 금액 (시장가)</Text>
             <Text style={styles.totalValue}>{calculateTotalAmount().toLocaleString()} PO</Text>
           </View>
         </View>
 
         {/* 매수/매도 버튼 */}
+        <Text style={{ paddingHorizontal: 16, color: COLORS.textSecondary, fontSize: 12 }}>
+          상대 호가가 있는 수량만 가격제한폭 안에서 체결됩니다. 미체결 잔량은 취소됩니다.
+        </Text>
         <View style={styles.tradeButtonRow}>
           <TouchableOpacity
             style={[
@@ -352,7 +372,7 @@ export default function StockDetailScreen({ route, navigation }) {
               { backgroundColor: tradeType === 'buy' ? COLORS.buttonBuy : COLORS.buttonSell },
               isTrading && styles.tradeButtonDisabled,
             ]}
-            onPress={handleTrade}
+            onPress={() => handleTrade()}
             disabled={isTrading}
           >
             {isTrading ? (
@@ -380,6 +400,10 @@ export default function StockDetailScreen({ route, navigation }) {
         </View>
 
         {/* 지정가 주문 안내 */}
+        {tradeType === 'buy' && stock.availableShares > stock.issuedShares && <TouchableOpacity
+          disabled={isTrading} style={styles.advancedOrderBanner} onPress={() => handleTrade(true)}>
+          <Text style={styles.advancedOrderBannerText}>신규 발행분 매수 · 잔여 {(stock.availableShares - stock.issuedShares).toLocaleString()}주 · 주당 {stock.sharePrice.toLocaleString()} PO</Text>
+        </TouchableOpacity>}
         <TouchableOpacity
           style={styles.advancedOrderBanner}
           onPress={() =>
@@ -403,7 +427,7 @@ export default function StockDetailScreen({ route, navigation }) {
         {user && (
           <View style={styles.userBalance}>
             <Text style={styles.balanceText}>
-              보유 PO: <Text style={styles.balanceValue}>{user.poBalance?.toLocaleString()}</Text>
+              주문 가능 PO: <Text style={styles.balanceValue}>{user.poBalance?.toLocaleString()}</Text>
             </Text>
           </View>
         )}

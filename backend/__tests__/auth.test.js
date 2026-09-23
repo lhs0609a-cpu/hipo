@@ -3,9 +3,10 @@ const app = require('../server');
 const { sequelize } = require('../src/models');
 
 describe('Auth API Tests', () => {
+  const runId = `${process.pid}${Date.now()}`;
   let testUser = {
-    email: 'test@example.com',
-    username: 'testuser',
+    email: `auth-${runId}@example.com`,
+    username: `auth${runId}`,
     password: 'Test123!@#'
   };
 

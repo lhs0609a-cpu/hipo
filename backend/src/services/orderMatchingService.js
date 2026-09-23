@@ -5,10 +5,12 @@
  * - 만료 주문 정리
  */
 
-const { User, Stock, Holding, StockOrder, StockTrade, Transaction, Wallet, sequelize } = require('../models');
+const { User, Stock, Holding, StockOrder, StockTrade, Transaction, Wallet, PriceHistory, CoinTransaction, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const { getIO } = require('../config/socket');
-const stockPriceService = require('./stockPriceService');
+const { activeWhere } = require('./orderBookService');
+const tradingTransaction = require('./tradingTransaction');
+const { tradingDay, isTradable, priceBounds } = require('./marketRules');
 
 class OrderMatchingService {
   constructor() {
@@ -51,28 +53,27 @@ class OrderMatchingService {
    * 매칭 사이클 실행
    */
   async runMatchingCycle() {
-    // 1. 스탑 주문 조건 확인 및 발동
-    await this.checkAndTriggerStopOrders();
-
-    // 2. 지정가 주문 매칭
-    await this.matchLimitOrders();
-
-    // 3. 만료 주문 정리
-    await this.cleanupExpiredOrders();
+    if (this.cycleRunning) return;
+    this.cycleRunning = true;
+    try {
+      await this.cleanupExpiredOrders();
+      await this.checkAndTriggerStopOrders();
+      await this.matchLimitOrders();
+    } finally { this.cycleRunning = false; }
   }
 
   /**
    * 스탑 주문 (손절/익절/스탑리밋) 조건 확인 및 발동
    */
   async checkAndTriggerStopOrders() {
-    const t = await sequelize.transaction();
+    const t = await tradingTransaction();
 
     try {
       // 발동 대기 중인 스탑 주문 조회
       const pendingStopOrders = await StockOrder.findAll({
         where: {
           orderMode: { [Op.in]: ['stop_loss', 'take_profit', 'stop_limit'] },
-          status: 'PENDING',
+          ...activeWhere(),
           isTriggered: false,
           stopPrice: { [Op.not]: null }
         },
@@ -102,7 +103,7 @@ class OrderMatchingService {
           console.log(`스탑 주문 발동: ${order.id} (${order.orderMode})`);
 
           // 실시간 알림
-          this.emitOrderTriggered(order);
+          t.afterCommit(() => this.emitOrderTriggered(order));
         }
       }
 
@@ -120,7 +121,7 @@ class OrderMatchingService {
     // 활성 주문이 있는 주식 ID 조회
     const activeStockIds = await StockOrder.findAll({
       where: {
-        status: { [Op.in]: ['PENDING', 'PARTIAL'] },
+        ...activeWhere(),
         isTriggered: true
       },
       attributes: [[sequelize.fn('DISTINCT', sequelize.col('stock_id')), 'stockId']],
@@ -139,18 +140,21 @@ class OrderMatchingService {
    * 특정 주식의 주문 매칭
    */
   async matchOrdersForStock(stockId) {
-    const t = await sequelize.transaction();
+    const t = await tradingTransaction();
 
     try {
+      const stock = await Stock.findByPk(stockId, { transaction: t, lock: t.LOCK.UPDATE });
+      if (!isTradable(stock)) { await t.commit(); return; }
+      const bounds = await priceBounds(stock, t);
       // 매수 주문 (높은 가격순)
       const buyOrders = await StockOrder.findAll({
         where: {
           stockId,
           orderType: 'BUY',
-          status: { [Op.in]: ['PENDING', 'PARTIAL'] },
+          ...activeWhere(),
           isTriggered: true
         },
-        order: [['limitPrice', 'DESC'], ['createdAt', 'ASC']],
+        order: [['limitPrice', 'DESC'], ['createdAt', 'ASC'], ['id', 'ASC']],
         transaction: t,
         lock: t.LOCK.UPDATE
       });
@@ -160,10 +164,10 @@ class OrderMatchingService {
         where: {
           stockId,
           orderType: 'SELL',
-          status: { [Op.in]: ['PENDING', 'PARTIAL'] },
+          ...activeWhere(),
           isTriggered: true
         },
-        order: [['limitPrice', 'ASC'], ['createdAt', 'ASC']],
+        order: [['limitPrice', 'ASC'], ['createdAt', 'ASC'], ['id', 'ASC']],
         transaction: t,
         lock: t.LOCK.UPDATE
       });
@@ -172,16 +176,22 @@ class OrderMatchingService {
       for (const buyOrder of buyOrders) {
         for (const sellOrder of sellOrders) {
           // 이미 체결된 주문 건너뛰기
-          if (buyOrder.status === 'FILLED' || sellOrder.status === 'FILLED') {
+          if (!['PENDING', 'PARTIAL'].includes(buyOrder.status) || !['PENDING', 'PARTIAL'].includes(sellOrder.status) || buyOrder.userId === sellOrder.userId) {
             continue;
           }
 
           // 가격 조건 확인: 매수 지정가 >= 매도 지정가
           if (buyOrder.limitPrice >= sellOrder.limitPrice) {
             // 체결 가격: 먼저 등록된 주문의 가격 (시간 우선)
-            const executionPrice = buyOrder.createdAt < sellOrder.createdAt
+            const buyMarket = buyOrder.orderMode === 'market';
+            const sellMarket = ['market', 'stop_loss', 'take_profit'].includes(sellOrder.orderMode);
+            if (buyMarket && sellMarket) continue;
+            const buyFirst = Number(buyOrder.createdAt) < Number(sellOrder.createdAt) ||
+              (Number(buyOrder.createdAt) === Number(sellOrder.createdAt) && buyOrder.id < sellOrder.id);
+            const executionPrice = buyMarket ? Number(sellOrder.limitPrice) : sellMarket ? Number(buyOrder.limitPrice) : buyFirst
               ? buyOrder.limitPrice
               : sellOrder.limitPrice;
+            if (executionPrice < bounds.lowerLimit || executionPrice > bounds.upperLimit) continue;
 
             // 체결 수량: 두 주문 중 작은 잔여 수량
             const buyRemaining = buyOrder.quantity - buyOrder.filledQuantity;
@@ -195,9 +205,15 @@ class OrderMatchingService {
         }
       }
 
+      // Market and triggered stop-market orders never rest in the book.
+      for (const order of buyOrders.concat(sellOrders)) {
+        if (['market', 'stop_loss', 'take_profit'].includes(order.orderMode) && ['PENDING', 'PARTIAL'].includes(order.status)) {
+          await order.update({ status: 'CANCELLED', cancelReason: '즉시 체결 후 미체결 잔량 취소', cancelledAt: new Date() }, { transaction: t });
+        }
+      }
       await t.commit();
     } catch (error) {
-      await t.rollback();
+      if (!t.finished) await t.rollback();
       console.error(`주식 ${stockId} 매칭 오류:`, error);
     }
   }
@@ -209,9 +225,10 @@ class OrderMatchingService {
     const totalAmount = quantity * price;
 
     // 매수자 정보
-    const buyer = await User.findByPk(buyOrder.userId, { transaction });
+    const participants = await User.findAll({ where: { id: { [Op.in]: [buyOrder.userId, sellOrder.userId] } }, order: [['id', 'ASC']], transaction, lock: transaction.LOCK.UPDATE });
+    const buyer = participants.find(user => user.id === buyOrder.userId);
     // 매도자 정보
-    const seller = await User.findByPk(sellOrder.userId, { transaction });
+    const seller = participants.find(user => user.id === sellOrder.userId);
     // 주식 정보
     const stock = await Stock.findByPk(buyOrder.stockId, { transaction });
 
@@ -255,14 +272,14 @@ class OrderMatchingService {
     });
     if (buyerWallet) {
       await buyerWallet.update({
-        poBalance: parseFloat(buyerWallet.poBalance) - totalAmount,
+        poBalance: buyer.poBalance,
         totalPOSpent: parseFloat(buyerWallet.totalPOSpent) + totalAmount
       }, { transaction });
     }
 
     // 2. 매도자 PO 증가
     await seller.update({
-      poBalance: seller.poBalance + totalAmount
+      poBalance: Number(seller.poBalance) + totalAmount
     }, { transaction });
 
     const sellerWallet = await Wallet.findOne({
@@ -271,7 +288,7 @@ class OrderMatchingService {
     });
     if (sellerWallet) {
       await sellerWallet.update({
-        poBalance: parseFloat(sellerWallet.poBalance) + totalAmount
+        poBalance: seller.poBalance
       }, { transaction });
     }
 
@@ -318,6 +335,12 @@ class OrderMatchingService {
       totalAmount
     }, { transaction });
 
+    await CoinTransaction.bulkCreate([
+      { userId: buyer.id, coinType: 'PO', transactionType: 'SPEND', source: 'STOCK_PURCHASE', amount: -totalAmount,
+        balanceAfter: buyer.poBalance, relatedId: trade.id, description: `${quantity}주 매수` },
+      { userId: seller.id, coinType: 'PO', transactionType: 'EARN', source: 'STOCK_SELL', amount: totalAmount,
+        balanceAfter: seller.poBalance, relatedId: trade.id, description: `${quantity}주 매도` }
+    ], { transaction });
     // 6. 거래 내역 저장
     await Transaction.create({
       buyerId: buyer.id,
@@ -326,34 +349,51 @@ class OrderMatchingService {
       shares: quantity,
       pricePerShare: price,
       totalAmount,
-      transactionType: 'trade'
+      transactionType: 'buy'
     }, { transaction });
 
     // 7. 주문 상태 업데이트
     const buyFilled = buyOrder.filledQuantity + quantity;
     const sellFilled = sellOrder.filledQuantity + quantity;
+    const buyValue = Number(await StockTrade.sum('totalAmount', { where: { buyOrderId: buyOrder.id }, transaction }));
+    const sellValue = Number(await StockTrade.sum('totalAmount', { where: { sellOrderId: sellOrder.id }, transaction }));
 
     await buyOrder.update({
       filledQuantity: buyFilled,
       status: buyFilled >= buyOrder.quantity ? 'FILLED' : 'PARTIAL',
-      averageFilledPrice: this.calculateAveragePrice(buyOrder, quantity, price),
+      averageFilledPrice: buyValue / buyFilled,
       filledAt: buyFilled >= buyOrder.quantity ? new Date() : null
     }, { transaction });
 
     await sellOrder.update({
       filledQuantity: sellFilled,
       status: sellFilled >= sellOrder.quantity ? 'FILLED' : 'PARTIAL',
-      averageFilledPrice: this.calculateAveragePrice(sellOrder, quantity, price),
+      averageFilledPrice: sellValue / sellFilled,
       filledAt: sellFilled >= sellOrder.quantity ? new Date() : null
     }, { transaction });
 
     console.log(`체결: ${quantity}주 @ ${price} PO (매수: ${buyer.username}, 매도: ${seller.username})`);
 
     // 8. 실시간 알림
-    this.emitTradeExecuted(trade, buyer, seller, stock, quantity, price);
-
-    // 9. 주가 재계산 (비동기)
-    stockPriceService.calculateStockPrice(stock.userId).catch(console.error);
+    const timestamp = new Date();
+    const day = tradingDay(timestamp);
+    const todayVolume = await Transaction.sum('shares', { where: { stockId: stock.id, createdAt: { [Op.gte]: day } }, transaction });
+    const { referencePrice: previous } = await priceBounds(stock, transaction);
+    await stock.update({ sharePrice: price, dayVolume: todayVolume,
+      shareholderCount: await Holding.count({ where: { stockId: stock.id, shares: { [Op.gt]: 0 } }, transaction }),
+      previousClose: previous,
+      marketCapTotal: price * stock.issuedShares,
+      priceChangePercent: previous > 0 ? (price - previous) / previous * 100 : 0
+    }, { transaction });
+    for (const [timeframe, duration] of [['1m', 60000], ['5m', 300000], ['15m', 900000], ['1h', 3600000], ['1d', 86400000]]) {
+      const bucket = timeframe === '1d' ? day : new Date(Math.floor(timestamp.getTime() / duration) * duration);
+      const candle = await PriceHistory.findOne({ where: { stockId: stock.id, timeframe, timestamp: bucket }, transaction });
+      if (candle) await candle.update({ high: Math.max(Number(candle.high), price), low: Math.min(Number(candle.low), price), close: price, volume: candle.volume + quantity }, { transaction });
+      else await PriceHistory.create({ stockId: stock.id, timeframe, timestamp: bucket, open: price, high: price, low: price, close: price, volume: quantity }, { transaction });
+    }
+    const dailyCandle = await PriceHistory.findOne({ where: { stockId: stock.id, timeframe: '1d', timestamp: day }, transaction });
+    await stock.update({ dayOpen: Number(dailyCandle.open), dayHigh: Number(dailyCandle.high), dayLow: Number(dailyCandle.low) }, { transaction });
+    transaction.afterCommit(() => this.emitTradeExecuted(trade, buyer, seller, stock, quantity, price));
   }
 
   /**
@@ -372,13 +412,14 @@ class OrderMatchingService {
    * 만료 주문 정리
    */
   async cleanupExpiredOrders() {
-    const t = await sequelize.transaction();
+    const t = await tradingTransaction();
 
     try {
       const now = new Date();
 
       const expiredOrders = await StockOrder.findAll({
         where: {
+          engineVersion: 2,
           status: { [Op.in]: ['PENDING', 'PARTIAL'] },
           expiresAt: { [Op.lt]: now }
         },
@@ -393,7 +434,7 @@ class OrderMatchingService {
         }, { transaction: t });
 
         console.log(`만료 주문 취소: ${order.id}`);
-        this.emitOrderExpired(order);
+        t.afterCommit(() => this.emitOrderExpired(order));
       }
 
       await t.commit();
@@ -432,6 +473,10 @@ class OrderMatchingService {
       const io = getIO();
 
       // 전체 브로드캐스트
+      io.emit('stock:price_update', {
+        stock: { stockId: stock.id, userId: stock.userId, sharePrice: price, priceChangePercent: Number(stock.priceChangePercent), dayVolume: stock.dayVolume },
+        userId: stock.userId, newPrice: price, changePercent: Number(stock.priceChangePercent), timestamp: new Date()
+      });
       io.emit('trade:executed', {
         tradeId: trade.id,
         stockId: stock.id,

@@ -222,7 +222,7 @@ const SecuritySettingsScreen = ({ navigation }) => {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => navigation.navigate('IdentityVerification')}
+            onPress={() => navigation.navigate('VerificationRequest')}
           >
             <View style={styles.settingLeft}>
               <Ionicons name="person-circle-outline" size={24} color="#3182F6" />

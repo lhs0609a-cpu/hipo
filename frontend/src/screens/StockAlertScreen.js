@@ -36,14 +36,10 @@ export default function StockAlertScreen({ navigation }) {
 
       if (selectedTab === 'alerts') {
         const response = await api.get('/stock-alerts');
-        if (response.data.success) {
-          setAlerts(response.data.alerts || []);
-        }
+        setAlerts(Array.isArray(response.data) ? response.data : []);
       } else {
         const response = await api.get('/stock-alerts/watchlist');
-        if (response.data.success) {
-          setWatchlist(response.data.watchlist || []);
-        }
+        setWatchlist(Array.isArray(response.data) ? response.data : []);
       }
     } catch (error) {
       console.error('데이터 로드 오류:', error);
@@ -59,12 +55,10 @@ export default function StockAlertScreen({ navigation }) {
     }
 
     try {
-      const response = await api.get('/search', {
-        params: { q: query, type: 'users' }
+      const response = await api.get('/stocks/search', {
+        params: { q: query }
       });
-      if (response.data.success) {
-        setSearchResults(response.data.results || []);
-      }
+      setSearchResults((response.data.stocks || []).map(stock => ({ id: stock.id, stockId: stock.id, username: stock.issuer?.displayName || stock.issuer?.username })));
     } catch (error) {
       console.error('검색 오류:', error);
     }
@@ -83,11 +77,11 @@ export default function StockAlertScreen({ navigation }) {
     try {
       const response = await api.post('/stock-alerts', {
         stockId: selectedStock.stockId,
-        alertType,
-        targetValue: parseFloat(targetValue),
+        alertType: alertType === 'price_change' ? 'PERCENT_UP' : alertType.toUpperCase(),
+        ...(alertType === 'price_change' ? { targetPercent: Number(targetValue) } : { targetPrice: Number(targetValue) }),
       });
 
-      if (response.data.success) {
+      if (response.status === 201) {
         if (Platform.OS === 'web') {
           window.alert('알림이 생성되었습니다');
         } else {
@@ -150,10 +144,12 @@ export default function StockAlertScreen({ navigation }) {
   };
 
   const getAlertTypeText = (type) => {
-    switch (type) {
+    switch (type.toLowerCase()) {
       case 'price_above': return '목표가 상승';
       case 'price_below': return '목표가 하락';
       case 'price_change': return '가격 변동';
+      case 'percent_up': return '상승률 알림';
+      case 'percent_down': return '하락률 알림';
       default: return type;
     }
   };
@@ -214,10 +210,10 @@ export default function StockAlertScreen({ navigation }) {
             alerts.map((alert) => (
               <View key={alert.id} style={styles.alertItem}>
                 <View style={styles.alertInfo}>
-                  <Text style={styles.alertStock}>{alert.stock?.user?.username || '알 수 없음'}</Text>
+                  <Text style={styles.alertStock}>{alert.stock?.issuer?.username || '알 수 없음'}</Text>
                   <Text style={styles.alertType}>{getAlertTypeText(alert.alertType)}</Text>
                   <Text style={styles.alertTarget}>
-                    목표: {alert.targetValue?.toLocaleString()} PO
+                    목표: {Number(alert.targetPrice ?? alert.targetPercent).toLocaleString()} {alert.targetPrice != null ? 'PO' : '%'}
                   </Text>
                   <Text style={styles.alertStatus}>
                     {alert.isActive ? '🟢 활성' : '⚫ 비활성'}
@@ -246,7 +242,7 @@ export default function StockAlertScreen({ navigation }) {
                 onPress={() => navigation.navigate('StockDetail', { stockId: item.stockId })}
               >
                 <View style={styles.watchlistInfo}>
-                  <Text style={styles.watchlistStock}>{item.stock?.user?.username || '알 수 없음'}</Text>
+                  <Text style={styles.watchlistStock}>{item.stock?.issuer?.username || '알 수 없음'}</Text>
                   <Text style={styles.watchlistPrice}>
                     {item.stock?.sharePrice?.toLocaleString() || 0} PO
                   </Text>
@@ -335,13 +331,13 @@ export default function StockAlertScreen({ navigation }) {
                   onPress={() => setAlertType('price_change')}
                 >
                   <Text style={[styles.typeButtonText, alertType === 'price_change' && styles.typeButtonTextActive]}>
-                    가격 변동
+                    상승률
                   </Text>
                 </TouchableOpacity>
               </View>
 
               {/* 목표가 */}
-              <Text style={styles.label}>목표가 (PO)</Text>
+              <Text style={styles.label}>{alertType === 'price_change' ? '목표 상승률 (%)' : '목표가 (PO)'}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="목표가 입력..."

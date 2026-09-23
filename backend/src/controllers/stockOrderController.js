@@ -1,12 +1,16 @@
 const { User, Stock, Holding, StockOrder, StockTrade, Transaction, Wallet, sequelize } = require('../models');
 const { Op } = require('sequelize');
 const { getIO } = require('../config/socket');
+const { reservations, getOrderBook } = require('../services/orderBookService');
+const matching = require('../services/orderMatchingService');
+const tradingTransaction = require('../services/tradingTransaction');
+const { isTradable, priceBounds } = require('../services/marketRules');
 
 /**
  * 지정가/손절/익절 주문 생성
  */
 exports.createOrder = async (req, res) => {
-  const t = await sequelize.transaction();
+  const t = await tradingTransaction();
 
   try {
     const {
@@ -16,13 +20,14 @@ exports.createOrder = async (req, res) => {
       quantity,
       limitPrice,     // 지정가
       stopPrice,      // 스탑 가격 (손절/익절 발동 조건)
-      expiresIn       // 만료 시간 (시간 단위, 기본 24시간)
+      expiresIn,
+      triggerCondition: requestedTrigger
     } = req.body;
 
     const userId = req.user.id;
 
     // 입력 검증
-    if (!stockId || !orderType || !orderMode || !quantity || quantity <= 0) {
+    if (!stockId || !orderType || !orderMode || !Number.isSafeInteger(quantity) || quantity <= 0 || quantity > 100000000) {
       await t.rollback();
       return res.status(400).json({ error: '필수 항목을 모두 입력해주세요' });
     }
@@ -32,20 +37,34 @@ exports.createOrder = async (req, res) => {
       return res.status(400).json({ error: '유효하지 않은 주문 유형입니다' });
     }
 
-    if (!['limit', 'stop_loss', 'take_profit', 'stop_limit'].includes(orderMode)) {
+    if (!['market', 'limit', 'stop_loss', 'take_profit', 'stop_limit'].includes(orderMode)) {
       await t.rollback();
       return res.status(400).json({ error: '유효하지 않은 주문 모드입니다. limit, stop_loss, take_profit, stop_limit 중 하나를 선택하세요' });
     }
 
     // 주식 정보 조회
     const stock = await Stock.findByPk(stockId, {
-      include: [{ model: User, as: 'issuer', attributes: ['id', 'username', 'displayName'] }],
-      transaction: t
+      transaction: t,
+      lock: t.LOCK.UPDATE
     });
 
     if (!stock) {
       await t.rollback();
       return res.status(404).json({ error: '주식을 찾을 수 없습니다' });
+    }
+    if (!isTradable(stock)) {
+      await t.rollback();
+      return res.status(400).json({ error: '현재 거래할 수 없는 종목입니다' });
+    }
+    if (['stop_loss', 'take_profit'].includes(orderMode) && orderType !== 'SELL') {
+      await t.rollback();
+      return res.status(400).json({ error: '손절·익절은 매도 주문에서 사용할 수 있습니다' });
+    }
+    if ((limitPrice != null && (!Number.isSafeInteger(limitPrice) || limitPrice <= 0)) ||
+        (stopPrice != null && (!Number.isSafeInteger(stopPrice) || stopPrice <= 0)) ||
+        (expiresIn != null && (!Number.isFinite(expiresIn) || expiresIn <= 0 || expiresIn > 720))) {
+      await t.rollback();
+      return res.status(400).json({ error: '가격은 양의 정수, 유효기간은 0~720시간 범위여야 합니다' });
     }
 
     // 자기 주식 매수 방지
@@ -55,14 +74,20 @@ exports.createOrder = async (req, res) => {
     }
 
     // 사용자 정보 조회
-    const user = await User.findByPk(userId, { transaction: t });
+    const user = await User.findByPk(userId, { transaction: t, lock: t.LOCK.UPDATE });
+    const issuer = await User.findByPk(stock.userId, { attributes: ['username', 'displayName'], transaction: t });
+    const reserved = await reservations(userId, stockId, t);
+    const bounds = await priceBounds(stock, t);
 
     // 가격 검증
     let finalLimitPrice = limitPrice;
     let finalStopPrice = stopPrice;
     let triggerCondition = null;
 
-    if (orderMode === 'limit') {
+    if (orderMode === 'market') {
+      // Explicit execution protection; never invent liquidity.
+      finalLimitPrice = limitPrice || (orderType === 'BUY' ? bounds.upperLimit : bounds.lowerLimit);
+    } else if (orderMode === 'limit') {
       if (!limitPrice || limitPrice <= 0) {
         await t.rollback();
         return res.status(400).json({ error: '지정가를 입력해주세요' });
@@ -78,7 +103,7 @@ exports.createOrder = async (req, res) => {
         return res.status(400).json({ error: '손절가는 현재가보다 낮아야 합니다' });
       }
       triggerCondition = 'lte'; // 이하일 때 발동
-      finalLimitPrice = stopPrice; // 손절 시 시장가로 즉시 매도
+      finalLimitPrice = 1; // 발동 후 상대 매수 호가로 체결
     } else if (orderMode === 'take_profit') {
       // 익절: 현재가보다 높은 가격에 도달하면 매도 발동
       if (!stopPrice || stopPrice <= 0) {
@@ -90,7 +115,7 @@ exports.createOrder = async (req, res) => {
         return res.status(400).json({ error: '익절가는 현재가보다 높아야 합니다' });
       }
       triggerCondition = 'gte'; // 이상일 때 발동
-      finalLimitPrice = stopPrice;
+      finalLimitPrice = 1;
     } else if (orderMode === 'stop_limit') {
       // 스탑 리밋: stopPrice 도달 시 limitPrice로 지정가 주문 발동
       if (!stopPrice || !limitPrice || stopPrice <= 0 || limitPrice <= 0) {
@@ -104,16 +129,28 @@ exports.createOrder = async (req, res) => {
       }
     }
 
+    if (requestedTrigger != null && !['gte', 'lte'].includes(requestedTrigger)) {
+      await t.rollback(); return res.status(400).json({ error: '유효하지 않은 발동 조건입니다' });
+    }
+    if (orderMode === 'stop_limit' && requestedTrigger) triggerCondition = requestedTrigger;
     const totalAmount = quantity * (finalLimitPrice || stock.sharePrice);
+    if (['market', 'limit', 'stop_limit'].includes(orderMode) && (finalLimitPrice < bounds.lowerLimit || finalLimitPrice > bounds.upperLimit)) {
+      await t.rollback();
+      return res.status(400).json({ error: `주문 가격은 ${bounds.lowerLimit}~${bounds.upperLimit} PO 범위여야 합니다` });
+    }
+    if (!Number.isSafeInteger(totalAmount) || totalAmount > 2147483647) {
+      await t.rollback();
+      return res.status(400).json({ error: '주문 금액이 허용 범위를 초과했습니다' });
+    }
 
     // 매수 시 잔액 검증 및 예약
     if (orderType === 'BUY') {
-      if (user.poBalance < totalAmount) {
+      if (Number(user.poBalance) - reserved.cash < totalAmount) {
         await t.rollback();
         return res.status(400).json({
           error: 'PO가 부족합니다',
           required: totalAmount,
-          available: user.poBalance
+          available: Math.max(0, Number(user.poBalance) - reserved.cash)
         });
       }
 
@@ -128,12 +165,12 @@ exports.createOrder = async (req, res) => {
         transaction: t
       });
 
-      if (!holding || holding.shares < quantity) {
+      if (!holding || holding.shares - reserved.shares < quantity) {
         await t.rollback();
         return res.status(400).json({
           error: '보유 주식이 부족합니다',
           requested: quantity,
-          available: holding ? holding.shares : 0
+          available: holding ? Math.max(0, holding.shares - reserved.shares) : 0
         });
       }
     }
@@ -144,6 +181,7 @@ exports.createOrder = async (req, res) => {
 
     // 주문 생성
     const order = await StockOrder.create({
+      engineVersion: 2,
       userId,
       targetUserId: stock.userId,
       stockId,
@@ -155,7 +193,7 @@ exports.createOrder = async (req, res) => {
       limitPrice: finalLimitPrice,
       stopPrice: finalStopPrice,
       triggerCondition,
-      isTriggered: orderMode === 'limit', // 지정가는 즉시 활성화
+      isTriggered: ['limit', 'market'].includes(orderMode),
       status: 'PENDING',
       expiresAt
     }, { transaction: t });
@@ -165,7 +203,7 @@ exports.createOrder = async (req, res) => {
     // 실시간 알림
     try {
       const io = getIO();
-      io.emit('order:created', {
+      io.to(`user:${userId}`).emit('order:created', {
         orderId: order.id,
         userId,
         stockId,
@@ -180,12 +218,17 @@ exports.createOrder = async (req, res) => {
       console.error('주문 생성 알림 오류:', err);
     }
 
+    await matching.matchOrdersForStock(stockId);
+    await order.reload();
+    const filledAmount = Number(await StockTrade.sum('totalAmount', {
+      where: { [Op.or]: [{ buyOrderId: order.id }, { sellOrderId: order.id }] }
+    }) || 0);
     res.json({
       message: '주문이 등록되었습니다',
       order: {
         id: order.id,
         stockId,
-        stockName: stock.issuer?.displayName || stock.issuer?.username,
+        stockName: issuer?.displayName || issuer?.username,
         orderType,
         orderMode,
         quantity,
@@ -193,11 +236,15 @@ exports.createOrder = async (req, res) => {
         stopPrice: finalStopPrice,
         totalAmount,
         status: order.status,
+        filledQuantity: order.filledQuantity,
+        averageFilledPrice: order.averageFilledPrice,
+        filledAmount,
+        cancelReason: order.cancelReason,
         expiresAt
       }
     });
   } catch (error) {
-    await t.rollback();
+    if (!t.finished) await t.rollback();
     console.error('주문 생성 오류:', error);
     res.status(500).json({ error: '주문 생성 중 오류가 발생했습니다' });
   }
@@ -207,7 +254,7 @@ exports.createOrder = async (req, res) => {
  * 주문 취소
  */
 exports.cancelOrder = async (req, res) => {
-  const t = await sequelize.transaction();
+  const t = await tradingTransaction();
 
   try {
     const { orderId } = req.params;
@@ -219,7 +266,8 @@ exports.cancelOrder = async (req, res) => {
         userId,
         status: { [Op.in]: ['PENDING', 'PARTIAL'] }
       },
-      transaction: t
+      transaction: t,
+      lock: t.LOCK.UPDATE
     });
 
     if (!order) {
@@ -227,6 +275,10 @@ exports.cancelOrder = async (req, res) => {
       return res.status(404).json({ error: '취소 가능한 주문을 찾을 수 없습니다' });
     }
 
+    if (order.engineVersion !== 2) {
+      await t.rollback();
+      return res.status(409).json({ error: '기존 주문은 원장 이관 후 처리할 수 있습니다' });
+    }
     // 주문 취소
     await order.update({
       status: 'CANCELLED',
@@ -239,7 +291,7 @@ exports.cancelOrder = async (req, res) => {
     // 실시간 알림
     try {
       const io = getIO();
-      io.emit('order:cancelled', {
+      io.to(`user:${userId}`).emit('order:cancelled', {
         orderId: order.id,
         userId,
         timestamp: new Date()
@@ -265,7 +317,9 @@ exports.cancelOrder = async (req, res) => {
 exports.getMyOrders = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { status, page = 1, limit = 20 } = req.query;
+    const { status } = req.query;
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
     const offset = (page - 1) * limit;
 
     const whereClause = { userId };
@@ -336,14 +390,6 @@ exports.getOrderDetail = async (req, res) => {
             as: 'issuer',
             attributes: ['id', 'username', 'displayName', 'profileImage']
           }]
-        },
-        {
-          model: StockTrade,
-          as: 'trades',
-          include: [
-            { model: User, as: 'buyer', attributes: ['username', 'displayName'] },
-            { model: User, as: 'seller', attributes: ['username', 'displayName'] }
-          ]
         }
       ]
     });
@@ -352,7 +398,11 @@ exports.getOrderDetail = async (req, res) => {
       return res.status(404).json({ error: '주문을 찾을 수 없습니다' });
     }
 
-    res.json({ order });
+    const trades = await StockTrade.findAll({
+      where: { [Op.or]: [{ buyOrderId: order.id }, { sellOrderId: order.id }] },
+      order: [['createdAt', 'ASC']]
+    });
+    res.json({ order: { ...order.toJSON(), trades } });
   } catch (error) {
     console.error('주문 상세 조회 오류:', error);
     res.status(500).json({ error: '주문 상세 조회 중 오류가 발생했습니다' });
@@ -364,69 +414,60 @@ exports.getOrderDetail = async (req, res) => {
  */
 exports.getStockOrders = async (req, res) => {
   try {
-    const { stockId } = req.params;
-
-    // 매수 대기 주문 (높은 가격순)
-    const buyOrders = await StockOrder.findAll({
-      where: {
-        stockId,
-        orderType: 'BUY',
-        orderMode: 'limit',
-        status: { [Op.in]: ['PENDING', 'PARTIAL'] },
-        isTriggered: true
-      },
-      attributes: [
-        'limitPrice',
-        [sequelize.fn('SUM', sequelize.col('quantity')), 'totalQuantity'],
-        [sequelize.fn('COUNT', sequelize.col('id')), 'orderCount']
-      ],
-      group: ['limitPrice'],
-      order: [['limitPrice', 'DESC']],
-      limit: 10,
-      raw: true
-    });
-
-    // 매도 대기 주문 (낮은 가격순)
-    const sellOrders = await StockOrder.findAll({
-      where: {
-        stockId,
-        orderType: 'SELL',
-        orderMode: 'limit',
-        status: { [Op.in]: ['PENDING', 'PARTIAL'] },
-        isTriggered: true
-      },
-      attributes: [
-        'limitPrice',
-        [sequelize.fn('SUM', sequelize.col('quantity')), 'totalQuantity'],
-        [sequelize.fn('COUNT', sequelize.col('id')), 'orderCount']
-      ],
-      group: ['limitPrice'],
-      order: [['limitPrice', 'ASC']],
-      limit: 10,
-      raw: true
-    });
-
-    // 최우선 호가
-    const bestBid = buyOrders.length > 0 ? parseFloat(buyOrders[0].limitPrice) : null;
-    const bestAsk = sellOrders.length > 0 ? parseFloat(sellOrders[0].limitPrice) : null;
-
-    res.json({
-      bids: buyOrders.map(o => ({
-        price: parseFloat(o.limitPrice),
-        quantity: parseInt(o.totalQuantity),
-        orderCount: parseInt(o.orderCount)
-      })),
-      asks: sellOrders.map(o => ({
-        price: parseFloat(o.limitPrice),
-        quantity: parseInt(o.totalQuantity),
-        orderCount: parseInt(o.orderCount)
-      })),
-      bestBid,
-      bestAsk,
-      spread: bestBid && bestAsk ? bestAsk - bestBid : null
-    });
+    const book = await getOrderBook(req.params.stockId);
+    if (!book) return res.status(404).json({ error: '주식을 찾을 수 없습니다' });
+    res.json(book);
   } catch (error) {
-    console.error('주식 주문 조회 오류:', error);
-    res.status(500).json({ error: '주식 주문 조회 중 오류가 발생했습니다' });
+    console.error('호가 조회 오류:', error);
+    res.status(500).json({ error: '호가를 불러오지 못했습니다' });
+  }
+};
+
+exports.getTradingAccount = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    const holding = await Holding.findOne({ where: { holderId: req.user.id, stockId: req.params.stockId } });
+    const reserved = await reservations(req.user.id, req.params.stockId);
+    res.json({ balance: Number(user.poBalance), reservedBalance: reserved.cash,
+      availableBalance: Math.max(0, Number(user.poBalance) - reserved.cash),
+      shares: holding?.shares || 0, reservedShares: reserved.shares, lockedShares: reserved.lockedShares,
+      availableShares: Math.max(0, (holding?.shares || 0) - reserved.shares) });
+  } catch (error) { res.status(500).json({ error: '주문 가능 잔고를 불러오지 못했습니다' }); }
+};
+
+// Cancel/replace is atomic and receives new time priority. Filled trades stay on the original order.
+exports.amendOrder = async (req, res) => {
+  const t = await tradingTransaction();
+  try {
+    const { quantity, limitPrice } = req.body;
+    if (!Number.isSafeInteger(quantity) || quantity <= 0 || !Number.isSafeInteger(limitPrice) || limitPrice <= 0 || quantity * limitPrice > 2147483647) {
+      await t.rollback(); return res.status(400).json({ error: '정정할 잔량과 가격을 양의 정수로 입력해주세요' });
+    }
+    const original = await StockOrder.findOne({ where: { id: req.params.orderId, userId: req.user.id }, transaction: t, lock: t.LOCK.UPDATE });
+    if (!original || original.engineVersion !== 2 || !['PENDING', 'PARTIAL'].includes(original.status) || original.orderMode !== 'limit' || (original.expiresAt && original.expiresAt <= new Date())) {
+      await t.rollback(); return res.status(400).json({ error: '유효한 지정가 미체결 주문만 정정할 수 있습니다' });
+    }
+    const stock = await Stock.findByPk(original.stockId, { transaction: t });
+    if (!isTradable(stock)) { await t.rollback(); return res.status(400).json({ error: '현재 거래할 수 없는 종목입니다' }); }
+    const bounds = await priceBounds(stock, t);
+    if (limitPrice < bounds.lowerLimit || limitPrice > bounds.upperLimit) { await t.rollback(); return res.status(400).json({ error: '정정 가격이 가격제한폭을 벗어났습니다' }); }
+    const user = await User.findByPk(req.user.id, { transaction: t, lock: t.LOCK.UPDATE });
+    await original.update({ status: 'CANCELLED', cancelReason: '주문 정정', cancelledAt: new Date() }, { transaction: t });
+    const reserved = await reservations(user.id, stock.id, t);
+    const holding = await Holding.findOne({ where: { holderId: user.id, stockId: stock.id }, transaction: t });
+    if ((original.orderType === 'BUY' && Number(user.poBalance) - reserved.cash < quantity * limitPrice) ||
+        (original.orderType === 'SELL' && (holding?.shares || 0) - reserved.shares < quantity)) {
+      await t.rollback(); return res.status(400).json({ error: '정정할 주문의 가용 잔고 또는 수량이 부족합니다' });
+    }
+    const order = await StockOrder.create({ engineVersion: 2, userId: user.id, targetUserId: stock.userId, stockId: stock.id,
+      orderType: original.orderType, orderMode: 'limit', quantity, limitPrice, pricePerShare: limitPrice,
+      totalAmount: quantity * limitPrice, isTriggered: true, status: 'PENDING', expiresAt: original.expiresAt }, { transaction: t });
+    await t.commit();
+    await matching.matchOrdersForStock(stock.id);
+    await order.reload();
+    res.json({ order, replacedOrderId: original.id });
+  } catch (error) {
+    if (!t.finished) await t.rollback();
+    res.status(500).json({ error: '주문 정정에 실패했습니다' });
   }
 };

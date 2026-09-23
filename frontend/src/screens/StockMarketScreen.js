@@ -17,6 +17,7 @@ export default function StockMarketScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedTab, setSelectedTab] = useState('all'); // all, rising, falling, volume
   const [stocks, setStocks] = useState([]);
+  const [error, setError] = useState('');
   const [marketData, setMarketData] = useState({
     totalVolume: 0,
     totalMarketCap: 0,
@@ -25,34 +26,33 @@ export default function StockMarketScreen({ navigation }) {
 
   useEffect(() => {
     loadData();
+    const timer = setInterval(loadData, 5000);
+    return () => clearInterval(timer);
   }, [selectedTab]);
 
   const loadData = async () => {
     try {
-      setLoading(true);
-
       // 주식 목록 조회
       const response = await api.get('/stocks', {
         params: {
-          sort: getSortParam(),
+          sortBy: getSortParam(),
+          direction: selectedTab,
           limit: 50,
         }
       });
 
-      if (response.data.success) {
-        setStocks(response.data.stocks || []);
-      }
+      setStocks((response.data.stocks || []).map(stock => ({ ...stock, user: stock.issuer, priceChange: Number(stock.priceChangePercent || 0) })));
 
       // 시장 차트 데이터 조회 (시장 통계)
-      const marketResponse = await api.get('/stocks/market/chart');
-      if (marketResponse.data.success) {
+      const marketResponse = await api.get('/stock-market/overview');
         setMarketData({
-          totalVolume: marketResponse.data.totalVolume || 0,
+          totalVolume: marketResponse.data.todayVolume || 0,
           totalMarketCap: marketResponse.data.totalMarketCap || 0,
-          activeTraders: marketResponse.data.activeTraders || 0,
+          activeTraders: marketResponse.data.todayTrades || 0,
         });
-      }
+      setError('');
     } catch (error) {
+      setError('시장 정보를 갱신하지 못했습니다. 아래로 당겨 다시 시도해주세요.');
       console.error('데이터 로드 오류:', error);
     } finally {
       setLoading(false);
@@ -62,10 +62,10 @@ export default function StockMarketScreen({ navigation }) {
 
   const getSortParam = () => {
     switch (selectedTab) {
-      case 'rising': return 'price_change_desc';
-      case 'falling': return 'price_change_asc';
-      case 'volume': return 'volume_desc';
-      default: return 'market_cap_desc';
+      case 'rising': return 'change';
+      case 'falling': return 'changeAsc';
+      case 'volume': return 'volume';
+      default: return 'marketCap';
     }
   };
 
@@ -122,6 +122,7 @@ export default function StockMarketScreen({ navigation }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {/* 시장 통계 */}
+        {!!error && <Text style={{ padding: 16, color: COLORS.danger }}>{error}</Text>}
         <View style={styles.statsCard}>
           <Text style={styles.statsTitle}>시장 현황</Text>
           <View style={styles.statsRow}>
@@ -131,13 +132,13 @@ export default function StockMarketScreen({ navigation }) {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>24시간 거래량</Text>
+              <Text style={styles.statLabel}>오늘 거래대금</Text>
               <Text style={styles.statValue}>{formatNumber(marketData.totalVolume)} PO</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statLabel}>활성 트레이더</Text>
-              <Text style={styles.statValue}>{marketData.activeTraders}명</Text>
+              <Text style={styles.statLabel}>오늘 체결</Text>
+              <Text style={styles.statValue}>{marketData.activeTraders}건</Text>
             </View>
           </View>
         </View>

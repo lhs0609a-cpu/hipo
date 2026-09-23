@@ -1,19 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const advancedTradingController = require('../controllers/advancedTradingController');
+const advancedTradingController = require('../controllers/stockOrderController');
 const { authenticateToken } = require('../middleware/auth');
 
 /**
  * POST /api/trading/limit-order
  * 지정가 주문 생성
  */
-router.post('/limit-order', authenticateToken, advancedTradingController.createLimitOrder);
+router.post('/limit-order', authenticateToken, (req, res) => {
+  req.body.orderMode = 'limit';
+  return advancedTradingController.createOrder(req, res);
+});
 
 /**
  * POST /api/trading/stop-order
  * 손절/익절 주문 생성
  */
-router.post('/stop-order', authenticateToken, advancedTradingController.createStopOrder);
+router.post('/stop-order', authenticateToken, (req, res) => {
+  req.body.orderMode = req.body.orderMode || (req.body.limitPrice ? 'stop_limit' : req.body.triggerCondition === 'gte' ? 'take_profit' : 'stop_loss');
+  return advancedTradingController.createOrder(req, res);
+});
 
 /**
  * DELETE /api/trading/orders/:orderId

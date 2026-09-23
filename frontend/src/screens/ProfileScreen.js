@@ -439,9 +439,14 @@ export default function ProfileScreen({ navigation, route }) {
         <>
           <SectionCard title="설정">
             <ListItem
+              title="프로필 수정"
+              showChevron
+              onPress={() => navigation.navigate('EditProfile')}
+            />
+            <ListItem
               title="알림 설정"
               showChevron
-              onPress={() => {}}
+              onPress={() => navigation.navigate('NotificationSettings')}
             />
             <ListItem
               title="개인정보 설정"

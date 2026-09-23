@@ -66,11 +66,7 @@ async function isAdmin(req, res, next) {
       return res.status(401).json({ error: '인증이 필요합니다' });
     }
 
-    // User 모델에 role 필드가 있으면 사용, 없으면 특정 사용자 ID로 관리자 확인
-    // 여기서는 간단히 첫 번째 사용자를 관리자로 가정하거나, 특정 이메일을 확인
-    const isAdminUser = req.user.role === 'admin' ||
-                        req.user.email === 'admin@hipo.com' ||
-                        req.user.id === '1'; // 또는 특정 관리자 ID
+    const isAdminUser = req.user.role === 'admin';
 
     if (!isAdminUser) {
       return res.status(403).json({ error: '관리자 권한이 필요합니다' });

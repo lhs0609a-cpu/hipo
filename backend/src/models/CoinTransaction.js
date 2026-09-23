@@ -17,7 +17,7 @@ module.exports = (sequelize) => {
       field: 'user_id'
     },
     coinType: {
-      type: DataTypes.ENUM('AC', 'PC'),
+      type: DataTypes.ENUM('AC', 'PC', 'PO'),
       allowNull: false,
       field: 'coin_type',
       comment: 'Activity Coin 또는 Premium Coin'

@@ -2,6 +2,7 @@ const { DataTypes } = require('sequelize');
 
 module.exports = (sequelize) => {
   const StockOrder = sequelize.define('StockOrder', {
+    engineVersion: { type: DataTypes.INTEGER, allowNull: true, field: 'engine_version' },
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -129,7 +130,7 @@ module.exports = (sequelize) => {
       comment: '완전 체결 시간'
     },
     averageFilledPrice: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.DECIMAL(15, 6),
       field: 'average_filled_price',
       comment: '평균 체결가'
     }
@@ -162,8 +163,12 @@ module.exports = (sequelize) => {
     });
 
     StockOrder.hasMany(models.StockTrade, {
-      foreignKey: 'orderId',
-      as: 'trades'
+      foreignKey: 'buyOrderId',
+      as: 'buyTrades'
+    });
+    StockOrder.hasMany(models.StockTrade, {
+      foreignKey: 'sellOrderId',
+      as: 'sellTrades'
     });
   };
 

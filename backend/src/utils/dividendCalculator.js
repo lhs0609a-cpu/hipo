@@ -1,3 +1,5 @@
+const tradingTransaction = require('../services/tradingTransaction');
+const { changeBalance } = require('../services/poAccountService');
 const { Wallet, Holding, Stock, User, Notification } = require('../models');
 const { calculateTrustLevel } = require('./trustLevel');
 const { sequelize } = require('../config/database');
@@ -6,7 +8,7 @@ const { sendDividendNotification } = require('../config/socket');
 
 // 실시간 배당 지급 시스템
 async function distributeDividends(creatorId, earnedPO, source, options = {}) {
-  const transaction = await sequelize.transaction();
+  const transaction = await tradingTransaction();
 
   try {
     // 1. 크리에이터 정보 조회
@@ -53,7 +55,7 @@ async function distributeDividends(creatorId, earnedPO, source, options = {}) {
 
     // 5. 모든 주주 조회
     const holdings = await Holding.findAll({
-      where: { stockId: stock.id },
+      where: { stockId: stock.id, holderId: { [Op.ne]: creatorId } },
       include: [{ model: User, as: 'holder' }],
       transaction
     });
@@ -78,7 +80,7 @@ async function distributeDividends(creatorId, earnedPO, source, options = {}) {
 
     for (const holding of holdings) {
       // 지분율 계산
-      const shareholdingRatio = holding.quantity / totalShares;
+      const shareholdingRatio = holding.shares / totalShares;
 
       // 해당 주주의 배당액
       const dividendAmount = Math.floor(dividendPool * shareholdingRatio);
@@ -97,9 +99,11 @@ async function distributeDividends(creatorId, earnedPO, source, options = {}) {
           }, { transaction });
         }
 
+        const credited = await changeBalance(holding.holderId, dividendAmount, transaction, { source: 'STOCK_DIVIDEND', description: '활동 배당 수령' });
+        await require('../models').Dividend.create({ stockId: stock.id, holderId: holding.holderId, amount: dividendAmount }, { transaction });
         // 배당 지급
         await shareholderWallet.update({
-          poBalance: parseFloat(shareholderWallet.poBalance) + dividendAmount,
+          poBalance: credited.balance,
           totalDividendReceived: parseFloat(shareholderWallet.totalDividendReceived) + dividendAmount,
           todayDividendReceived: parseFloat(shareholderWallet.todayDividendReceived) + dividendAmount
         }, { transaction });
@@ -110,7 +114,7 @@ async function distributeDividends(creatorId, earnedPO, source, options = {}) {
         dividendRecords.push({
           holderId: holding.holderId,
           holderName: holding.holder.username,
-          shares: holding.quantity,
+          shares: holding.shares,
           ratio: shareholdingRatio,
           dividendAmount
         });
@@ -126,21 +130,22 @@ async function distributeDividends(creatorId, earnedPO, source, options = {}) {
             source,
             creatorName: creator.username,
             dividendAmount,
-            shares: holding.quantity,
+            shares: holding.shares,
             description: options.description
           }
         }, { transaction });
 
         // 실시간 배당 알림 전송 (Socket.IO)
-        sendDividendNotification(holding.holderId, {
+        transaction.afterCommit(() => { try { sendDividendNotification(holding.holderId, {
           amount: dividendAmount,
           creatorId: creatorId,
           creatorName: creator.username,
           source: source
-        });
+        }); } catch (error) { console.error(error.message); } });
       }
     }
 
+    if (totalDividendPaid > 0) await changeBalance(creatorId, -totalDividendPaid, transaction);
     // 8. 크리에이터 지갑 업데이트 (배당 지급 기록)
     const creatorWallet = await Wallet.findOne({
       where: { userId: creatorId },
@@ -159,7 +164,7 @@ async function distributeDividends(creatorId, earnedPO, source, options = {}) {
       success: true,
       dividendPool,
       totalDividendPaid,
-      creatorKeeps,
+      creatorKeeps: earnedPO - totalDividendPaid,
       shareholdersCount: dividendRecords.length,
       dividendRate,
       trustLevel: trustInfo.level,
@@ -167,7 +172,7 @@ async function distributeDividends(creatorId, earnedPO, source, options = {}) {
     };
 
   } catch (error) {
-    await transaction.rollback();
+    if (!transaction.finished) await transaction.rollback();
     console.error('배당 지급 오류:', error);
     throw error;
   }

@@ -94,6 +94,11 @@ import UserProfileScreen from '../screens/UserProfileScreen';
 import InviteScreen from '../screens/InviteScreen';
 import AttendanceScreen from '../screens/AttendanceScreen';
 import FriendRankingScreen from '../screens/FriendRankingScreen';
+import EditProfileScreen from '../screens/EditProfileScreen';
+import LoginHistoryScreen from '../screens/LoginHistoryScreen';
+import TransferScreen from '../screens/TransferScreen';
+import EntityDetailScreen from '../screens/EntityDetailScreen';
+import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -489,6 +494,15 @@ function MainStack() {
         component={FriendRankingScreen}
         options={{ headerShown: false }}
       />
+      <Stack.Screen name="EditProfile" component={EditProfileScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="LoginHistory" component={LoginHistoryScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Transfer" component={TransferScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="CompetitionDetail" component={EntityDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="StrategyDetail" component={EntityDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="LiveStreamDetail" component={EntityDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="MerchandiseDetail" component={EntityDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="NFTDetail" component={EntityDetailScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }

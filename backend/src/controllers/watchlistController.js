@@ -1,4 +1,4 @@
-const { User, Stock, Watchlist, PriceHistory, sequelize } = require('../models');
+const { User, Stock, Watchlist, StockAlert, PriceHistory, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 /**
@@ -21,18 +21,19 @@ exports.getWatchlist = async (req, res) => {
     const items = watchlistItems.map(item => ({
       id: item.id,
       stockId: item.stockId,
+      category: item.stock.category,
       creator: item.stock.issuer,
       sharePrice: item.stock.sharePrice,
       priceChange: item.stock.priceChangePercent,
       addedPrice: item.addedPrice,
       priceAtAdd: item.addedPrice,
-      currentProfit: item.stock.sharePrice - item.addedPrice,
+      currentProfit: item.addedPrice == null ? 0 : item.stock.sharePrice - item.addedPrice,
       currentProfitPercent: item.addedPrice > 0
         ? ((item.stock.sharePrice - item.addedPrice) / item.addedPrice * 100).toFixed(2)
         : 0,
       priceAlert: item.priceAlert,
       alertCondition: item.alertCondition,
-      notes: item.notes,
+      notes: item.note,
       addedAt: item.createdAt
     }));
 
@@ -69,7 +70,7 @@ exports.addToWatchlist = async (req, res) => {
       userId,
       stockId,
       addedPrice: stock.sharePrice,
-      notes,
+      note: notes,
       priceAlert,
       alertCondition
     });
@@ -115,20 +116,30 @@ exports.removeFromWatchlist = async (req, res) => {
  * 관심 종목 알림 설정
  */
 exports.setWatchlistAlert = async (req, res) => {
+  const t = await require('../services/tradingTransaction')();
   try {
     const userId = req.user.id;
     const { stockId } = req.params;
     const { priceAlert, alertCondition } = req.body;
 
     const item = await Watchlist.findOne({
-      where: { userId, stockId }
+      where: { userId, stockId }, transaction: t
     });
 
     if (!item) {
+      await t.rollback();
       return res.status(404).json({ error: '관심 종목을 찾을 수 없습니다' });
     }
 
-    await item.update({ priceAlert, alertCondition });
+    if (!Number.isSafeInteger(priceAlert) || priceAlert <= 0 || !['gte', 'lte'].includes(alertCondition)) {
+      await t.rollback();
+      return res.status(400).json({ error: '유효한 목표 가격과 조건을 입력해주세요' });
+    }
+    const alertType = alertCondition === 'gte' ? 'PRICE_ABOVE' : 'PRICE_BELOW';
+    const [alert] = await StockAlert.findOrCreate({ where: { userId, stockId, alertType }, defaults: { targetPrice: priceAlert, isActive: true }, transaction: t });
+    await alert.update({ targetPrice: priceAlert, isActive: true }, { transaction: t });
+    await item.update({ priceAlert, alertCondition }, { transaction: t });
+    await t.commit();
 
     res.json({
       message: '알림이 설정되었습니다',
@@ -136,6 +147,7 @@ exports.setWatchlistAlert = async (req, res) => {
       alertCondition
     });
   } catch (error) {
+    if (!t.finished) await t.rollback();
     console.error('알림 설정 오류:', error);
     res.status(500).json({ error: '설정 중 오류가 발생했습니다' });
   }
@@ -158,7 +170,7 @@ exports.updateWatchlistNote = async (req, res) => {
       return res.status(404).json({ error: '관심 종목을 찾을 수 없습니다' });
     }
 
-    await item.update({ notes });
+    await item.update({ note: notes });
 
     res.json({
       message: '메모가 수정되었습니다',

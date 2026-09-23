@@ -1,4 +1,4 @@
-const { User, Stock, Holding, Post, Comment, StockTransaction, Wallet } = require('../models');
+const { User, Stock, Holding, Post, Comment, StockTransaction, StockTrade, Wallet } = require('../models');
 const { Op } = require('sequelize');
 const { sendStockPriceUpdate } = require('../config/socket');
 
@@ -24,6 +24,8 @@ class StockPriceService {
         console.log(`주식 없음: userId ${userId}`);
         return null;
       }
+      // Once secondary trading starts, executed trades determine the quote.
+      if (await StockTrade.count({ where: { targetUserId: userId } })) return stock.sharePrice;
 
       // 기본가
       const basePrice = 100;

@@ -3,16 +3,17 @@ const app = require('../server');
 const { sequelize } = require('../src/models');
 
 describe('Admin API Tests', () => {
+  const runId = `${process.pid}${Date.now()}`;
   let adminToken;
   let regularToken;
   let adminUser = {
-    email: 'admin@example.com',
-    username: 'adminuser',
+    email: `admin-${runId}@example.com`,
+    username: `admin${runId}`,
     password: 'Admin123!@#'
   };
   let regularUser = {
-    email: 'regular@example.com',
-    username: 'regularuser',
+    email: `regular-${runId}@example.com`,
+    username: `regular${runId}`,
     password: 'Regular123!@#'
   };
 

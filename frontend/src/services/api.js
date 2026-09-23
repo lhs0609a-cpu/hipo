@@ -78,6 +78,8 @@ export const userAPI = {
   unfollow: (userId) => api.post(`/users/${userId}/follow`), // toggle (same endpoint)
   getFollowers: (userId) => api.get(`/users/${userId}/followers`),
   getFollowing: (userId) => api.get(`/users/${userId}/following`),
+  getNotificationSettings: () => api.get('/users/notification-settings'),
+  updateNotificationSettings: (settings) => api.put('/users/notification-settings', { settings }),
 };
 
 // Post APIs
@@ -133,8 +135,9 @@ export const notificationAPI = {
 export const walletAPI = {
   getBalance: () => api.get('/wallet/balance'),
   getTransactions: () => api.get('/wallet/transactions'),
+  transfer: (recipient, amount) => api.post('/wallet/transfer', { recipient, amount }),
   deposit: (amount) => api.post('/wallet/deposit', { amount }),
-  withdraw: (amount) => api.post('/wallet/withdraw', { amount }),
+  withdraw: (amount, bankInfo = {}) => api.post('/wallet/withdraw', { amount, ...bankInfo }),
 };
 
 // Live Stream APIs
@@ -299,6 +302,10 @@ export const feedbackAPI = {
   submit: (data) => api.post('/feedback', data),
 };
 
+export const errorAPI = {
+  report: (data) => api.post('/errors/report', data),
+};
+
 // === 신규 고급 기능 APIs ===
 
 // Security APIs (보안)
@@ -324,6 +331,8 @@ export const tradingAPI = {
 
 // Stock Order APIs (지정가/손절/익절 주문)
 export const stockOrderAPI = {
+  amend: (orderId, data) => api.patch(`/stock-orders/${orderId}`, data),
+  getAccount: (stockId) => api.get(`/stock-orders/stock/${stockId}/account`),
   // 주문 생성
   create: (data) => api.post('/stock-orders', data),
   // 내 주문 목록 조회

@@ -1,3 +1,5 @@
+const tradingTransaction = require('../services/tradingTransaction');
+const { account, changeBalance, positiveAmount } = require('../services/poAccountService');
 const { Wallet, CoinTransaction, User, DailyLimit } = require('../models');
 const { applyTrustMultiplier, getDailyEarningLimit } = require('./trustLevel');
 const { distributeDividends } = require('./dividendCalculator');
@@ -34,11 +36,11 @@ const BASE_REWARDS = {
 
 // 코인 지급 메인 함수
 async function awardCoins(userId, source, options = {}) {
-  const transaction = await sequelize.transaction();
+  const transaction = await tradingTransaction();
 
   try {
     // 1. 유저 정보 조회
-    const user = await User.findByPk(userId, { transaction });
+    const user = await User.findByPk(userId, { transaction, lock: transaction.LOCK.UPDATE });
     if (!user) {
       await transaction.rollback();
       throw new Error('User not found');
@@ -47,7 +49,7 @@ async function awardCoins(userId, source, options = {}) {
     // 2. 지갑 조회/생성
     let wallet = await Wallet.findOne({ where: { userId }, transaction });
     if (!wallet) {
-      wallet = await Wallet.create({ userId, poBalance: 1000 }, { transaction });
+      wallet = await Wallet.create({ userId, poBalance: user.poBalance }, { transaction });
     }
 
     // 3. 오늘 날짜의 일일 한도 조회/생성
@@ -110,9 +112,10 @@ async function awardCoins(userId, source, options = {}) {
       }
     }
 
+    if (finalPOReward > 0) await changeBalance(userId, finalPOReward, transaction, { record: false });
     // 9. 지갑 업데이트
     await wallet.update({
-      poBalance: parseFloat(wallet.poBalance) + finalPOReward,
+      poBalance: Number(user.poBalance) + finalPOReward,
       totalPOEarned: parseFloat(wallet.totalPOEarned || 0) + finalPOReward
     }, { transaction });
 
@@ -179,7 +182,7 @@ async function awardCoins(userId, source, options = {}) {
     };
 
   } catch (error) {
-    await transaction.rollback();
+    if (!transaction.finished) await transaction.rollback();
     console.error('코인 지급 오류:', error);
     throw error;
   }
@@ -198,7 +201,7 @@ function getActivityField(source) {
 
 // 코인 차감 함수 (PO 사용)
 async function deductCoins(userId, amount, source, options = {}) {
-  const transaction = await sequelize.transaction();
+  const transaction = await tradingTransaction();
 
   try {
     const wallet = await Wallet.findOne({ where: { userId }, transaction });
@@ -207,18 +210,21 @@ async function deductCoins(userId, amount, source, options = {}) {
       throw new Error('Wallet not found');
     }
 
-    const currentBalance = parseFloat(wallet.poBalance);
-    if (currentBalance < amount) {
+    positiveAmount(amount);
+    const { user, availableBalance } = await account(userId, transaction);
+    const currentBalance = Number(user.poBalance);
+    if (availableBalance < amount) {
       await transaction.rollback();
       return {
         success: false,
         reason: 'INSUFFICIENT_BALANCE',
         message: `PO 잔액이 부족합니다`,
         required: amount,
-        available: currentBalance
+        available: availableBalance
       };
     }
 
+    await changeBalance(userId, -amount, transaction, { record: false });
     // 잔액 차감
     await wallet.update({
       poBalance: currentBalance - amount,
@@ -248,7 +254,7 @@ async function deductCoins(userId, amount, source, options = {}) {
     };
 
   } catch (error) {
-    await transaction.rollback();
+    if (!transaction.finished) await transaction.rollback();
     console.error('코인 차감 오류:', error);
     throw error;
   }

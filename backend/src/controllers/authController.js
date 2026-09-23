@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { User, Stock } = require('../models');
+const { User, Stock, LoginHistory } = require('../models');
 
 /**
  * 회원가입
@@ -14,6 +14,11 @@ exports.register = async (req, res) => {
       return res.status(400).json({ error: '모든 필드를 입력해주세요' });
     }
 
+    const normalizedEmail = String(email).trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return res.status(400).json({ error: '올바른 이메일 주소를 입력해주세요' });
+    }
+
     if (password.length < 6) {
       return res.status(400).json({ error: '비밀번호는 최소 6자 이상이어야 합니다' });
     }
@@ -22,7 +27,7 @@ exports.register = async (req, res) => {
     const finalDisplayName = displayName || username;
 
     // 이메일 중복 확인
-    const existingEmail = await User.findOne({ where: { email } });
+    const existingEmail = await User.findOne({ where: { email: normalizedEmail } });
     if (existingEmail) {
       return res.status(400).json({ error: '이미 사용 중인 이메일입니다' });
     }
@@ -38,7 +43,7 @@ exports.register = async (req, res) => {
 
     // 사용자 생성
     const user = await User.create({
-      email,
+      email: normalizedEmail,
       username,
       password: hashedPassword,
       displayName: finalDisplayName,
@@ -107,6 +112,12 @@ exports.login = async (req, res) => {
 
     // 마지막 로그인 시간 업데이트
     await user.update({ lastLoginAt: new Date() });
+    await LoginHistory.create({
+      userId: user.id,
+      ipAddress: req.ip || req.socket?.remoteAddress || null,
+      userAgent: req.get?.('user-agent') || null,
+      successful: true,
+    });
 
     // JWT 토큰 발급
     const token = jwt.sign(

@@ -1,10 +1,11 @@
-const { StockOrder, StockTrade, Wallet, CoinTransaction, User, StockTransaction, ShareholderCommunity, CommunityMember, Stock } = require('../models');
+const { StockOrder, StockTrade, Wallet, CoinTransaction, User, StockTransaction, Transaction, ShareholderCommunity, CommunityMember, Stock } = require('../models');
 const { sequelize } = require('../config/database');
 const { Op } = require('sequelize');
 const { getShareholding } = require('../utils/shareholderHelper');
 const { processReferralCommission } = require('./referralController');
 const { autoAssignShareholderBadge } = require('./badgeController');
 const { selectRoomAdmin } = require('./communityAdminController');
+const { tradingDay } = require('../services/marketRules');
 
 /**
  * 시장 개요 조회
@@ -16,20 +17,17 @@ exports.getMarketOverview = async (req, res) => {
     const totalMarketCap = await Stock.sum('marketCapTotal', { where: { status: 'active' } }) || 0;
 
     // 오늘 거래량
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = tradingDay();
 
-    const todayVolume = await StockTransaction.sum('totalAmount', {
+    const todayVolume = await Transaction.sum('totalAmount', {
       where: {
-        createdAt: { [Op.gte]: today },
-        status: 'completed'
+        createdAt: { [Op.gte]: today }
       }
     }) || 0;
 
-    const todayTrades = await StockTransaction.count({
+    const todayTrades = await Transaction.count({
       where: {
-        createdAt: { [Op.gte]: today },
-        status: 'completed'
+        createdAt: { [Op.gte]: today }
       }
     });
 

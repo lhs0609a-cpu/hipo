@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
-const User = require('../models/User');
-const Verification = require('../models/Verification');
+const { User, Verification } = require('../models');
 const { Op } = require('sequelize');
 const autoVerificationService = require('../services/autoVerificationService');
 

@@ -1,4 +1,4 @@
-const { User } = require('../models');
+const { User, LoginHistory, Verification } = require('../models');
 const bcrypt = require('bcryptjs');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
@@ -204,15 +204,22 @@ exports.requestIdentityVerification = async (req, res) => {
       return res.status(400).json({ error: '필수 정보를 모두 입력해주세요' });
     }
 
-    // 실제 서비스에서는 본인인증 API 연동 (PASS, 아이핀 등)
-    // 여기서는 간단히 처리
-    await User.update({
-      realName,
-      identityVerified: true,
-      identityVerifiedAt: new Date()
-    }, { where: { id: userId } });
+    const existing = await Verification.findOne({ where: { userId, status: 'pending' } });
+    if (existing) return res.status(400).json({ error: '이미 대기 중인 인증 요청이 있습니다' });
 
-    res.json({ message: '본인 인증이 완료되었습니다' });
+    const verification = await Verification.create({
+      userId,
+      verificationType: 'other',
+      realName,
+      occupation: '본인 인증',
+      category: 'identity',
+      proofDocuments: idCardImage ? [idCardImage] : [],
+      description: `생년월일: ${birthDate}, 연락처: ${phoneNumber}`,
+      status: 'pending',
+      submittedAt: new Date(),
+    });
+
+    res.status(201).json({ message: '본인 인증 요청이 접수되었습니다', verification });
   } catch (error) {
     console.error('본인 인증 오류:', error);
     res.status(500).json({ error: '본인 인증 중 오류가 발생했습니다' });
@@ -252,15 +259,18 @@ exports.setDailyTradeLimit = async (req, res) => {
 exports.getLoginHistory = async (req, res) => {
   try {
     const userId = req.user.id;
-    // 실제로는 LoginHistory 모델을 만들어서 기록
-    // 여기서는 간단히 마지막 로그인만 반환
     const user = await User.findByPk(userId, {
       attributes: ['lastLoginAt']
+    });
+    const history = await LoginHistory.findAll({
+      where: { userId },
+      order: [['createdAt', 'DESC']],
+      limit: 50,
     });
 
     res.json({
       lastLoginAt: user.lastLoginAt,
-      history: [] // 실제로는 히스토리 모델에서 조회
+      history
     });
   } catch (error) {
     console.error('접속 기록 조회 오류:', error);

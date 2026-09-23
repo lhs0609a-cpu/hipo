@@ -10,13 +10,21 @@ import {
   Alert,
   TextInput,
   Modal,
+  Platform,
 } from 'react-native';
 import { walletAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+const notify = (title, message) => Platform.OS === 'web' ? window.alert(`${title}\n${message}`) : Alert.alert(title, message);
 
 const WalletScreen = ({ navigation }) => {
   const { isAuthenticated } = useAuth();
   const [balance, setBalance] = useState(0);
+  const [available, setAvailable] = useState(0);
+  const [reserved, setReserved] = useState(0);
+  const [cash, setCash] = useState(0);
+  const [bankName, setBankName] = useState('');
+  const [accountNumber, setAccountNumber] = useState('');
+  const [accountHolder, setAccountHolder] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,6 +47,9 @@ const WalletScreen = ({ navigation }) => {
         walletAPI.getTransactions(),
       ]);
       setBalance(balanceRes.data.balance || 0);
+      setAvailable(balanceRes.data.availableBalance || 0);
+      setReserved(balanceRes.data.reservedBalance || 0);
+      setCash(balanceRes.data.cashBalance || 0);
       setTransactions(transactionsRes.data.transactions || []);
     } catch (error) {
       console.error('Error fetching wallet data:', error);
@@ -57,7 +68,8 @@ const WalletScreen = ({ navigation }) => {
 
   useEffect(() => {
     fetchWalletData();
-  }, [isAuthenticated]);
+    return navigation.addListener('focus', fetchWalletData);
+  }, [isAuthenticated, navigation]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -71,14 +83,14 @@ const WalletScreen = ({ navigation }) => {
   };
 
   const handleTransaction = async () => {
-    const numAmount = parseInt(amount);
-    if (!numAmount || numAmount <= 0) {
-      Alert.alert('오류', '올바른 금액을 입력해주세요');
+    const numAmount = Number(amount);
+    if (!Number.isSafeInteger(numAmount) || numAmount <= 0) {
+      notify('오류', '올바른 금액을 입력해주세요');
       return;
     }
 
-    if (modalType === 'withdraw' && numAmount > balance) {
-      Alert.alert('오류', '잔액이 부족합니다');
+    if (modalType === 'withdraw' && numAmount > available) {
+      notify('오류', '사용 가능 잔액이 부족합니다');
       return;
     }
 
@@ -86,17 +98,17 @@ const WalletScreen = ({ navigation }) => {
     try {
       if (modalType === 'deposit') {
         await walletAPI.deposit(numAmount);
-        Alert.alert('성공', `${numAmount.toLocaleString()}원이 입금되었습니다`);
+        notify('성공', `${numAmount.toLocaleString()} PO로 전환되었습니다`);
       } else {
-        await walletAPI.withdraw(numAmount);
-        Alert.alert('성공', `${numAmount.toLocaleString()}원이 출금되었습니다`);
+        await walletAPI.withdraw(numAmount, { bankName, accountNumber, accountHolder });
+        notify('성공', `${numAmount.toLocaleString()} PO 환전 신청이 접수되었습니다`);
       }
       setModalVisible(false);
       fetchWalletData();
     } catch (error) {
       console.error('Transaction error:', error);
-      const errorMessage = error.response?.data?.message || '거래에 실패했습니다';
-      Alert.alert('오류', errorMessage);
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || '거래에 실패했습니다';
+      notify('오류', errorMessage);
     } finally {
       setProcessing(false);
     }
@@ -146,13 +158,13 @@ const WalletScreen = ({ navigation }) => {
           <Text style={styles.iconText}>{getTransactionIcon(item.type)}</Text>
         </View>
         <View style={styles.transactionInfo}>
-          <Text style={styles.transactionType}>{getTransactionLabel(item.type)}</Text>
+          <Text style={styles.transactionType}>{item.description || getTransactionLabel(item.type)}</Text>
           <Text style={styles.transactionDate}>
             {new Date(item.createdAt || item.created_at).toLocaleDateString('ko-KR')}
           </Text>
         </View>
         <Text style={[styles.transactionAmount, isPositive ? styles.positive : styles.negative]}>
-          {isPositive ? '+' : '-'}{displayAmount.toLocaleString()}원
+          {isPositive ? '+' : '-'}{displayAmount.toLocaleString()} PO
         </Text>
       </View>
     );
@@ -214,19 +226,22 @@ const WalletScreen = ({ navigation }) => {
 
       <View style={styles.balanceCard}>
         <Text style={styles.balanceLabel}>보유 예수금</Text>
-        <Text style={styles.balanceAmount}>{balance.toLocaleString()}원</Text>
+        <Text style={styles.balanceAmount}>{balance.toLocaleString()} PO</Text>
+        <Text>사용 가능 {available.toLocaleString()} PO · 주문 예약 {reserved.toLocaleString()} PO</Text>
+        <Text>결제 완료 현금 {cash.toLocaleString()}원</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('Charge')}><Text style={{ color: '#007AFF', padding: 10 }}>현금 충전</Text></TouchableOpacity>
         <View style={styles.actionButtons}>
           <TouchableOpacity
             style={[styles.actionButton, styles.depositButton]}
             onPress={() => openModal('deposit')}
           >
-            <Text style={styles.actionButtonText}>입금</Text>
+            <Text style={styles.actionButtonText}>현금 → PO</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionButton, styles.withdrawButton]}
             onPress={() => openModal('withdraw')}
           >
-            <Text style={styles.actionButtonText}>출금</Text>
+            <Text style={styles.actionButtonText}>환전 신청</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -258,7 +273,7 @@ const WalletScreen = ({ navigation }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>
-              {modalType === 'deposit' ? '입금하기' : '출금하기'}
+              {modalType === 'deposit' ? '현금 잔액을 PO로 전환' : 'PO 환전 신청'}
             </Text>
 
             <TextInput
@@ -270,6 +285,12 @@ const WalletScreen = ({ navigation }) => {
               onChangeText={setAmount}
             />
 
+            {modalType === 'withdraw' ? <View>
+              <Text>최소 10,000 PO · 수수료 10% · 승인 후 지급</Text>
+              <TextInput style={styles.amountInput} placeholder="은행명" value={bankName} onChangeText={setBankName} />
+              <TextInput style={styles.amountInput} placeholder="계좌번호" value={accountNumber} onChangeText={setAccountNumber} />
+              <TextInput style={styles.amountInput} placeholder="예금주" value={accountHolder} onChangeText={setAccountHolder} />
+            </View> : <Text>결제 완료 현금 {cash.toLocaleString()}원에서 1원당 1 PO로 전환합니다.</Text>}
             <View style={styles.quickAmounts}>
               {[10000, 50000, 100000, 500000].map((value) => (
                 <TouchableOpacity
@@ -304,7 +325,7 @@ const WalletScreen = ({ navigation }) => {
                   <ActivityIndicator size="small" color="#fff" />
                 ) : (
                   <Text style={styles.confirmButtonText}>
-                    {modalType === 'deposit' ? '입금' : '출금'}
+                    {modalType === 'deposit' ? '전환' : '환전 신청'}
                   </Text>
                 )}
               </TouchableOpacity>

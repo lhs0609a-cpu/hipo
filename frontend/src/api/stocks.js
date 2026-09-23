@@ -29,6 +29,11 @@ export const buyStock = async (stockId, shares) => {
   return response.data;
 };
 
+export const subscribeStock = async (stockId, shares) => {
+  const response = await api.post('/stocks/subscribe', { stockId, shares });
+  return response.data;
+};
+
 /**
  * 주식 매도
  */

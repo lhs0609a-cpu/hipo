@@ -3,11 +3,13 @@ const app = require('../server');
 const { sequelize } = require('../src/models');
 
 describe('Stock API Tests', () => {
+  const runId = `${process.pid}${Date.now()}`;
   let authToken;
   let userId;
+  let stockId;
   let testUser = {
-    email: 'stocktest@example.com',
-    username: 'stocktestuser',
+    email: `stock-${runId}@example.com`,
+    username: `stock${runId}`,
     password: 'Test123!@#'
   };
 
@@ -22,6 +24,8 @@ describe('Stock API Tests', () => {
     if (registerResponse.body.token) {
       authToken = registerResponse.body.token;
       userId = registerResponse.body.user.id;
+      const stockResponse = await request(app).get(`/api/stocks/user/${userId}`);
+      stockId = stockResponse.body.stock?.id;
     }
   });
 
@@ -53,12 +57,13 @@ describe('Stock API Tests', () => {
       }
     });
 
-    it('should not get stocks without authentication', async () => {
+    it('should expose the public market without authentication', async () => {
       const response = await request(app)
         .get('/api/stocks')
         .expect('Content-Type', /json/);
 
-      expect([401, 403]).toContain(response.status);
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body.stocks)).toBe(true);
     });
   });
 
@@ -67,7 +72,7 @@ describe('Stock API Tests', () => {
       if (!authToken || !userId) return;
 
       const response = await request(app)
-        .get(`/api/stocks/${userId}`)
+        .get(`/api/stocks/user/${userId}`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect('Content-Type', /json/);
 
@@ -86,9 +91,9 @@ describe('Stock API Tests', () => {
       if (!authToken || !userId) return;
 
       const response = await request(app)
-        .post(`/api/stocks/${userId}/buy`)
+        .post('/api/stocks/buy')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ quantity: 10 })
+        .send({ stockId, shares: 10 })
         .expect('Content-Type', /json/);
 
       // May succeed or fail depending on balance and stock availability
@@ -96,8 +101,8 @@ describe('Stock API Tests', () => {
 
       if (response.status === 200 || response.status === 201) {
         expect(response.body).toHaveProperty('transaction');
-        expect(response.body.transaction).toHaveProperty('quantity');
-        expect(response.body.transaction.quantity).toBe(10);
+        expect(response.body.transaction).toHaveProperty('shares');
+        expect(response.body.transaction.shares).toBeGreaterThan(0);
       }
     });
 
@@ -105,9 +110,9 @@ describe('Stock API Tests', () => {
       if (!authToken || !userId) return;
 
       const response = await request(app)
-        .post(`/api/stocks/${userId}/buy`)
+        .post('/api/stocks/buy')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({})
+        .send({ stockId })
         .expect('Content-Type', /json/);
 
       expect([400, 422]).toContain(response.status);
@@ -117,9 +122,9 @@ describe('Stock API Tests', () => {
       if (!authToken || !userId) return;
 
       const response = await request(app)
-        .post(`/api/stocks/${userId}/buy`)
+        .post('/api/stocks/buy')
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ quantity: -10 })
+        .send({ stockId, shares: -10 })
         .expect('Content-Type', /json/);
 
       expect([400, 422]).toContain(response.status);
@@ -131,7 +136,7 @@ describe('Stock API Tests', () => {
       if (!authToken || !userId) return;
 
       const response = await request(app)
-        .get(`/api/stocks/${userId}/shareholders`)
+        .get('/api/stocks/me/shareholders')
         .set('Authorization', `Bearer ${authToken}`)
         .expect('Content-Type', /json/);
 
@@ -149,7 +154,7 @@ describe('Stock API Tests', () => {
       if (!authToken || !userId) return;
 
       const response = await request(app)
-        .get(`/api/stocks/${userId}/price-history`)
+        .get(`/api/stocks/${stockId}/history`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect('Content-Type', /json/);
 
@@ -167,21 +172,21 @@ describe('Stock API Tests', () => {
       if (!authToken) return;
 
       const response = await request(app)
-        .get('/api/portfolio')
+        .get('/api/stocks/me/holdings')
         .set('Authorization', `Bearer ${authToken}`)
         .expect('Content-Type', /json/);
 
       expect([200, 201]).toContain(response.status);
 
       if (response.status === 200) {
-        expect(response.body).toHaveProperty('portfolio');
-        expect(Array.isArray(response.body.portfolio)).toBe(true);
+        expect(response.body).toHaveProperty('holdings');
+        expect(Array.isArray(response.body.holdings)).toBe(true);
       }
     });
 
     it('should not get portfolio without authentication', async () => {
       const response = await request(app)
-        .get('/api/portfolio')
+        .get('/api/stocks/me/holdings')
         .expect('Content-Type', /json/);
 
       expect([401, 403]).toContain(response.status);
@@ -193,7 +198,7 @@ describe('Stock API Tests', () => {
       if (!authToken) return;
 
       const response = await request(app)
-        .get('/api/transactions')
+        .get('/api/stocks/me/transactions')
         .set('Authorization', `Bearer ${authToken}`)
         .expect('Content-Type', /json/);
 

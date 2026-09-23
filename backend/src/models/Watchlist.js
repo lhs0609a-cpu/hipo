@@ -32,6 +32,9 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: '메모'
     },
+    addedPrice: { type: DataTypes.INTEGER, field: 'added_price', allowNull: true },
+    priceAlert: { type: DataTypes.INTEGER, field: 'price_alert', allowNull: true },
+    alertCondition: { type: DataTypes.ENUM('gte', 'lte'), field: 'alert_condition', defaultValue: 'gte' },
     createdAt: {
       type: DataTypes.DATE,
       field: 'created_at'

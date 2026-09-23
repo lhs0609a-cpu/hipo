@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const { authenticateToken } = require('../middleware/auth');
-const User = require('../models/User');
+const { User, Stock, Holding } = require('../models');
 
 // NewsAPI.org 사용 (무료 API 키: https://newsapi.org/)
 // 또는 네이버 검색 API 사용 가능
@@ -207,19 +207,17 @@ router.get('/my-creators', authenticateToken, async (req, res) => {
       users = follows;
     } else if (type === 'invested') {
       // 주식 보유한 크리에이터
-      const Stock = require('../models/Stock');
-      const StockHolding = require('../models/StockHolding');
-
-      const holdings = await StockHolding.findAll({
-        where: { userId },
+      const holdings = await Holding.findAll({
+        where: { holderId: userId },
         include: [{
           model: Stock,
-          include: [{ model: User, attributes: ['id', 'username', 'trustLevel', 'realName', 'occupation', 'category', 'newsKeywords', 'isVerified'] }],
+          as: 'stock',
+          include: [{ model: User, as: 'issuer', attributes: ['id', 'username', 'trustLevel', 'realName', 'occupation', 'category', 'newsKeywords', 'isVerified'] }],
         }],
         limit: 20,
       });
 
-      users = holdings.map(h => h.Stock.User).filter(u => u);
+      users = holdings.map(h => h.stock?.issuer).filter(Boolean);
     } else if (type === 'popular') {
       // 신뢰도 높은 인기 크리에이터
       users = await User.findAll({

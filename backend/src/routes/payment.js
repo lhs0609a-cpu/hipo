@@ -4,6 +4,7 @@ const { authenticateToken } = require('../middleware/auth');
 const { Payment, WalletTransaction, User } = require('../models');
 const tossPaymentService = require('../services/tossPaymentService');
 const { sequelize } = require('../config/database');
+const tradingTransaction = require('../services/tradingTransaction');
 
 // 토스페이먼츠 클라이언트 키 조회 (프론트엔드에서 사용)
 router.get('/toss-client-key', (req, res) => {
@@ -20,7 +21,7 @@ router.post('/charge/request', authenticateToken, async (req, res) => {
     const { amount } = req.body;
 
     // 유효성 검사
-    if (!amount || amount < 1000) {
+    if (!Number.isSafeInteger(amount) || amount < 1000) {
       return res.status(400).json({
         success: false,
         error: '최소 충전 금액은 1,000원입니다'
@@ -47,7 +48,7 @@ router.post('/charge/request', authenticateToken, async (req, res) => {
       amount,
       bonusAmount: bonus.bonusAmount,
       totalAmount: bonus.totalAmount,
-      paymentMethod: 'PENDING',
+      paymentMethod: 'OTHER',
       status: 'PENDING',
       requestedAt: new Date()
     });
@@ -69,7 +70,7 @@ router.post('/charge/request', authenticateToken, async (req, res) => {
 
 // 결제 승인 (토스페이먼츠 결제 완료 후)
 router.post('/charge/confirm', authenticateToken, async (req, res) => {
-  const transaction = await sequelize.transaction();
+  const transaction = await tradingTransaction();
 
   try {
     const userId = req.user.id;
@@ -86,7 +87,7 @@ router.post('/charge/confirm', authenticateToken, async (req, res) => {
 
     // Payment 레코드 조회
     const payment = await Payment.findOne({
-      where: { orderId, userId }
+      where: { orderId, userId }, transaction, lock: transaction.LOCK.UPDATE
     });
 
     if (!payment) {
@@ -97,7 +98,7 @@ router.post('/charge/confirm', authenticateToken, async (req, res) => {
       });
     }
 
-    if (payment.status === 'COMPLETED') {
+    if (!['PENDING', 'FAILED'].includes(payment.status)) {
       await transaction.rollback();
       return res.status(400).json({
         success: false,
@@ -138,7 +139,7 @@ router.post('/charge/confirm', authenticateToken, async (req, res) => {
     const paymentMethod = tossPaymentService.extractPaymentMethod(confirmResult.data);
 
     // User 잔액 업데이트
-    const user = await User.findByPk(userId, { transaction });
+    const user = await User.findByPk(userId, { transaction, lock: transaction.LOCK.UPDATE });
     const balanceBefore = user.balance || 0;
     const balanceAfter = balanceBefore + payment.totalAmount;
 
@@ -213,16 +214,10 @@ router.post('/charge/fail', authenticateToken, async (req, res) => {
       });
     }
 
-    const payment = await Payment.findOne({
-      where: { orderId, userId: req.user.id }
-    });
-
-    if (payment && payment.status === 'PENDING') {
-      await payment.update({
+    await Payment.update({
         status: 'FAILED',
         failureReason: `${code}: ${message}`
-      });
-    }
+      }, { where: { orderId, userId: req.user.id, status: 'PENDING' } });
 
     res.json({
       success: true,

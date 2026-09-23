@@ -1,88 +1,18 @@
 const { Wallet, CoinTransaction, Withdrawal, User } = require('../models');
 const { sequelize } = require('../config/database');
+const { Op } = require('sequelize');
+const tradingTransaction = require('../services/tradingTransaction');
+const { account, changeBalance, positiveAmount } = require('../services/poAccountService');
 
 /**
  * 코인 입금
  */
-exports.depositCoins = async (req, res) => {
-  const transaction = await sequelize.transaction();
-
-  try {
-    const userId = req.user.id;
-    const { amount, paymentMethod, paymentId } = req.body;
-
-    if (!amount || amount <= 0) {
-      await transaction.rollback();
-      return res.status(400).json({ error: '입금액은 0보다 커야 합니다.' });
-    }
-
-    // 지갑 조회 또는 생성
-    const [wallet] = await Wallet.findOrCreate({
-      where: { userId },
-      defaults: { balance: 0, totalDeposited: 0, totalWithdrawn: 0, totalEarned: 0 },
-      transaction
-    });
-
-    // 잔액 및 입금 총액 업데이트
-    const newBalance = parseFloat(wallet.balance) + parseFloat(amount);
-    const newTotalDeposited = parseFloat(wallet.totalDeposited) + parseFloat(amount);
-
-    await wallet.update({
-      balance: newBalance,
-      totalDeposited: newTotalDeposited
-    }, { transaction });
-
-    // 거래 내역 기록
-    await CoinTransaction.create({
-      userId,
-      transactionType: 'DEPOSIT',
-      amount: parseFloat(amount),
-      balanceAfter: newBalance,
-      relatedId: paymentId || null,
-      description: paymentMethod ? `${paymentMethod} 입금` : '코인 입금'
-    }, { transaction });
-
-    await transaction.commit();
-
-    res.json({
-      message: '입금이 완료되었습니다.',
-      wallet: {
-        balance: newBalance,
-        totalDeposited: newTotalDeposited
-      }
-    });
-  } catch (error) {
-    await transaction.rollback();
-    console.error('입금 오류:', error);
-    res.status(500).json({ error: '입금 처리 중 오류가 발생했습니다.' });
-  }
-};
+exports.depositCoins = require('./poWalletController').depositCoins;
 
 /**
  * 지갑 정보 조회
  */
-exports.getWalletBalance = async (req, res) => {
-  try {
-    const userId = req.user.id;
-
-    const [wallet] = await Wallet.findOrCreate({
-      where: { userId },
-      defaults: { balance: 0, totalDeposited: 0, totalWithdrawn: 0, totalEarned: 0 }
-    });
-
-    res.json({
-      wallet: {
-        balance: parseFloat(wallet.balance) || 0,
-        totalDeposited: parseFloat(wallet.totalDeposited) || 0,
-        totalWithdrawn: parseFloat(wallet.totalWithdrawn) || 0,
-        totalEarned: parseFloat(wallet.totalEarned) || 0
-      }
-    });
-  } catch (error) {
-    console.error('지갑 조회 오류:', error);
-    res.status(500).json({ error: '지갑 조회 중 오류가 발생했습니다.' });
-  }
-};
+exports.getWalletBalance = require('./poWalletController').getWalletBalance;
 
 /**
  * 거래 내역 조회
@@ -92,8 +22,8 @@ exports.getTransactionHistory = async (req, res) => {
     const userId = req.user.id;
     const { type, limit = 50, offset = 0 } = req.query;
 
-    const where = { userId };
-    if (type) where.transactionType = type;
+    const where = { userId, coinType: 'PO' };
+    if (type && type !== 'all') where.transactionType = type;
 
     const transactions = await CoinTransaction.findAll({
       where,
@@ -119,99 +49,72 @@ exports.getTransactionHistory = async (req, res) => {
 };
 
 /**
- * 출금 요청
+ * 다른 사용자에게 PO를 전송합니다. 미체결 주문 예약금은 전송할 수 없습니다.
  */
-exports.requestWithdrawal = async (req, res) => {
-  const transaction = await sequelize.transaction();
-
+exports.transferPO = async (req, res) => {
+  const transaction = await tradingTransaction();
   try {
-    const userId = req.user.id;
-    const { amount, bankName, accountNumber, accountHolder } = req.body;
-
-    if (!amount || amount <= 0) {
-      await transaction.rollback();
-      return res.status(400).json({ error: '출금액은 0보다 커야 합니다.' });
+    const amount = Number(req.body.amount);
+    const recipientQuery = String(req.body.recipient || '').trim();
+    positiveAmount(amount);
+    if (!recipientQuery) {
+      const error = new Error('받는 사람의 이메일 또는 사용자명을 입력해주세요');
+      error.status = 400;
+      throw error;
     }
 
-    if (!bankName || !accountNumber || !accountHolder) {
-      await transaction.rollback();
-      return res.status(400).json({ error: '은행명, 계좌번호, 예금주가 필요합니다.' });
+    const recipient = await User.findOne({
+      where: { [Op.or]: [{ email: recipientQuery.toLowerCase() }, { username: recipientQuery }] },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
+    if (!recipient) {
+      const error = new Error('받는 사용자를 찾을 수 없습니다');
+      error.status = 404;
+      throw error;
+    }
+    if (recipient.id === req.user.id) {
+      const error = new Error('본인에게는 전송할 수 없습니다');
+      error.status = 400;
+      throw error;
     }
 
-    // 최소 출금액 확인 (100 HIPO 코인 = $100)
-    const MIN_WITHDRAWAL = 100;
-    if (amount < MIN_WITHDRAWAL) {
-      await transaction.rollback();
-      return res.status(400).json({
-        error: `최소 출금액은 ${MIN_WITHDRAWAL} HIPO 코인($100)입니다.`,
-        minAmount: MIN_WITHDRAWAL,
-        requestedAmount: amount
-      });
+    const senderAccount = await account(req.user.id, transaction);
+    if (senderAccount.availableBalance < amount) {
+      const error = new Error('주문 예약금을 제외한 사용 가능 PO가 부족합니다');
+      error.status = 400;
+      throw error;
     }
 
-    // 지갑 잔액 확인
-    const wallet = await Wallet.findOne({ where: { userId }, transaction });
-    if (!wallet || parseFloat(wallet.balance) < amount) {
-      await transaction.rollback();
-      return res.status(400).json({
-        error: '잔액이 부족합니다.',
-        required: amount,
-        current: wallet ? parseFloat(wallet.balance) : 0
-      });
-    }
-
-    // 수수료 계산 (15%)
-    const feeRate = 0.15;
-    const feeAmount = parseFloat(amount) * feeRate;
-    const netAmount = parseFloat(amount) - feeAmount;
-
-    // 출금 요청 생성
-    const withdrawal = await Withdrawal.create({
-      userId,
-      amount: parseFloat(amount),
-      feeAmount,
-      netAmount,
-      feeRate,
-      bankName,
-      accountNumber,
-      accountHolder,
-      status: 'PENDING'
-    }, { transaction });
-
-    // 지갑 잔액 차감
-    await wallet.update({
-      balance: parseFloat(wallet.balance) - parseFloat(amount)
-    }, { transaction });
-
-    // 거래 내역 기록
-    await CoinTransaction.create({
-      userId,
-      transactionType: 'WITHDRAWAL',
-      amount: -parseFloat(amount),
-      balanceAfter: parseFloat(wallet.balance) - parseFloat(amount),
-      relatedId: withdrawal.id,
-      description: `출금 요청 (수수료 ${feeRate * 100}%)`
-    }, { transaction });
-
+    await changeBalance(req.user.id, -amount, transaction, {
+      source: 'OTHER',
+      description: `${recipient.username}님에게 PO 전송`,
+      relatedId: recipient.id,
+    });
+    const received = await changeBalance(recipient.id, amount, transaction, {
+      source: 'OTHER',
+      description: `${req.user.username}님에게서 PO 수신`,
+      relatedId: req.user.id,
+    });
     await transaction.commit();
 
     res.status(201).json({
-      message: '출금 요청이 접수되었습니다. 승인 후 처리됩니다.',
-      withdrawal: {
-        id: withdrawal.id,
-        amount: parseFloat(amount),
-        feeAmount,
-        netAmount,
-        status: withdrawal.status,
-        createdAt: withdrawal.createdAt
-      }
+      success: true,
+      amount,
+      balance: Number(senderAccount.user.poBalance) - amount,
+      recipient: { id: recipient.id, username: recipient.username },
+      recipientBalance: received.balance,
     });
   } catch (error) {
     await transaction.rollback();
-    console.error('출금 요청 오류:', error);
-    res.status(500).json({ error: '출금 요청 중 오류가 발생했습니다.' });
+    res.status(error.status || 500).json({ success: false, error: error.message });
   }
 };
+
+/**
+ * 출금 요청
+ */
+exports.requestWithdrawal = require('./poWalletController').requestWithdrawal;
 
 /**
  * 내 출금 내역 조회
@@ -239,140 +142,14 @@ exports.getMyWithdrawals = async (req, res) => {
 /**
  * 출금 승인/거부 (관리자 전용)
  */
-exports.processWithdrawal = async (req, res) => {
-  const transaction = await sequelize.transaction();
-
-  try {
-    const { withdrawalId } = req.params;
-    const { status, rejectionReason } = req.body;
-
-    if (!['APPROVED', 'REJECTED'].includes(status)) {
-      await transaction.rollback();
-      return res.status(400).json({ error: '유효하지 않은 상태입니다.' });
-    }
-
-    const withdrawal = await Withdrawal.findByPk(withdrawalId, { transaction });
-
-    if (!withdrawal) {
-      await transaction.rollback();
-      return res.status(404).json({ error: '출금 요청을 찾을 수 없습니다.' });
-    }
-
-    if (withdrawal.status !== 'PENDING') {
-      await transaction.rollback();
-      return res.status(400).json({ error: '이미 처리된 출금 요청입니다.' });
-    }
-
-    // 거부된 경우 잔액 복구
-    if (status === 'REJECTED') {
-      const wallet = await Wallet.findOne({
-        where: { userId: withdrawal.userId },
-        transaction
-      });
-
-      await wallet.update({
-        balance: parseFloat(wallet.balance) + parseFloat(withdrawal.amount)
-      }, { transaction });
-
-      await CoinTransaction.create({
-        userId: withdrawal.userId,
-        transactionType: 'WITHDRAWAL',
-        amount: parseFloat(withdrawal.amount),
-        balanceAfter: parseFloat(wallet.balance) + parseFloat(withdrawal.amount),
-        relatedId: withdrawalId,
-        description: `출금 거부 환불: ${rejectionReason || '관리자 거부'}`
-      }, { transaction });
-
-      await withdrawal.update({
-        status: 'REJECTED',
-        rejectionReason: rejectionReason || '관리자에 의해 거부됨',
-        processedAt: new Date()
-      }, { transaction });
-    } else {
-      // 승인된 경우
-      const wallet = await Wallet.findOne({
-        where: { userId: withdrawal.userId },
-        transaction
-      });
-
-      await wallet.update({
-        totalWithdrawn: parseFloat(wallet.totalWithdrawn) + parseFloat(withdrawal.amount)
-      }, { transaction });
-
-      await withdrawal.update({
-        status: 'APPROVED',
-        processedAt: new Date()
-      }, { transaction });
-    }
-
-    await transaction.commit();
-
-    res.json({
-      message: status === 'APPROVED' ? '출금이 승인되었습니다.' : '출금이 거부되었습니다.',
-      withdrawal
-    });
-  } catch (error) {
-    await transaction.rollback();
-    console.error('출금 처리 오류:', error);
-    res.status(500).json({ error: '출금 처리 중 오류가 발생했습니다.' });
-  }
-};
+exports.processWithdrawal = require('./poWalletController').processWithdrawal;
 
 // === PO 충전/교환 시스템 ===
 
 /**
  * PO 충전 (결제 후)
  */
-exports.chargePO = async (req, res) => {
-  const transaction = await sequelize.transaction();
-  try {
-    const userId = req.user.id;
-    const { amount, paymentMethod, paymentId } = req.body;
-
-    if (!amount || amount <= 0) {
-      await transaction.rollback();
-      return res.status(400).json({ error: '충전 금액은 0보다 커야 합니다' });
-    }
-
-    // 충전 금액별 보너스
-    let bonus = 0;
-    if (amount >= 100000) bonus = Math.floor(amount * 0.05); // 10만원 이상 5%
-    else if (amount >= 50000) bonus = Math.floor(amount * 0.03); // 5만원 이상 3%
-    else if (amount >= 10000) bonus = Math.floor(amount * 0.01); // 1만원 이상 1%
-
-    const totalPO = amount + bonus;
-
-    // 사용자 PO 잔액 증가
-    const user = await User.findByPk(userId, { transaction });
-    await user.update({
-      poBalance: user.poBalance + totalPO
-    }, { transaction });
-
-    // 거래 내역 기록
-    await CoinTransaction.create({
-      userId,
-      transactionType: 'DEPOSIT',
-      amount: totalPO,
-      balanceAfter: user.poBalance + totalPO,
-      relatedId: paymentId,
-      description: `PO 충전 (${paymentMethod || '결제'})`
-    }, { transaction });
-
-    await transaction.commit();
-
-    res.json({
-      message: 'PO 충전이 완료되었습니다',
-      charged: amount,
-      bonus,
-      total: totalPO,
-      newBalance: user.poBalance + totalPO
-    });
-  } catch (error) {
-    await transaction.rollback();
-    console.error('PO 충전 오류:', error);
-    res.status(500).json({ error: 'PO 충전 중 오류가 발생했습니다' });
-  }
-};
+exports.chargePO = require('./poWalletController').chargePO;
 
 /**
  * PO 잔액 조회
@@ -393,13 +170,14 @@ exports.getPOBalance = async (req, res) => {
       where: {
         userId,
         transactionType: 'EARN',
-        source: 'dividend',
+        source: 'STOCK_DIVIDEND',
         createdAt: { [Op.gte]: today }
       }
     }) || 0;
 
     res.json({
       poBalance: user.poBalance,
+      ...(await require('../services/poAccountService').account(userId).then(({ reservedBalance, availableBalance }) => ({ reservedBalance, availableBalance }))),
       cashBalance: user.balance || 0,
       todayDividend
     });
@@ -412,66 +190,7 @@ exports.getPOBalance = async (req, res) => {
 /**
  * PO → 현금 전환 요청
  */
-exports.convertPOToCash = async (req, res) => {
-  const transaction = await sequelize.transaction();
-  try {
-    const userId = req.user.id;
-    const { amount, bankName, accountNumber, accountHolder } = req.body;
-
-    if (!amount || amount < 10000) {
-      await transaction.rollback();
-      return res.status(400).json({ error: '최소 전환 금액은 10,000 PO입니다' });
-    }
-
-    const user = await User.findByPk(userId, { transaction });
-    if (user.poBalance < amount) {
-      await transaction.rollback();
-      return res.status(400).json({
-        error: 'PO가 부족합니다',
-        required: amount,
-        available: user.poBalance
-      });
-    }
-
-    // 전환 수수료 10%
-    const feeRate = 0.1;
-    const fee = Math.floor(amount * feeRate);
-    const netAmount = amount - fee;
-
-    // PO 차감
-    await user.update({
-      poBalance: user.poBalance - amount
-    }, { transaction });
-
-    // 출금 요청 생성
-    await Withdrawal.create({
-      userId,
-      amount,
-      feeAmount: fee,
-      netAmount,
-      feeRate,
-      bankName,
-      accountNumber,
-      accountHolder,
-      status: 'PENDING',
-      type: 'PO_CONVERSION'
-    }, { transaction });
-
-    await transaction.commit();
-
-    res.json({
-      message: 'PO 전환 요청이 접수되었습니다',
-      amount,
-      fee,
-      netAmount,
-      newBalance: user.poBalance - amount
-    });
-  } catch (error) {
-    await transaction.rollback();
-    console.error('PO 전환 오류:', error);
-    res.status(500).json({ error: 'PO 전환 중 오류가 발생했습니다' });
-  }
-};
+exports.convertPOToCash = require('./poWalletController').convertPOToCash;
 
 /**
  * PO 사용 내역 조회
@@ -479,12 +198,14 @@ exports.convertPOToCash = async (req, res) => {
 exports.getPOHistory = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { type, page = 1, limit = 20 } = req.query;
+    const { type } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
     const offset = (page - 1) * limit;
 
     const { Op } = require('sequelize');
-    const where = { userId };
-    if (type) where.transactionType = type;
+    const where = { userId, coinType: 'PO' };
+    if (type && type !== 'all') where.transactionType = type;
 
     const { count, rows: transactions } = await CoinTransaction.findAndCountAll({
       where,
@@ -524,7 +245,8 @@ exports.getChargeProducts = async (req, res) => {
       { id: 8, amount: 1000000, bonus: 80000, price: 1000000, label: '1,000,000 PO (+8%)' }
     ];
 
-    res.json({ products });
+    // Payment bonuses belong to cash charging; PO conversion is one-to-one.
+    res.json({ products: products.map(product => ({ ...product, bonus: 0, label: `${product.amount.toLocaleString()} PO` })) });
   } catch (error) {
     console.error('충전 상품 조회 오류:', error);
     res.status(500).json({ error: '상품 조회 중 오류가 발생했습니다' });

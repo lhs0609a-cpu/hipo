@@ -12,6 +12,9 @@ router.get('/balance', auth, walletController.getWalletBalance);
 // 거래 내역 조회
 router.get('/transactions', auth, walletController.getTransactionHistory);
 
+// 사용자 간 PO 전송
+router.post('/transfer', auth, walletController.transferPO);
+
 // 출금 요청
 router.post('/withdraw', auth, walletController.requestWithdrawal);
 

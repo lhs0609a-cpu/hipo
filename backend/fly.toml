@@ -9,6 +9,12 @@ primary_region = 'nrt'
   DB_STORAGE = '/data/database.sqlite'
   INITIAL_PO_BALANCE = '10000'
   INITIAL_MARKET_CAP = '5000'
+  # 부팅 시 스키마 동기화.
+  # NODE_ENV=production 이면 기본값이 none 이므로 여기서 명시적으로 켠다.
+  # 이 앱은 단일 머신 + SQLite 볼륨 구성이고 스키마 원본이 src/models/*.js 이므로
+  # 부팅 시 alter 가 적절하다. (Postgres 다중 인스턴스로 옮기면 none 으로 바꾸고
+  # 배포 파이프라인에서 `npm run migrate` 를 한 번만 실행할 것)
+  DB_SYNC = 'alter'
 
 [http_service]
   internal_port = 3000

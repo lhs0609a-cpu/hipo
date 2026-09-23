@@ -185,81 +185,10 @@ exports.secondaryOffering = async (req, res) => {
  * 자사주 매입
  */
 exports.buybackShares = async (req, res) => {
-  const t = await sequelize.transaction();
   try {
-    const userId = req.user.id;
-    const { shares, maxPrice } = req.body;
-
-    const user = await User.findByPk(userId, { transaction: t });
-    const stock = await Stock.findOne({ where: { userId }, transaction: t });
-
-    if (!stock) {
-      await t.rollback();
-      return res.status(404).json({ error: '발행한 주식이 없습니다' });
-    }
-
-    const totalCost = shares * (maxPrice || stock.sharePrice);
-    if (user.poBalance < totalCost) {
-      await t.rollback();
-      return res.status(400).json({ error: 'PO가 부족합니다', required: totalCost, available: user.poBalance });
-    }
-
-    // 시장에서 가장 낮은 가격의 매도 주문 체결
-    const sellOrders = await StockOrder.findAll({
-      where: {
-        stockId: stock.id,
-        orderType: 'SELL',
-        status: 'PENDING',
-        limitPrice: { [Op.lte]: maxPrice || stock.sharePrice }
-      },
-      order: [['limitPrice', 'ASC']],
-      transaction: t
-    });
-
-    let remainingShares = shares;
-    let totalSpent = 0;
-    let filledShares = 0;
-
-    for (const order of sellOrders) {
-      if (remainingShares <= 0) break;
-
-      const fillQty = Math.min(remainingShares, order.quantity - order.filledQuantity);
-      const cost = fillQty * order.limitPrice;
-
-      if (user.poBalance - totalSpent < cost) break;
-
-      // 주문 체결 처리
-      await order.update({
-        filledQuantity: order.filledQuantity + fillQty,
-        status: order.filledQuantity + fillQty >= order.quantity ? 'FILLED' : 'PARTIAL'
-      }, { transaction: t });
-
-      totalSpent += cost;
-      filledShares += fillQty;
-      remainingShares -= fillQty;
-    }
-
-    // 잔액 차감 및 자사주 추가
-    await user.update({ poBalance: user.poBalance - totalSpent }, { transaction: t });
-    await stock.update({
-      treasuryShares: (stock.treasuryShares || 0) + filledShares,
-      issuedShares: stock.issuedShares - filledShares
-    }, { transaction: t });
-
-    await t.commit();
-
-    res.json({
-      message: '자사주 매입이 완료되었습니다',
-      sharesBought: filledShares,
-      totalSpent,
-      averagePrice: filledShares > 0 ? Math.floor(totalSpent / filledShares) : 0,
-      treasuryShares: (stock.treasuryShares || 0) + filledShares
-    });
-  } catch (error) {
-    await t.rollback();
-    console.error('자사주 매입 오류:', error);
-    res.status(500).json({ error: '자사주 매입 중 오류가 발생했습니다' });
-  }
+    const result = await require('../services/buybackService')(req.user.id, req.body.shares, req.body.maxPrice);
+    res.json({ message: '자사주 매입 주문이 처리되었습니다', ...result });
+  } catch (error) { res.status(400).json({ error: error.message }); }
 };
 
 /**

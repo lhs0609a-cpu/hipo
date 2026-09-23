@@ -3,12 +3,13 @@ const app = require('../server');
 const { sequelize } = require('../src/models');
 
 describe('Post API Tests', () => {
+  const runId = `${process.pid}${Date.now()}`;
   let authToken;
   let userId;
   let postId;
   let testUser = {
-    email: 'posttest@example.com',
-    username: 'posttestuser',
+    email: `post-${runId}@example.com`,
+    username: `post${runId}`,
     password: 'Test123!@#'
   };
 
@@ -127,8 +128,8 @@ describe('Post API Tests', () => {
       expect([200, 201, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        expect(response.body).toHaveProperty('post');
-        expect(response.body.post.id).toBe(postId);
+        expect(response.body.id).toBe(postId);
+        expect(response.body).toHaveProperty('author');
       }
     });
   });

@@ -10,6 +10,7 @@ import {
   Alert,
   TextInput,
   Modal,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { watchlistAPI } from '../services/api';
@@ -51,6 +52,14 @@ const WatchlistScreen = ({ navigation }) => {
   }, []);
 
   const handleRemove = async (stockId) => {
+    if (Platform.OS === 'web') {
+      if (!window.confirm('이 종목을 관심종목에서 삭제하시겠습니까?')) return;
+      try {
+        await watchlistAPI.remove(stockId);
+        setWatchlist(prev => prev.filter(item => item.stockId !== stockId));
+      } catch (error) { window.alert('삭제에 실패했습니다'); }
+      return;
+    }
     Alert.alert(
       '관심종목 삭제',
       '이 종목을 관심종목에서 삭제하시겠습니까?',
@@ -212,7 +221,7 @@ const WatchlistScreen = ({ navigation }) => {
 
       {/* 관심종목 목록 */}
       <FlatList
-        data={watchlist}
+        data={watchlist.filter(item => activeCategory === 'all' || item.category === activeCategory)}
         renderItem={renderWatchlistItem}
         keyExtractor={item => item.stockId}
         contentContainerStyle={styles.listContent}

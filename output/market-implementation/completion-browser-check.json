@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "checks": [
+    "home transfer navigation",
+    "transfer form design",
+    "recipient lookup",
+    "atomic PO transfer",
+    "updated available balance"
+  ],
+  "pageErrors": []
+}

@@ -1,3 +1,6 @@
+const { reservations } = require('../services/orderBookService');
+const tradingTransaction = require('../services/tradingTransaction');
+const { tradingDay } = require('../services/marketRules');
 const { User, Stock, Holding, Transaction, PriceHistory, Wallet, sequelize } = require('../models');
 const stockPriceService = require('../services/stockPriceService');
 const { getIO } = require('../config/socket');
@@ -19,15 +22,21 @@ const { detectBot } = require('../utils/botDetector');
  */
 exports.getStocks = async (req, res) => {
   try {
-    const { page = 1, limit = 20, sortBy = 'marketCap' } = req.query;
+    const { sortBy = 'marketCap', direction } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 20));
     const offset = (page - 1) * limit;
 
     let order = [['marketCapTotal', 'DESC']]; // 기본: 시가총액 순
 
     if (sortBy === 'price') order = [['sharePrice', 'DESC']];
     else if (sortBy === 'change') order = [['priceChangePercent', 'DESC']];
+    else if (sortBy === 'changeAsc') order = [['priceChangePercent', 'ASC']];
+    else if (sortBy === 'volume') order = [['dayVolume', 'DESC']];
 
+    const where = direction === 'rising' ? { priceChangePercent: { [Op.gt]: 0 } } : direction === 'falling' ? { priceChangePercent: { [Op.lt]: 0 } } : {};
     const stocks = await Stock.findAll({
+      where,
       include: [{
         model: User,
         as: 'issuer',
@@ -51,7 +60,7 @@ exports.getStocks = async (req, res) => {
       })
     );
 
-    const total = await Stock.count();
+    const total = await Stock.count({ where });
 
     res.json({
       stocks: stocksWithHolders,
@@ -168,38 +177,47 @@ exports.getStockDetail = async (req, res) => {
 /**
  * 주식 매수
  */
-exports.buyStock = async (req, res) => {
-  const t = await sequelize.transaction();
+exports.subscribeStock = async (req, res) => {
+  const t = await tradingTransaction();
 
   try {
     const { stockId, shares } = req.body;
     const buyerId = req.user.id;
 
     // 입력 검증
-    if (!stockId || !shares || shares <= 0) {
+    if (!stockId || !Number.isSafeInteger(shares) || shares <= 0) {
       await t.rollback();
       return res.status(400).json({ error: '유효하지 않은 입력입니다' });
     }
 
     // 주식 정보 조회
-    const stock = await Stock.findByPk(stockId, { transaction: t });
+    const stock = await Stock.findByPk(stockId, { transaction: t, lock: t.LOCK.UPDATE });
     if (!stock) {
       await t.rollback();
       return res.status(404).json({ error: '주식을 찾을 수 없습니다' });
     }
 
     // 자기 주식 매수 방지
+    if (stock.status !== 'active') {
+      await t.rollback();
+      return res.status(400).json({ error: '현재 거래할 수 없는 종목입니다' });
+    }
     if (stock.userId === buyerId) {
       await t.rollback();
       return res.status(400).json({ error: '자신의 주식은 매수할 수 없습니다' });
     }
 
     // 구매자 정보
-    const buyer = await User.findByPk(buyerId, { transaction: t });
+    const buyer = await User.findByPk(buyerId, { transaction: t, lock: t.LOCK.UPDATE });
+    const reserved = await reservations(buyerId, stockId, t);
     const totalCost = stock.sharePrice * shares;
+    if (!Number.isSafeInteger(totalCost) || totalCost > 2147483647) {
+      await t.rollback();
+      return res.status(400).json({ error: '주문 금액이 허용 범위를 초과했습니다' });
+    }
 
     // 잔액 확인
-    if (buyer.poBalance < totalCost) {
+    if (buyer.poBalance - reserved.cash < totalCost) {
       await t.rollback();
       return res.status(400).json({
         error: 'PO가 부족합니다',
@@ -233,7 +251,7 @@ exports.buyStock = async (req, res) => {
 
     if (buyerWallet) {
       await buyerWallet.update({
-        poBalance: parseFloat(buyerWallet.poBalance) - totalCost,
+        poBalance: buyer.poBalance,
         totalPOSpent: parseFloat(buyerWallet.totalPOSpent) + totalCost
       }, { transaction: t });
     }
@@ -253,7 +271,7 @@ exports.buyStock = async (req, res) => {
 
     if (creatorWallet) {
       await creatorWallet.update({
-        poBalance: parseFloat(creatorWallet.poBalance) + totalCost,
+        poBalance: creator.poBalance,
         totalPOEarned: parseFloat(creatorWallet.totalPOEarned) + totalCost
       }, { transaction: t });
     }
@@ -373,13 +391,11 @@ exports.buyStock = async (req, res) => {
         shares,
         pricePerShare: stock.sharePrice,
         totalCost,
-        newBalance: buyer.poBalance - totalCost
+        newBalance: buyer.poBalance
       },
       holding: {
-        totalShares: created ? shares : holding.shares + shares,
-        averagePrice: created ? stock.sharePrice : Math.floor(
-          (holding.averagePrice * holding.shares + totalCost) / (holding.shares + shares)
-        )
+        totalShares: holding.shares,
+        averagePrice: holding.averagePrice
       }
     });
   } catch (error) {
@@ -392,130 +408,24 @@ exports.buyStock = async (req, res) => {
 /**
  * 주식 매도
  */
-exports.sellStock = async (req, res) => {
-  const t = await sequelize.transaction();
-
-  try {
-    const { stockId, shares } = req.body;
-    const sellerId = req.user.id;
-
-    if (!stockId || !shares || shares <= 0) {
-      await t.rollback();
-      return res.status(400).json({ error: '유효하지 않은 입력입니다' });
-    }
-
-    // 보유 주식 확인
-    const holding = await Holding.findOne({
-      where: { holderId: sellerId, stockId },
-      transaction: t
-    });
-
-    if (!holding || holding.shares < shares) {
-      await t.rollback();
-      return res.status(400).json({
-        error: '보유 주식이 부족합니다',
-        requested: shares,
-        available: holding ? holding.shares : 0
-      });
-    }
-
-    // 주식 정보
-    const stock = await Stock.findByPk(stockId, { transaction: t });
-    const totalRevenue = stock.sharePrice * shares;
-
-    // 판매자 정보
-    const seller = await User.findByPk(sellerId, { transaction: t });
-
-    // PO 지급 (User 모델)
-    await seller.update(
-      { poBalance: seller.poBalance + totalRevenue },
-      { transaction: t }
-    );
-
-    // PO 지급 (Wallet 모델)
-    const sellerWallet = await Wallet.findOne({
-      where: { userId: sellerId },
-      transaction: t
-    });
-
-    if (sellerWallet) {
-      await sellerWallet.update({
-        poBalance: parseFloat(sellerWallet.poBalance) + totalRevenue
-      }, { transaction: t });
-    }
-
-    // 보유 주식 감소
-    if (holding.shares === shares) {
-      // 전량 매도 - 보유 기록 삭제
-      await holding.destroy({ transaction: t });
-    } else {
-      // 일부 매도
-      await holding.update(
-        { shares: holding.shares - shares },
-        { transaction: t }
-      );
-    }
-
-    // 거래 내역 저장
-    await Transaction.create({
-      sellerId,
-      stockId,
-      shares,
-      pricePerShare: stock.sharePrice,
-      totalAmount: totalRevenue,
-      transactionType: 'sell'
-    }, { transaction: t });
-
-    // 주식 발행량 감소
-    await stock.update(
-      { issuedShares: stock.issuedShares - shares },
-      { transaction: t }
-    );
-
-    await t.commit();
-
-    // 주가 재계산 (비동기)
-    stockPriceService.calculateStockPrice(stock.userId).catch(console.error);
-
-    // 실시간 거래 피드 브로드캐스트
-    try {
-      const io = getIO();
-      io.emit('trade:new', {
-        tradeType: 'sell',
-        traderId: seller.id,
-        traderUsername: seller.username,
-        traderDisplayName: seller.displayName || seller.username,
-        traderProfileImage: seller.profileImage,
-        stockId: stock.id,
-        stockUsername: stock.issuer?.username || 'Unknown',
-        stockDisplayName: stock.issuer?.displayName || stock.issuer?.username,
-        shares,
-        pricePerShare: stock.sharePrice,
-        totalAmount: totalRevenue,
-        timestamp: new Date()
-      });
-    } catch (err) {
-      console.error('거래 피드 브로드캐스트 오류:', err);
-    }
-
-    res.json({
-      message: '매도 완료',
-      transaction: {
-        shares,
-        pricePerShare: stock.sharePrice,
-        totalRevenue,
-        newBalance: seller.poBalance + totalRevenue
-      },
-      holding: {
-        remainingShares: holding.shares - shares
+// Secondary trading always requires a real counterparty.
+const placeMarketOrder = orderType => async (req, res) => {
+  const adapter = {
+    status(code) { res.status(code); return this; },
+    json(data) {
+      if (data.order) {
+        const amount = data.order.filledAmount || 0;
+        data.transaction = { shares: data.order.filledQuantity, totalCost: amount, totalRevenue: amount };
       }
-    });
-  } catch (error) {
-    await t.rollback();
-    console.error('주식 매도 오류:', error);
-    res.status(500).json({ error: '주식 매도 중 오류가 발생했습니다' });
-  }
+      return res.json(data);
+    }
+  };
+  return require('./stockOrderController').createOrder({ user: req.user, body: {
+    stockId: req.body.stockId, quantity: req.body.shares, orderType, orderMode: 'market'
+  } }, adapter);
 };
+exports.buyStock = placeMarketOrder('BUY');
+exports.sellStock = placeMarketOrder('SELL');
 
 /**
  * 내 보유 주식 조회
@@ -576,7 +486,7 @@ exports.getMyShareholders = async (req, res) => {
 
     // 내 주식 찾기
     const myStock = await Stock.findOne({
-      where: { issuerId: userId }
+      where: { userId }
     });
 
     if (!myStock) {
@@ -658,7 +568,7 @@ exports.getTransactions = async (req, res) => {
     });
 
     res.json({
-      transactions,
+      transactions: transactions.map(item => ({ ...item.toJSON(), transactionType: item.buyerId === userId ? 'BUY' : 'SELL' })),
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),
@@ -788,10 +698,11 @@ exports.getPriceHistory = async (req, res) => {
         stockId,
         timeframe
       },
-      order: [['timestamp', 'ASC']],
-      limit: parseInt(limit)
+      order: [['timestamp', 'DESC']],
+      limit: Math.min(1000, Math.max(1, Number.parseInt(limit, 10) || 100))
     });
 
+    history.reverse();
     if (history.length === 0) {
       return res.json({ history: [], indicators: {} });
     }
@@ -912,7 +823,7 @@ exports.generateDemoHistory = async (req, res) => {
  * 주식 발행 (IPO)
  */
 exports.issueStock = async (req, res) => {
-  const t = await sequelize.transaction();
+  const t = await tradingTransaction();
 
   try {
     const { initialPrice, totalShares, initialOffering, dividendRate } = req.body;
@@ -1047,81 +958,9 @@ exports.issueStock = async (req, res) => {
 };
 
 /**
- * 호가창 데이터 조회 (시뮬레이션)
+ * 실제 미체결 주문 기반 호가창
  */
-exports.getOrderBook = async (req, res) => {
-  try {
-    const { stockId } = req.params;
-
-    const stock = await Stock.findByPk(stockId);
-    if (!stock) {
-      return res.status(404).json({ error: '주식을 찾을 수 없습니다' });
-    }
-
-    const currentPrice = stock.sharePrice;
-    const priceStep = Math.max(1, Math.floor(currentPrice * 0.005)); // 0.5% 단위
-
-    // 매도 호가 생성 (현재가 위로 10단계)
-    const asks = [];
-    for (let i = 1; i <= 10; i++) {
-      const price = currentPrice + (priceStep * i);
-      // 현재가에 가까울수록 더 많은 물량
-      const baseQuantity = Math.floor(Math.random() * 300 + 50);
-      const quantity = Math.floor(baseQuantity * (11 - i) / 10);
-      asks.push({
-        price,
-        quantity: Math.max(10, quantity),
-        totalVolume: price * Math.max(10, quantity),
-      });
-    }
-
-    // 매수 호가 생성 (현재가 아래로 10단계)
-    const bids = [];
-    for (let i = 1; i <= 10; i++) {
-      const price = currentPrice - (priceStep * i);
-      if (price <= 0) break;
-      const baseQuantity = Math.floor(Math.random() * 300 + 50);
-      const quantity = Math.floor(baseQuantity * (11 - i) / 10);
-      bids.push({
-        price,
-        quantity: Math.max(10, quantity),
-        totalVolume: price * Math.max(10, quantity),
-      });
-    }
-
-    // 최대 물량 계산 (바 차트 비율용)
-    const maxQuantity = Math.max(
-      ...asks.map(a => a.quantity),
-      ...bids.map(b => b.quantity)
-    );
-
-    // 각 호가에 비율 추가
-    asks.forEach(a => a.percentage = (a.quantity / maxQuantity) * 100);
-    bids.forEach(b => b.percentage = (b.quantity / maxQuantity) * 100);
-
-    // 총 물량 계산
-    const totalAskQuantity = asks.reduce((sum, a) => sum + a.quantity, 0);
-    const totalBidQuantity = bids.reduce((sum, b) => sum + b.quantity, 0);
-
-    // 스프레드 계산
-    const bestAsk = asks.length > 0 ? asks[asks.length - 1].price : currentPrice;
-    const bestBid = bids.length > 0 ? bids[0].price : currentPrice;
-
-    res.json({
-      asks: asks.reverse(), // 높은 가격이 위로
-      bids,
-      currentPrice,
-      priceChangePercent: stock.priceChangePercent || 0,
-      totalAskQuantity,
-      totalBidQuantity,
-      spread: bestAsk - bestBid,
-      spreadPercent: ((bestAsk - bestBid) / currentPrice * 100).toFixed(2),
-    });
-  } catch (error) {
-    console.error('호가창 조회 오류:', error);
-    res.status(500).json({ error: '호가창 조회 중 오류가 발생했습니다' });
-  }
-};
+exports.getOrderBook = require('./stockOrderController').getStockOrders;
 
 /**
  * 주식 상세 통계 조회 (시가, 고가, 저가, 거래량)
@@ -1143,8 +982,7 @@ exports.getStockStats = async (req, res) => {
     }
 
     // 오늘 시작 시간
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    const todayStart = tradingDay();
 
     // 오늘의 가격 히스토리 조회
     const todayHistory = await PriceHistory.findAll({

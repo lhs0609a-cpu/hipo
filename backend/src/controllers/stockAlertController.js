@@ -8,6 +8,12 @@ exports.createAlert = async (req, res) => {
   try {
     const userId = req.user.id;
     const { stockId, alertType, targetPrice, targetPercent, isRecurring } = req.body;
+    const types = ['PRICE_ABOVE', 'PRICE_BELOW', 'PERCENT_UP', 'PERCENT_DOWN', 'VOLUME_SPIKE', 'NEW_HIGH', 'NEW_LOW', 'DIVIDEND_PAID'];
+    if (!types.includes(alertType) ||
+        (['PRICE_ABOVE', 'PRICE_BELOW'].includes(alertType) && (!Number.isSafeInteger(targetPrice) || targetPrice <= 0)) ||
+        (['PERCENT_UP', 'PERCENT_DOWN', 'VOLUME_SPIKE'].includes(alertType) && (!Number.isFinite(targetPercent) || targetPercent <= 0 || targetPercent > 999.99))) {
+      return res.status(400).json({ error: '알림 유형과 목표값을 확인해주세요' });
+    }
 
     // 주식 존재 확인
     const stock = await Stock.findByPk(stockId);
@@ -268,6 +274,7 @@ exports.addToWatchlist = async (req, res) => {
     const watchlist = await Watchlist.create({
       userId,
       stockId,
+      addedPrice: stock.sharePrice,
       note
     });
 

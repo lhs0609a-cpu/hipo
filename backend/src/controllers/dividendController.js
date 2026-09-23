@@ -1,3 +1,5 @@
+const tradingTransaction = require('../services/tradingTransaction');
+const { account, changeBalance, positiveAmount } = require('../services/poAccountService');
 const {
   getDividendHistory,
   getCreatorDividendStats,
@@ -331,12 +333,13 @@ exports.updateDividendRate = async (req, res) => {
 
 // 특별 배당 지급 (크리에이터용)
 exports.paySpecialDividend = async (req, res) => {
-  const t = await sequelize.transaction();
+  const t = await tradingTransaction();
   try {
     const userId = req.user.id;
     const { amount, reason } = req.body;
+    positiveAmount(amount);
 
-    const user = await User.findByPk(userId, { transaction: t });
+    const user = await User.findByPk(userId, { transaction: t, lock: t.LOCK.UPDATE });
     const stock = await Stock.findOne({ where: { userId }, transaction: t });
 
     if (!stock) {
@@ -346,14 +349,14 @@ exports.paySpecialDividend = async (req, res) => {
 
     // 특별 배당 총액 계산
     const holdings = await Holding.findAll({
-      where: { stockId: stock.id },
+      where: { stockId: stock.id, holderId: { [Op.ne]: userId }, shares: { [Op.gt]: 0 } },
       transaction: t
     });
 
     const totalShares = holdings.reduce((sum, h) => sum + h.shares, 0);
     const totalDividend = amount * totalShares;
 
-    if (user.poBalance < totalDividend) {
+    if ((await account(userId, t)).availableBalance < totalDividend) {
       await t.rollback();
       return res.status(400).json({
         success: false,
@@ -363,15 +366,13 @@ exports.paySpecialDividend = async (req, res) => {
       });
     }
 
+    if (totalDividend > 0) await changeBalance(userId, -totalDividend, t);
+
     // 각 주주에게 배당 지급
     for (const holding of holdings) {
       const dividendAmount = amount * holding.shares;
 
-      await User.increment('poBalance', {
-        by: dividendAmount,
-        where: { id: holding.holderId },
-        transaction: t
-      });
+      await changeBalance(holding.holderId, dividendAmount, t, { source: 'STOCK_DIVIDEND', description: '특별 배당 수령' });
 
       await Dividend.create({
         holderId: holding.holderId,
@@ -383,7 +384,7 @@ exports.paySpecialDividend = async (req, res) => {
     }
 
     // 발행자 잔액 차감
-    await user.update({ poBalance: user.poBalance - totalDividend }, { transaction: t });
+
 
     await t.commit();
 
@@ -397,7 +398,7 @@ exports.paySpecialDividend = async (req, res) => {
   } catch (error) {
     await t.rollback();
     console.error('특별 배당 지급 오류:', error);
-    res.status(500).json({ success: false, message: '특별 배당 지급 실패' });
+    res.status(error.status || 500).json({ success: false, message: error.message });
   }
 };
 

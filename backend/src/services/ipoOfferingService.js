@@ -1,3 +1,5 @@
+const tradingTransaction = require('../services/tradingTransaction');
+const { account, changeBalance, positiveAmount } = require('../services/poAccountService');
 /**
  * IPO 공모/청약 서비스
  */
@@ -107,18 +109,18 @@ async function rejectOffering(offeringId, reviewerId, note) {
  * 청약 신청
  */
 async function subscribe(offeringId, userId, requestedShares) {
-  const t = await sequelize.transaction();
+  const t = await tradingTransaction();
 
   try {
     // 공모 조회
-    const offering = await IPOOffering.findByPk(offeringId, { transaction: t });
+    const offering = await IPOOffering.findByPk(offeringId, { transaction: t, lock: t.LOCK.UPDATE });
     if (!offering) {
       throw new Error('공모를 찾을 수 없습니다');
     }
 
     // 청약 가능 상태 확인
     const now = new Date();
-    if (offering.status !== 'subscription' && offering.status !== 'approved') {
+    if (offering.status !== 'subscription') {
       // 청약 기간 자동 활성화
       if (offering.status === 'approved' && now >= offering.subscriptionStartAt) {
         await offering.update({ status: 'subscription' }, { transaction: t });
@@ -149,26 +151,25 @@ async function subscribe(offeringId, userId, requestedShares) {
       throw new Error('이미 청약 신청하셨습니다');
     }
 
+    positiveAmount(requestedShares);
     // 수량 검증
     if (requestedShares < offering.minSubscriptionShares) {
       throw new Error(`최소 ${offering.minSubscriptionShares}주 이상 청약해야 합니다`);
     }
-    if (requestedShares > offering.maxSubscriptionShares) {
+    if (offering.maxSubscriptionShares && requestedShares > offering.maxSubscriptionShares) {
       throw new Error(`최대 ${offering.maxSubscriptionShares}주까지 청약 가능합니다`);
     }
 
     // 잔액 확인
-    const user = await User.findByPk(userId, { transaction: t });
+    const user = await User.findByPk(userId, { transaction: t, lock: t.LOCK.UPDATE });
     const depositAmount = requestedShares * offering.offeringPrice;
 
-    if (user.poBalance < depositAmount) {
+    if ((await account(userId, t)).availableBalance < depositAmount) {
       throw new Error('PO가 부족합니다');
     }
 
     // 청약 증거금 차감
-    await user.update({
-      poBalance: user.poBalance - depositAmount
-    }, { transaction: t });
+    await changeBalance(userId, -depositAmount, t);
 
     // 청약 신청 생성
     const subscription = await IPOSubscription.create({
@@ -190,10 +191,10 @@ async function subscribe(offeringId, userId, requestedShares) {
 
     return {
       subscription,
-      competitionRate: ((offering.subscribedShares + requestedShares) / offering.totalShares * 100).toFixed(2)
+      competitionRate: (offering.subscribedShares / offering.totalShares * 100).toFixed(2)
     };
   } catch (error) {
-    await t.rollback();
+    if (!t.finished) await t.rollback();
     throw error;
   }
 }
@@ -202,7 +203,7 @@ async function subscribe(offeringId, userId, requestedShares) {
  * 청약 취소
  */
 async function cancelSubscription(subscriptionId, userId) {
-  const t = await sequelize.transaction();
+  const t = await tradingTransaction();
 
   try {
     const subscription = await IPOSubscription.findByPk(subscriptionId, {
@@ -230,10 +231,8 @@ async function cancelSubscription(subscriptionId, userId) {
     }
 
     // 증거금 환불
-    const user = await User.findByPk(userId, { transaction: t });
-    await user.update({
-      poBalance: user.poBalance + subscription.depositAmount
-    }, { transaction: t });
+    const user = await User.findByPk(userId, { transaction: t, lock: t.LOCK.UPDATE });
+    await changeBalance(userId, Number(subscription.depositAmount), t);
 
     // 청약 취소 처리
     await subscription.update({
@@ -252,7 +251,7 @@ async function cancelSubscription(subscriptionId, userId) {
 
     return { refundAmount: subscription.depositAmount };
   } catch (error) {
-    await t.rollback();
+    if (!t.finished) await t.rollback();
     throw error;
   }
 }
@@ -261,7 +260,7 @@ async function cancelSubscription(subscriptionId, userId) {
  * 배정 처리
  */
 async function processAllocation(offeringId) {
-  const t = await sequelize.transaction();
+  const t = await tradingTransaction();
 
   try {
     const offering = await IPOOffering.findByPk(offeringId, {
@@ -281,7 +280,8 @@ async function processAllocation(offeringId) {
       throw new Error('배정 처리할 수 없는 상태입니다');
     }
 
-    const subscriptions = offering.subscriptions;
+    if (new Date() < offering.subscriptionEndAt) throw new Error('청약 마감 후 배정할 수 있습니다');
+    const subscriptions = offering.subscriptions.filter(item => item.status === 'confirmed');
     const totalRequested = subscriptions.reduce((sum, s) => sum + s.requestedShares, 0);
     const competitionRate = totalRequested / offering.totalShares;
 
@@ -323,11 +323,7 @@ async function processAllocation(offeringId) {
 
       // 환불금 지급
       if (refundAmount > 0) {
-        await User.increment('poBalance', {
-          by: refundAmount,
-          where: { id: subscription.userId },
-          transaction: t
-        });
+        if (Number(refundAmount) > 0) await changeBalance(subscription.userId, Number(refundAmount), t);
         await subscription.update({ refundedAt: new Date() }, { transaction: t });
       }
 
@@ -339,7 +335,7 @@ async function processAllocation(offeringId) {
             holderId: subscription.userId,
             stockId: offering.stockId,
             shares: alloc.shares,
-            averageCost: offering.offeringPrice
+            averagePrice: offering.offeringPrice
           },
           transaction: t
         });
@@ -347,11 +343,11 @@ async function processAllocation(offeringId) {
         if (!created) {
           const newTotalShares = holding.shares + alloc.shares;
           const newAverageCost = Math.floor(
-            (holding.shares * holding.averageCost + alloc.shares * offering.offeringPrice) / newTotalShares
+            (holding.shares * holding.averagePrice + alloc.shares * offering.offeringPrice) / newTotalShares
           );
           await holding.update({
             shares: newTotalShares,
-            averageCost: newAverageCost
+            averagePrice: newAverageCost
           }, { transaction: t });
         }
 
@@ -363,7 +359,7 @@ async function processAllocation(offeringId) {
           shares: alloc.shares,
           pricePerShare: offering.offeringPrice,
           totalAmount: allocatedAmount,
-          transactionType: 'ipo',
+          transactionType: 'buy',
           fee: 0
         }, { transaction: t });
       }
@@ -371,17 +367,13 @@ async function processAllocation(offeringId) {
 
     // 발행자에게 공모 대금 지급
     const totalProceeds = allocations.reduce((sum, a) => sum + a.shares * offering.offeringPrice, 0);
-    await User.increment('poBalance', {
-      by: totalProceeds,
-      where: { id: offering.userId },
-      transaction: t
-    });
+    if (Number(totalProceeds) > 0) await changeBalance(offering.userId, Number(totalProceeds), t);
 
     // 주식 업데이트
     const totalAllocated = allocations.reduce((sum, a) => sum + a.shares, 0);
     await offering.stock.update({
-      issuedShares: totalAllocated,
-      availableShares: 0,
+      issuedShares: offering.stock.issuedShares + totalAllocated,
+      availableShares: Math.max(offering.stock.availableShares, offering.stock.issuedShares + totalAllocated),
       status: 'active',
       ipoApproved: true,
       shareholderCount: allocations.filter(a => a.shares > 0).length
@@ -404,7 +396,7 @@ async function processAllocation(offeringId) {
       proceeds: totalProceeds
     };
   } catch (error) {
-    await t.rollback();
+    if (!t.finished) await t.rollback();
     throw error;
   }
 }
@@ -506,11 +498,7 @@ function lotteryAllocation(subscriptions, totalShares) {
 async function handleFailedIPO(offering, subscriptions, transaction) {
   // 모든 청약자에게 환불
   for (const subscription of subscriptions) {
-    await User.increment('poBalance', {
-      by: subscription.depositAmount,
-      where: { id: subscription.userId },
-      transaction
-    });
+    if (Number(subscription.depositAmount) > 0) await changeBalance(subscription.userId, Number(subscription.depositAmount), transaction);
 
     await subscription.update({
       status: 'failed',

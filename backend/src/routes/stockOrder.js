@@ -28,6 +28,8 @@ router.get('/:orderId', authenticateToken, stockOrderController.getOrderDetail);
  * 주문 취소
  */
 router.delete('/:orderId', authenticateToken, stockOrderController.cancelOrder);
+router.patch('/:orderId', authenticateToken, stockOrderController.amendOrder);
+router.get('/stock/:stockId/account', authenticateToken, stockOrderController.getTradingAccount);
 
 /**
  * GET /api/stock-orders/stock/:stockId/orderbook
